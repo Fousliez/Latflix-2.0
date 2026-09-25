@@ -277,6 +277,16 @@ Pravidla:
 - toto pravidlo se vztahuje pouze na samotnou tabulku; netýká se tlačítek, panelů ani dalších prvků nad tabulkou,
 - rozdíl mezi sekcemi je pouze v datech: sekce **Super** zobrazuje pouze vybranou podmnožinu dat ze sekce **Videa**.
 
+
+### Sdílené horní panely mezi párovými sekcemi
+
+Stejné párování jako u tabulek platí také pro horní pracovní panel daných sekcí:
+
+- **Girls** a **Oblíbené** budou mít úplně stejný horní panel,
+- **Videa** a **Super** budou mít úplně stejný horní panel,
+- jakákoli budoucí změna, tlačítko, ovládací prvek, chování nebo výjimka definovaná pro horní panel Girls se automaticky vztahuje i na Oblíbené, pokud uživatel výslovně neurčí jinak,
+- stejně tak jakákoli budoucí změna, tlačítko, ovládací prvek, chování nebo výjimka definovaná pro horní panel Videa se automaticky vztahuje i na Super, pokud uživatel výslovně neurčí jinak.
+
 ---
 
 ## Pracovní pravidlo specifikace
