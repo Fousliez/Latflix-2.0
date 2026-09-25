@@ -200,6 +200,20 @@ Toto nastavení bude:
 - zachované i po ukončení aplikace,
 - po novém spuštění aplikace automaticky obnovené do posledního uloženého stavu dané sekce.
 
+### Kontextová nabídka hlavičky sloupců
+
+Po odemčení hlavičky tabulky bude možné pracovat i s názvy a viditelností sloupců.
+
+Po kliknutí pravým tlačítkem na název běžného datového sloupce se zobrazí kontextová nabídka obsahující minimálně:
+- **Přejmenovat sloupec** – umožní změnit zobrazovaný název sloupce,
+- **Skrýt sloupec** – skryje daný sloupec z aktuálního zobrazení.
+
+Pravidla:
+- tyto volby budou dostupné pouze tehdy, když je hlavička tabulky odemčená,
+- po opětovném zamknutí hlavičky nebude možné sloupce přejmenovávat ani skrývat tímto způsobem,
+- způsob opětovného zobrazení skrytých sloupců bude řešen přes nabídku **Zobrazení**; přesné chování této části se doplní později.
+
+
 ### Velikost zámku hlavičky a číslování řádků
 
 - zámek v hlavičce tabulky, který řídí přesouvání a změnu šířky sloupců, bude vizuálně větší než zámky jednotlivých datových řádků; vzhled se má řídit referenčním screenshotem,
