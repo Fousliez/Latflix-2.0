@@ -313,6 +313,26 @@ Rozdíly budou pouze v tom, že:
 
 Samotný základ tabulky a její chování zůstává uvnitř každého páru stejné podle pravidel uvedených výše.
 
+
+## 9. Vizuální reference jednotlivých sekcí
+
+Dne 26. 9. 2026 byly dodány referenční screenshoty současného Latflixu pro jednotlivé desktopové sekce. Slouží jako vizuální podklad pro vzhled, rozložení a obsah dané sekce; neznamenají automaticky, že se beze změny přebírá každá současná funkce.
+
+Mapování screenshotů:
+- **Girls** – `docs/images/girls`
+- **Přehled** – `docs/images/prehled`
+- **Odkazy** – `docs/images/odkazy`
+- **Videa** – `docs/images/videa`
+- **Studia** – `docs/images/studia`
+- **Stavy** – `docs/images/stavy`
+- **Kvality** – `docs/images/kvality`
+- **Tagy** – `docs/images/tagy`
+- **Typy** – `docs/images/typy`
+
+Screenshoty sekcí **Oblíbené** a **Super** nebyly samostatně dodány, protože jejich základ je svázaný s párovými sekcemi **Girls** a **Videa** podle pravidel této specifikace.
+
+Při pozdějším doplňování konkrétních funkcí má písemná potvrzená specifikace přednost před starým screenshotem, pokud by si odporovaly.
+
 ---
 
 ## Pracovní pravidlo specifikace
