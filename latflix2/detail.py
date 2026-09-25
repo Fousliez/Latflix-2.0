@@ -47,6 +47,7 @@ class PersonDetail(QFrame):
         self._link_buttons: list[QToolButton] = []
         self._link_pages: list[list[QToolButton]] = []
         self._link_page_index = 0
+        self._link_layout_busy = False
 
         root = QHBoxLayout(self)
         root.setContentsMargins(8, 3, 8, 3)
@@ -377,47 +378,56 @@ class PersonDetail(QFrame):
             self._rebuild_link_pages(reset=True)
 
     def _rebuild_link_pages(self, reset: bool = False) -> None:
+        if self._link_layout_busy:
+            return
         if not self._link_buttons:
             self._link_pages = []
             self._link_page_index = 0
             self.link_pager.hide()
             return
 
-        available = max(220, int(self.links_container.width() or self.width() * 0.55))
-        rows: list[list[QToolButton]] = []
-        current: list[QToolButton] = []
-        used = 0
-        spacing = 8
-
-        for button in self._link_buttons:
-            width = max(34, int(button.sizeHint().width()))
-            needed = width if not current else spacing + width
-            if current and used + needed > available:
-                rows.append(current)
-                current = [button]
-                used = width
-            else:
-                current.append(button)
-                used += needed
-        if current:
-            rows.append(current)
-
-        pages: list[list[QToolButton]] = []
-        for start in range(0, len(rows), self.MAX_LINK_ROWS_PER_PAGE):
-            page: list[QToolButton] = []
-            for row in rows[start:start + self.MAX_LINK_ROWS_PER_PAGE]:
-                page.extend(row)
-            pages.append(page)
-
-        self._link_pages = pages or [[]]
-        if reset:
-            self._link_page_index = 0
-        else:
-            self._link_page_index = min(
-                self._link_page_index,
-                max(0, len(self._link_pages) - 1),
+        self._link_layout_busy = True
+        try:
+            available = max(
+                220,
+                int(self.links_container.width() or self.width() * 0.55),
             )
-        self._apply_link_page()
+            rows: list[list[QToolButton]] = []
+            current: list[QToolButton] = []
+            used = 0
+            spacing = 8
+
+            for button in self._link_buttons:
+                width = max(34, int(button.sizeHint().width()))
+                needed = width if not current else spacing + width
+                if current and used + needed > available:
+                    rows.append(current)
+                    current = [button]
+                    used = width
+                else:
+                    current.append(button)
+                    used += needed
+            if current:
+                rows.append(current)
+
+            pages: list[list[QToolButton]] = []
+            for start in range(0, len(rows), self.MAX_LINK_ROWS_PER_PAGE):
+                page: list[QToolButton] = []
+                for row in rows[start:start + self.MAX_LINK_ROWS_PER_PAGE]:
+                    page.extend(row)
+                pages.append(page)
+
+            self._link_pages = pages or [[]]
+            if reset:
+                self._link_page_index = 0
+            else:
+                self._link_page_index = min(
+                    self._link_page_index,
+                    max(0, len(self._link_pages) - 1),
+                )
+            self._apply_link_page()
+        finally:
+            self._link_layout_busy = False
 
     def _apply_link_page(self) -> None:
         if not self._link_pages:
