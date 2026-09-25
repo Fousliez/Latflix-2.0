@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QComboBox,
     QHBoxLayout,
     QLabel,
+    QInputDialog,
     QLineEdit,
     QMainWindow,
     QMenu,
@@ -21,6 +22,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from . import __version__
 from .config import APP_NAME
 from .database import Dataset, Repository
 from .detail import PersonDetail
