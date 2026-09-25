@@ -156,8 +156,18 @@ class MainWindow(QMainWindow):
         self.delete_button.clicked.connect(self.delete_selected)
 
         self.record_count_label = QLabel("Záznamů: 0", self)
-        self.statusBar().addWidget(self.record_count_label, 1)
+        self.selection_label = QLabel("Vybráno: 0", self)
+        self.average_age_label = QLabel("Průměrný věk: —", self)
+        self.load_time_label = QLabel("Načtení: — ms", self)
+        self.build_label = QLabel(f"Latflix 2.0  v{__version__}", self)
+        self.build_label.setObjectName("buildLabel")
+
+        self.statusBar().addWidget(self.record_count_label)
+        self.statusBar().addWidget(self.selection_label)
+        self.statusBar().addWidget(self.average_age_label, 1)
+        self.statusBar().addPermanentWidget(self.load_time_label)
         self.statusBar().addPermanentWidget(QLabel("Velikost řádků:", self))
+
         self.row_minus = QPushButton("−", self)
         self.row_plus = QPushButton("+", self)
         self.row_level = QLabel("1/5", self)
@@ -169,6 +179,7 @@ class MainWindow(QMainWindow):
         self.statusBar().addPermanentWidget(self.row_minus)
         self.statusBar().addPermanentWidget(self.row_level)
         self.statusBar().addPermanentWidget(self.row_plus)
+        self.statusBar().addPermanentWidget(self.build_label)
 
     def _build_menus(self) -> None:
         file_menu = self.menuBar().addMenu("Soubor")
@@ -183,14 +194,13 @@ class MainWindow(QMainWindow):
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
 
-        add_menu = self.menuBar().addMenu("Přidat")
+        edit_menu = self.menuBar().addMenu("Úpravy")
         add_action = QAction("Přidat záznam", self)
         add_action.setShortcut("Ctrl+N")
         add_action.triggered.connect(self.add_record)
-        add_menu.addAction(add_action)
-        add_menu.addAction("Přidat hromadně")
-
-        edit_menu = self.menuBar().addMenu("Úpravy")
+        edit_menu.addAction(add_action)
+        edit_menu.addAction("Přidat hromadně")
+        edit_menu.addSeparator()
         edit_menu.addAction("Upravit vybraný záznam")
         delete_action = QAction("Smazat vybrané záznamy", self)
         delete_action.setShortcut("Delete")
@@ -198,13 +208,19 @@ class MainWindow(QMainWindow):
         edit_menu.addAction(delete_action)
         edit_menu.addSeparator()
         edit_menu.addAction("Správa sloupců…")
-        edit_menu.addAction("Nastavení")
 
         view_menu = self.menuBar().addMenu("Zobrazení")
+        toggle_detail = QAction("Zobrazit / skrýt horní detail", self)
+        toggle_detail.setShortcut("Ctrl+D")
+        toggle_detail.triggered.connect(self.toggle_detail)
+        view_menu.addAction(toggle_detail)
         refresh_action = QAction("Obnovit", self)
         refresh_action.setShortcut("F5")
         refresh_action.triggered.connect(lambda: self.load_category(self.current_category))
         view_menu.addAction(refresh_action)
+
+        settings_menu = self.menuBar().addMenu("Nastavení")
+        settings_menu.addAction("Otevřít nastavení…")
 
         help_menu = self.menuBar().addMenu("Nápověda")
         about = QAction("O aplikaci", self)
@@ -257,6 +273,16 @@ class MainWindow(QMainWindow):
                 border: none; background: transparent; font-size: 19px; padding: 0;
             }
             QPushButton#ratingStar:hover { background: #eaf1f8; }
+            QPushButton#favoriteButton {
+                padding: 4px 9px; font-weight: 600;
+            }
+            QPushButton#favoriteButton:checked {
+                color: #9a7200; background: #fff4bf; border: 1px solid #e1bd32;
+            }
+            QLabel#buildLabel {
+                padding: 2px 7px; border: 1px solid #a8a8a8;
+                background: #e7e7e7; font-weight: 700;
+            }
             QLineEdit, QComboBox {
                 background: white; border: 1px solid #a5a5a5; border-radius: 2px;
                 padding: 4px 6px; min-height: 20px;
@@ -297,6 +323,9 @@ class MainWindow(QMainWindow):
             self.detail.show_category(category)
             self.overview.refresh()
             self.record_count_label.setText("Grafický přehled databáze")
+            self.selection_label.setText("")
+            self.average_age_label.setText("")
+            self.load_time_label.setText("Načtení: — ms")
             self.row_minus.hide()
             self.row_plus.hide()
             self.row_level.hide()
@@ -329,7 +358,10 @@ class MainWindow(QMainWindow):
             self.detail.show_category(category)
 
         self.update_visible_count()
+        self.update_selection_status()
+        self.update_average_age()
         elapsed_ms = (perf_counter() - started) * 1000.0
+        self.load_time_label.setText(f"Načtení: {elapsed_ms:.1f} ms")
         self.statusBar().showMessage(
             f"{category}: {len(dataset.rows)} záznamů | načteno za {elapsed_ms:.1f} ms",
             5000,
@@ -511,6 +543,38 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(
             f"Hodnocení změněno u {changed} záznamů.",
             2500,
+        )
+
+    def toggle_detail(self) -> None:
+        self.detail.setVisible(not self.detail.isVisible())
+
+    def update_selection_status(self, *_args) -> None:
+        selection = self.table.selectionModel()
+        selected = len(selection.selectedRows()) if selection is not None else 0
+        self.selection_label.setText(f"Vybráno: {selected}")
+
+    def update_average_age(self) -> None:
+        if self.current_category not in {"Girls", "Oblíbené"}:
+            self.average_age_label.setText("")
+            return
+        names = [column.name for column in self.current_dataset.columns]
+        if "Věk" not in names:
+            self.average_age_label.setText("Průměrný věk: —")
+            return
+        column = names.index("Věk")
+        ages = []
+        for row in self.current_dataset.rows:
+            try:
+                age = int(str(row.values[column]).strip())
+            except (ValueError, TypeError, IndexError):
+                continue
+            if 10 <= age <= 100:
+                ages.append(age)
+        if not ages:
+            self.average_age_label.setText("Průměrný věk: —")
+            return
+        self.average_age_label.setText(
+            f"Průměrný věk: {sum(ages) / len(ages):.1f}"
         )
 
     def update_visible_count(self) -> None:
