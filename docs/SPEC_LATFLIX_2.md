@@ -254,6 +254,15 @@ Pravidla:
 - při výběru více řádků bude možné provádět hromadné akce,
 - konkrétní seznam hromadných akcí se bude definovat později zvlášť pro jednotlivé sekce/tabulky.
 
+### Vztah tabulek Girls a Oblíbené
+
+- tabulka v sekci **Girls** a tabulka v sekci **Oblíbené** budou z hlediska tabulkového systému úplně totožné,
+- budou sdílet stejné sloupce, stejné chování řádků, buněk, zámků, výběrů, řazení, editace, výjimek i všechny budoucí změny tabulkové logiky,
+- jakákoli budoucí úprava nebo výjimka definovaná pro tabulku Girls se automaticky vztahuje i na tabulku Oblíbené, pokud uživatel výslovně neurčí jinak,
+- toto pravidlo se vztahuje pouze na samotnou tabulku; netýká se tlačítek, panelů ani dalších prvků nad tabulkou,
+- rozdíl mezi sekcemi je pouze v datech: sekce **Oblíbené** zobrazuje pouze vybranou podmnožinu dat ze sekce **Girls**.
+
+
 
 
 
