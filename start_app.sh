@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
 set -e
 cd "$(dirname "$0")"
-exec python3 main.py "$@"
+
+if [ -x ".venv/bin/python" ]; then
+    PYTHON=".venv/bin/python"
+else
+    PYTHON="${PYTHON:-python3}"
+fi
+
+exec "$PYTHON" main.py "$@"
