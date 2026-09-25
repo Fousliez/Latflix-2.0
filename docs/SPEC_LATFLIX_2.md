@@ -350,11 +350,19 @@ Chování:
 
 Důležité: při pozdější implementaci se nesmí dvojklik zaměnit za mazání fotografie. Mazání patří výhradně na pravé tlačítko; dvojklik je výhradně rychlý výřez obrazovky.
 
-### Jméno a Oblíbené
+### Jméno, Oblíbené a základní údaje
 
 - hvězdičkové hodnocení zobrazené ve starém Latflixu se do nové verze zatím nepřenáší a má být při návrhu ignorováno,
-- ovládací prvek **Oblíbené** se posune doleva a bude umístěn vpravo vedle jména herečky,
-- přesný vzhled a chování dalších prvků horního panelu bude doplněno postupně.
+- ovládací prvek **Oblíbené** bude umístěn vpravo vedle jména herečky,
+- pokud herečka **není v Oblíbených**, tlačítko/obdélník Oblíbené bude v běžném neaktivním vzhledu,
+- pokud herečka **je v Oblíbených**, obdélník se vizuálně zvýrazní **žlutě**, podle dodané reference; text bude odpovídat stavu „★ V oblíbených“,
+- změna stavu Oblíbené se musí v horním panelu projevit okamžitě bez nutnosti znovunačtení sekce.
+
+Pod jménem herečky budou v jednom řádku zobrazeny základní údaje:
+- **Věk:** tučný popisek `Věk:` a vedle něj aktuální hodnota,
+- **Počet výskytů:** tučný popisek `Počet výskytů:` a vedle něj aktuální hodnota.
+
+Rozložení a styl mají odpovídat referenčním screenshotům současného Latflixu.
 
 ---
 
