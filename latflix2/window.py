@@ -2,40 +2,42 @@ from __future__ import annotations
 
 from time import perf_counter
 
-from PySide6.QtCore import QSortFilterProxyModel, Qt
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
     QAbstractItemView,
-    QFrame,
+    QComboBox,
     QHBoxLayout,
     QLabel,
     QLineEdit,
-    QListWidget,
     QMainWindow,
+    QMenu,
+    QMessageBox,
     QPushButton,
-    QSplitter,
+    QStackedWidget,
     QTableView,
+    QToolButton,
     QVBoxLayout,
     QWidget,
 )
 
 from .config import APP_NAME
-from .database import Repository
+from .database import Dataset, Repository
+from .detail import PersonDetail
 from .model import TableModel
+from .overview import OverviewPanel
+from .proxy import TableFilterProxy
+from .sidebar import Sidebar
 
 
-PREFERRED_SECTIONS = (
-    "Přehled",
-    "Girls",
-    "Oblíbené",
-    "Odkazy",
-    "Videa",
-    "SUPER",
-    "Studia",
-    "Stavy",
-    "Tagy",
-    "Typy",
-    "Kvality",
-)
+FILTER_COLUMNS = {
+    "Girls": ("Národnost", "Typ", "Stav", "Hodnocení"),
+    "Oblíbené": ("Národnost", "Typ", "Stav", "Hodnocení"),
+    "Videa": ("Typ", "Studio", "Stav", "Kvalita"),
+    "SUPER": ("Typ", "Studio", "Stav", "Kvalita"),
+    "Odkazy": ("Typ", "Název"),
+    "Studia": ("Země", "Typ"),
+}
 
 
 class MainWindow(QMainWindow):
@@ -43,53 +45,86 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.repository = repository
         self.current_category = ""
-        self.setWindowTitle(APP_NAME)
-        self.resize(1380, 820)
-        self.setMinimumSize(900, 560)
+        self.current_dataset = Dataset("", (), ())
+        self.row_height_level = 1
+        self.filter_boxes: list[QComboBox] = []
 
         self.model = TableModel(repository, self)
-        self.proxy = QSortFilterProxyModel(self)
+        self.proxy = TableFilterProxy(self)
         self.proxy.setSourceModel(self.model)
-        self.proxy.setFilterCaseSensitivity(Qt.CaseInsensitive)
-        self.proxy.setFilterKeyColumn(-1)
-        self.proxy.setDynamicSortFilter(True)
 
+        self.setWindowTitle(APP_NAME)
+        self.resize(1300, 750)
+        self.setMinimumSize(900, 560)
         self._build_ui()
+        self._build_menus()
         self._apply_style()
-        self._populate_sections()
+        self._populate_initial_category()
 
     def _build_ui(self) -> None:
         central = QWidget(self)
-        root = QHBoxLayout(central)
-        root.setContentsMargins(0, 0, 0, 0)
-        root.setSpacing(0)
+        body = QHBoxLayout(central)
+        body.setContentsMargins(8, 8, 8, 8)
+        body.setSpacing(8)
 
-        self.sidebar = QListWidget(central)
-        self.sidebar.setObjectName("sidebar")
-        self.sidebar.setFixedWidth(190)
-        self.sidebar.currentTextChanged.connect(self.load_category)
-        root.addWidget(self.sidebar)
+        self.sidebar = Sidebar(central)
+        self.sidebar.category_changed.connect(self.load_category)
+        self.sidebar.quick_tag_selected.connect(self.apply_quick_tag)
+        body.addWidget(self.sidebar)
 
-        main = QWidget(central)
-        main_layout = QVBoxLayout(main)
-        main_layout.setContentsMargins(12, 10, 12, 8)
-        main_layout.setSpacing(8)
+        content = QWidget(central)
+        content_layout = QVBoxLayout(content)
+        content_layout.setContentsMargins(0, 0, 0, 0)
+        content_layout.setSpacing(8)
 
-        header = QHBoxLayout()
-        self.section_title = QLabel("Latflix 2.0", main)
-        self.section_title.setObjectName("sectionTitle")
-        header.addWidget(self.section_title)
-        header.addStretch(1)
-        self.search = QLineEdit(main)
-        self.search.setPlaceholderText("Hledat v aktuální sekci…")
+        self.detail = PersonDetail(content)
+        self.detail.favorite_changed.connect(self.set_favorite)
+        self.detail.rating_changed.connect(self.set_rating)
+        content_layout.addWidget(self.detail)
+
+        self.pages = QStackedWidget(content)
+        content_layout.addWidget(self.pages, 1)
+
+        table_page = QWidget(self.pages)
+        table_layout = QVBoxLayout(table_page)
+        table_layout.setContentsMargins(0, 0, 0, 0)
+        table_layout.setSpacing(5)
+
+        controls = QHBoxLayout()
+        controls.setSpacing(5)
+        self.add_button = QPushButton("+ Přidat", table_page)
+        self.delete_button = QPushButton("− Smazat", table_page)
+        self.bulk_button = QToolButton(table_page)
+        self.bulk_button.setText("Hromadné akce ▾")
+        self.bulk_button.setPopupMode(QToolButton.InstantPopup)
+        bulk_menu = QMenu(self.bulk_button)
+        bulk_menu.addAction("★ Hodnotit vybrané…")
+        bulk_menu.addAction("☆ Přidat vybrané do oblíbených")
+        bulk_menu.addAction("Odebrat vybrané z oblíbených")
+        self.bulk_button.setMenu(bulk_menu)
+        self.bulk_button.setEnabled(False)
+
+        self.search = QLineEdit(table_page)
+        self.search.setPlaceholderText("Hledat v sekci…")
         self.search.setClearButtonEnabled(True)
-        self.search.setMaximumWidth(420)
-        self.search.textChanged.connect(self.proxy.setFilterFixedString)
-        header.addWidget(self.search)
-        main_layout.addLayout(header)
+        self.search.setMaximumWidth(220)
+        self.search.textChanged.connect(self.proxy.set_search)
 
-        self.splitter = QSplitter(Qt.Horizontal, main)
-        self.table = QTableView(self.splitter)
+        self.clear_filters_button = QToolButton(table_page)
+        self.clear_filters_button.setText("Vyčistit")
+        self.clear_filters_button.clicked.connect(self.clear_filters)
+
+        controls.addWidget(self.add_button)
+        controls.addWidget(self.delete_button)
+        controls.addWidget(self.bulk_button)
+        controls.addWidget(self.search)
+        self.filters_host = QHBoxLayout()
+        self.filters_host.setSpacing(5)
+        controls.addLayout(self.filters_host, 1)
+        controls.addWidget(self.clear_filters_button)
+        table_layout.addLayout(controls)
+
+        self.table = QTableView(table_page)
         self.table.setModel(self.proxy)
         self.table.setAlternatingRowColors(True)
         self.table.setSortingEnabled(True)
@@ -100,122 +135,283 @@ class MainWindow(QMainWindow):
             | QAbstractItemView.EditKeyPressed
             | QAbstractItemView.SelectedClicked
         )
+        self.table.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
         self.table.verticalHeader().setDefaultSectionSize(24)
-        self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.horizontalHeader().setStretchLastSection(False)
+        self.table.selectionModel().selectionChanged.connect(self.refresh_detail_from_selection)
+        table_layout.addWidget(self.table, 1)
 
-        detail = QFrame(self.splitter)
-        detail.setObjectName("detailPanel")
-        detail.setMinimumWidth(250)
-        detail_layout = QVBoxLayout(detail)
-        detail_layout.setContentsMargins(14, 14, 14, 14)
-        self.detail_title = QLabel("Detail", detail)
-        self.detail_title.setObjectName("detailTitle")
-        self.detail_text = QLabel(
-            "Detail vybraného záznamu doplníme v další vrstvě.\n\n"
-            "Teď je hlavní cíl ověřit rychlost tabulky a přepínání sekcí.",
-            detail,
-        )
-        self.detail_text.setWordWrap(True)
-        detail_layout.addWidget(self.detail_title)
-        detail_layout.addWidget(self.detail_text)
-        detail_layout.addStretch(1)
+        self.overview = OverviewPanel(self.repository, self.pages)
+        self.overview.category_requested.connect(self.load_category)
 
-        self.splitter.addWidget(self.table)
-        self.splitter.addWidget(detail)
-        self.splitter.setSizes([1000, 320])
-        main_layout.addWidget(self.splitter, 1)
+        self.pages.addWidget(table_page)
+        self.pages.addWidget(self.overview)
+        self.table_page = table_page
+        body.addWidget(content, 1)
+        self.setCentralWidget(central)
 
-        actions = QHBoxLayout()
-        self.add_button = QPushButton("+ Přidat", main)
-        self.delete_button = QPushButton("− Smazat", main)
         self.add_button.clicked.connect(self.add_record)
         self.delete_button.clicked.connect(self.delete_selected)
-        actions.addWidget(self.add_button)
-        actions.addWidget(self.delete_button)
-        actions.addStretch(1)
-        main_layout.addLayout(actions)
 
-        root.addWidget(main, 1)
-        self.setCentralWidget(central)
-        self.statusBar().showMessage("Latflix 2.0 připraven")
+        self.record_count_label = QLabel("Záznamů: 0", self)
+        self.statusBar().addWidget(self.record_count_label, 1)
+        self.statusBar().addPermanentWidget(QLabel("Velikost řádků:", self))
+        self.row_minus = QPushButton("−", self)
+        self.row_plus = QPushButton("+", self)
+        self.row_level = QLabel("1/5", self)
+        self.row_minus.setFixedSize(28, 24)
+        self.row_plus.setFixedSize(28, 24)
+        self.row_level.setMinimumWidth(34)
+        self.row_minus.clicked.connect(lambda: self.change_row_height(-1))
+        self.row_plus.clicked.connect(lambda: self.change_row_height(1))
+        self.statusBar().addPermanentWidget(self.row_minus)
+        self.statusBar().addPermanentWidget(self.row_level)
+        self.statusBar().addPermanentWidget(self.row_plus)
+
+    def _build_menus(self) -> None:
+        file_menu = self.menuBar().addMenu("Soubor")
+        file_menu.addAction("Import…")
+        file_menu.addAction("Export…")
+        file_menu.addSeparator()
+        file_menu.addAction("Zálohovat…")
+        file_menu.addAction("Obnovit ze zálohy…")
+        file_menu.addSeparator()
+        exit_action = QAction("Konec", self)
+        exit_action.setShortcut("Ctrl+Q")
+        exit_action.triggered.connect(self.close)
+        file_menu.addAction(exit_action)
+
+        add_menu = self.menuBar().addMenu("Přidat")
+        add_action = QAction("Přidat záznam", self)
+        add_action.setShortcut("Ctrl+N")
+        add_action.triggered.connect(self.add_record)
+        add_menu.addAction(add_action)
+        add_menu.addAction("Přidat hromadně")
+
+        edit_menu = self.menuBar().addMenu("Úpravy")
+        edit_menu.addAction("Upravit vybraný záznam")
+        delete_action = QAction("Smazat vybrané záznamy", self)
+        delete_action.setShortcut("Delete")
+        delete_action.triggered.connect(self.delete_selected)
+        edit_menu.addAction(delete_action)
+        edit_menu.addSeparator()
+        edit_menu.addAction("Správa sloupců…")
+        edit_menu.addAction("Nastavení")
+
+        view_menu = self.menuBar().addMenu("Zobrazení")
+        refresh_action = QAction("Obnovit", self)
+        refresh_action.setShortcut("F5")
+        refresh_action.triggered.connect(lambda: self.load_category(self.current_category))
+        view_menu.addAction(refresh_action)
+
+        help_menu = self.menuBar().addMenu("Nápověda")
+        about = QAction("O aplikaci", self)
+        about.triggered.connect(
+            lambda: QMessageBox.information(
+                self,
+                "O aplikaci",
+                "Latflix 2.0\n\nNový rychlý základ v model/view architektuře.",
+            )
+        )
+        help_menu.addAction(about)
 
     def _apply_style(self) -> None:
         self.setStyleSheet(
             """
-            QMainWindow, QWidget { background: #f4f4f4; color: #202020; }
-            QListWidget#sidebar {
-                background: #262626; color: #f2f2f2; border: 0;
-                padding: 8px 0; font-size: 14px;
+            QMainWindow, QWidget { background: #f0f0f0; color: #202020; }
+            QWidget#sidebarPanel {
+                background: #ededed;
+                border-right: 1px solid #9b9b9b;
             }
-            QListWidget#sidebar::item { padding: 9px 14px; }
-            QListWidget#sidebar::item:selected {
-                background: #3d5872; color: white; font-weight: 700;
+            QPushButton#categoryButton {
+                text-align: left; padding-left: 9px; font-size: 13px;
+                color: #202020; border: 1px solid #a7a7a7; border-radius: 2px;
+                background: qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #fafafa,stop:1 #dddddd);
             }
-            QLabel#sectionTitle { font-size: 21px; font-weight: 800; }
-            QLineEdit {
-                background: white; border: 1px solid #a5a5a5;
-                border-radius: 4px; padding: 6px 8px;
+            QPushButton#categoryButton:hover {
+                border-color: #7f94aa;
+                background: qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #f8fbff,stop:1 #dce8f4);
+            }
+            QPushButton#categoryButton:checked {
+                font-weight: 700; border-color: #70869c;
+                background: qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #e7f0f9,stop:1 #c8d9ea);
+            }
+            QLabel#quickTagsLabel { font-weight: 700; padding-left: 6px; }
+            QPushButton#quickTagButton {
+                text-align: left; padding-left: 12px; border: 1px solid transparent;
+                border-radius: 2px; background: transparent;
+            }
+            QPushButton#quickTagButton:hover { background: #e1e9f2; border-color: #b4c0cc; }
+            QFrame#detailBox {
+                background: #ffffff; border: 1px solid #b8b8b8; border-radius: 2px;
+            }
+            QLabel#profilePhoto {
+                background: #e5e5e5; border: 1px solid #b0b0b0; color: #777;
+            }
+            QLabel#detailName { font-size: 20px; font-weight: 800; }
+            QLabel#detailMeta { color: #404040; }
+            QLabel#detailSummary { color: #4e4e4e; }
+            QPushButton#ratingStar {
+                border: none; background: transparent; font-size: 19px; padding: 0;
+            }
+            QPushButton#ratingStar:hover { background: #eaf1f8; }
+            QLineEdit, QComboBox {
+                background: white; border: 1px solid #a5a5a5; border-radius: 2px;
+                padding: 4px 6px; min-height: 20px;
             }
             QTableView {
-                background: white; alternate-background-color: #f8f8f8;
-                gridline-color: #dedede; border: 1px solid #b7b7b7;
+                background: white; alternate-background-color: #f7f7f7;
+                gridline-color: #d8d8d8; border: 1px solid #aaa;
+                selection-background-color: #d8e7f6; selection-color: #111;
             }
             QHeaderView::section {
-                background: #e8e8e8; border: 0;
-                border-right: 1px solid #c8c8c8;
-                border-bottom: 1px solid #aaaaaa;
-                padding: 5px; font-weight: 400;
+                background: #ededed; border: 0; border-right: 1px solid #c8c8c8;
+                border-bottom: 1px solid #aaa; padding: 4px 5px;
             }
-            QFrame#detailPanel {
-                background: #ffffff; border: 1px solid #c1c1c1;
+            QFrame#overviewCard {
+                background: white; border: 1px solid #b8b8b8; border-radius: 3px;
+                min-width: 190px; min-height: 120px;
             }
-            QLabel#detailTitle { font-size: 17px; font-weight: 700; }
-            QPushButton {
-                background: #f2f2f2; border: 1px solid #8b8b8b;
-                border-radius: 3px; padding: 5px 12px;
-            }
-            QPushButton:hover { background: #e6e6e6; }
+            QLabel#overviewTitle { font-size: 21px; font-weight: 800; margin-bottom: 8px; }
+            QLabel#overviewCardTitle { font-size: 15px; font-weight: 700; }
+            QLabel#overviewCount { font-size: 30px; font-weight: 800; }
             """
         )
 
-    def _populate_sections(self) -> None:
-        available = self.repository.categories()
-        display = []
-        for name in PREFERRED_SECTIONS:
-            if name == "Videa" and ("Videa" in available or "Scény / filmy" in available):
-                display.append("Videa")
-            elif name in available:
-                display.append(name)
-        for name in available:
-            shown = "Videa" if name == "Scény / filmy" else name
-            if shown not in display:
-                display.append(shown)
-        self.sidebar.addItems(display)
-        if display:
-            self.sidebar.setCurrentRow(0)
+    def _populate_initial_category(self) -> None:
+        self.sidebar.set_active("Girls")
+        self.load_category("Girls")
 
     def load_category(self, category: str) -> None:
         category = str(category or "").strip()
         if not category:
             return
+        self.sidebar.set_active(category)
+        self.current_category = category
+        self.setWindowTitle(f"{APP_NAME} - {category}")
+
+        if category == "Přehled":
+            self.pages.setCurrentWidget(self.overview)
+            self.detail.show_category(category)
+            self.overview.refresh()
+            self.record_count_label.setText("Grafický přehled databáze")
+            self.row_minus.hide()
+            self.row_plus.hide()
+            self.row_level.hide()
+            return
+
+        self.pages.setCurrentWidget(self.table_page)
+        self.row_minus.show()
+        self.row_plus.show()
+        self.row_level.show()
+
         started = perf_counter()
         dataset = self.repository.load(category)
+        self.current_dataset = dataset
         self.model.set_dataset(dataset)
-        self.current_category = category
-        self.section_title.setText(category)
+        self.proxy.clear_column_filters()
+        self.search.blockSignals(True)
         self.search.clear()
+        self.search.blockSignals(False)
+        self.proxy.set_search("")
 
         for column, meta in enumerate(dataset.columns):
             self.table.setColumnHidden(column, not meta.visible)
+        self.rebuild_filters(dataset)
+        self.detail.show_category(category)
+
+        if self.proxy.rowCount() > 0:
+            self.table.selectRow(0)
+            self.refresh_detail_from_selection()
+        else:
+            self.detail.show_category(category)
+
+        self.update_visible_count()
         elapsed_ms = (perf_counter() - started) * 1000.0
         self.statusBar().showMessage(
-            f"{category}: {len(dataset.rows)} záznamů | načteno za {elapsed_ms:.1f} ms"
+            f"{category}: {len(dataset.rows)} záznamů | načteno za {elapsed_ms:.1f} ms",
+            5000,
         )
+        self.bulk_button.setVisible(category in {"Girls", "Oblíbené"})
+
+    def rebuild_filters(self, dataset: Dataset) -> None:
+        while self.filters_host.count():
+            item = self.filters_host.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+        self.filter_boxes.clear()
+
+        names = [column.name for column in dataset.columns]
+        for filter_name in FILTER_COLUMNS.get(dataset.category, ()):
+            if filter_name not in names:
+                continue
+            column = names.index(filter_name)
+            values = sorted(
+                {
+                    str(row.values[column]).strip()
+                    for row in dataset.rows
+                    if column < len(row.values) and str(row.values[column]).strip()
+                },
+                key=str.casefold,
+            )
+            combo = QComboBox(self)
+            combo.addItem(filter_name)
+            combo.setItemData(0, "Vše")
+            combo.addItem("Vše")
+            for value in values[:100]:
+                combo.addItem(value)
+            combo.currentTextChanged.connect(
+                lambda value, c=column, box=combo: self._filter_combo_changed(c, box, value)
+            )
+            self.filters_host.addWidget(combo)
+            self.filter_boxes.append(combo)
+
+    def _filter_combo_changed(self, column: int, combo: QComboBox, value: str) -> None:
+        if combo.currentIndex() == 0:
+            self.proxy.set_column_filter(column, "Vše")
+        else:
+            self.proxy.set_column_filter(column, value)
+        self.update_visible_count()
+
+    def clear_filters(self) -> None:
+        self.search.clear()
+        self.proxy.clear_column_filters()
+        for combo in self.filter_boxes:
+            combo.blockSignals(True)
+            combo.setCurrentIndex(0)
+            combo.blockSignals(False)
+        self.update_visible_count()
+
+    def apply_quick_tag(self, tag: str) -> None:
+        if self.current_category not in {"Girls", "Oblíbené"}:
+            self.load_category("Girls")
+        names = [column.name for column in self.current_dataset.columns]
+        if "Tagy" not in names:
+            return
+        self.proxy.set_column_filter(names.index("Tagy"), tag)
+        self.update_visible_count()
+
+    def refresh_detail_from_selection(self, *_args) -> None:
+        selection = self.table.selectionModel()
+        if selection is None:
+            return
+        selected = selection.selectedRows()
+        if not selected:
+            self.detail.show_category(self.current_category)
+            return
+        source_index = self.proxy.mapToSource(selected[0])
+        row = self.model.row_object(source_index.row())
+        if row is not None:
+            self.detail.show_record(self.current_dataset, row)
 
     def selected_record_ids(self) -> list[int]:
-        ids = []
-        seen = set()
-        for proxy_index in self.table.selectionModel().selectedRows():
+        selection = self.table.selectionModel()
+        if selection is None:
+            return []
+        ids: list[int] = []
+        seen: set[int] = set()
+        for proxy_index in selection.selectedRows():
             source_index = self.proxy.mapToSource(proxy_index)
             record_id = self.model.record_id(source_index.row())
             if record_id is not None and record_id not in seen:
@@ -224,7 +420,7 @@ class MainWindow(QMainWindow):
         return ids
 
     def add_record(self) -> None:
-        if not self.current_category:
+        if self.current_category == "Přehled":
             return
         record_id = self.repository.add_record(self.current_category)
         self.load_category(self.current_category)
@@ -242,3 +438,29 @@ class MainWindow(QMainWindow):
             return
         self.repository.soft_delete(ids)
         self.load_category(self.current_category)
+
+    def set_favorite(self, record_id: int, favorite: bool) -> None:
+        self.repository.set_favorite(record_id, favorite)
+        self.load_category(self.current_category)
+        self.statusBar().showMessage(
+            "Přidáno do oblíbených." if favorite else "Odebráno z oblíbených.",
+            2500,
+        )
+
+    def set_rating(self, record_id: int, rating: int) -> None:
+        value = "" if rating <= 0 else str(rating)
+        if self.repository.update_named_cell(record_id, self.current_category, "Hodnocení", value):
+            self.load_category(self.current_category)
+
+    def update_visible_count(self) -> None:
+        visible = self.proxy.rowCount()
+        total = self.model.rowCount()
+        self.record_count_label.setText(
+            f"Záznamů: {total}" if visible == total else f"Záznamů: {visible} / {total}"
+        )
+
+    def change_row_height(self, delta: int) -> None:
+        self.row_height_level = max(1, min(5, self.row_height_level + delta))
+        heights = {1: 24, 2: 28, 3: 32, 4: 38, 5: 46}
+        self.table.verticalHeader().setDefaultSectionSize(heights[self.row_height_level])
+        self.row_level.setText(f"{self.row_height_level}/5")

@@ -24,13 +24,11 @@ class Dataset:
     category: str
     columns: tuple[Column, ...]
     rows: tuple[Row, ...]
+    favorite_ids: frozenset[int] = frozenset()
 
 
 class Repository:
-    """Small read/write boundary around the existing Latflix EAV schema.
-
-    The UI never reaches into sqlite directly. That is deliberate.
-    """
+    """Jediná SQLite hranice Latflixu 2.0."""
 
     def __init__(self, path: Path):
         self.path = Path(path)
@@ -80,6 +78,10 @@ class Repository:
                     FOREIGN KEY (record_id) REFERENCES records(id) ON DELETE CASCADE,
                     FOREIGN KEY (column_id) REFERENCES columns_meta(id) ON DELETE CASCADE
                 );
+                CREATE TABLE IF NOT EXISTS favorite_girls (
+                    record_id INTEGER PRIMARY KEY,
+                    FOREIGN KEY (record_id) REFERENCES records(id) ON DELETE CASCADE
+                );
                 """
             )
             count = connection.execute("SELECT COUNT(*) FROM categories").fetchone()[0]
@@ -90,7 +92,6 @@ class Repository:
     def _seed_minimal(connection: sqlite3.Connection) -> None:
         seeds = {
             "Girls": ("Jméno", "Typ", "Národnost", "Věk", "Stav", "Hodnocení", "Tagy", "Posl. kontrola"),
-            "Oblíbené": ("Jméno", "Typ", "Národnost", "Věk", "Stav", "Hodnocení", "Tagy", "Posl. kontrola"),
             "Videa": ("Název", "Typ", "Studio", "Dívka 1", "Dívka 2", "Dívka 3", "Stav", "Kvalita", "Dost. kv.", "Velikost", "Tagy"),
             "Odkazy": ("Typ", "Název", "Herečka", "URL", "Kontrola", "Staženo", "Poslední text"),
             "Studia": ("Název", "Typ", "Země", "Web", "Hodnocení", "Poznámka"),
@@ -122,16 +123,41 @@ class Repository:
         available = set(self.categories())
         if requested in available:
             return requested
-        aliases = {
-            "Videa": "Scény / filmy",
-            "Scény / filmy": "Videa",
-        }
+        aliases = {"Videa": "Scény / filmy", "Scény / filmy": "Videa"}
         alias = aliases.get(requested)
         if alias in available:
             return alias
         return requested
 
-    def load(self, requested_category: str) -> Dataset:
+    def favorite_ids(self) -> frozenset[int]:
+        with self.connect() as connection:
+            rows = connection.execute("SELECT record_id FROM favorite_girls").fetchall()
+        return frozenset(int(row["record_id"]) for row in rows)
+
+    def is_favorite(self, record_id: int | None) -> bool:
+        if record_id is None:
+            return False
+        with self.connect() as connection:
+            row = connection.execute(
+                "SELECT 1 FROM favorite_girls WHERE record_id = ? LIMIT 1",
+                (int(record_id),),
+            ).fetchone()
+        return row is not None
+
+    def set_favorite(self, record_id: int, favorite: bool) -> None:
+        with self.connect() as connection:
+            if favorite:
+                connection.execute(
+                    "INSERT OR IGNORE INTO favorite_girls(record_id) VALUES (?)",
+                    (int(record_id),),
+                )
+            else:
+                connection.execute(
+                    "DELETE FROM favorite_girls WHERE record_id = ?",
+                    (int(record_id),),
+                )
+
+    def _load_base(self, requested_category: str) -> Dataset:
         category = self.resolve_category(requested_category)
         with self.connect() as connection:
             category_row = connection.execute(
@@ -166,8 +192,9 @@ class Repository:
                 (category_id,),
             ).fetchall()
             record_ids = [int(row["id"]) for row in record_rows]
+            favorites = self.favorite_ids() if requested_category in {"Girls", "Oblíbené"} else frozenset()
             if not record_ids:
-                return Dataset(requested_category, columns, ())
+                return Dataset(requested_category, columns, (), favorites)
 
             values_by_record = {record_id: {} for record_id in record_ids}
             placeholders = ",".join("?" for _ in record_ids)
@@ -182,14 +209,43 @@ class Repository:
             for row in value_rows:
                 values_by_record[int(row["record_id"])][int(row["column_id"])] = str(row["value"] or "")
 
-            rows = tuple(
-                Row(
-                    record_id,
-                    tuple(values_by_record[record_id].get(column.id, "") for column in columns),
-                )
-                for record_id in record_ids
+        rows = tuple(
+            Row(
+                record_id,
+                tuple(values_by_record[record_id].get(column.id, "") for column in columns),
             )
-            return Dataset(requested_category, columns, rows)
+            for record_id in record_ids
+        )
+        return Dataset(requested_category, columns, rows, favorites)
+
+    def load(self, requested_category: str) -> Dataset:
+        if requested_category == "Oblíbené":
+            girls = self._load_base("Girls")
+            rows = tuple(row for row in girls.rows if row.id in girls.favorite_ids)
+            return Dataset("Oblíbené", girls.columns, rows, girls.favorite_ids)
+        return self._load_base(requested_category)
+
+    def overview_counts(self) -> dict[str, int]:
+        result: dict[str, int] = {}
+        with self.connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT categories.name, COUNT(records.id) AS total
+                FROM categories
+                LEFT JOIN records
+                  ON records.category_id = categories.id
+                 AND records.deleted_at IS NULL
+                GROUP BY categories.id
+                ORDER BY categories.sort_order, categories.id
+                """
+            ).fetchall()
+            result.update({str(row["name"]): int(row["total"]) for row in rows})
+            result["Oblíbené"] = int(
+                connection.execute("SELECT COUNT(*) FROM favorite_girls").fetchone()[0]
+            )
+        if "Scény / filmy" in result and "Videa" not in result:
+            result["Videa"] = result["Scény / filmy"]
+        return result
 
     def update_cell(self, record_id: int, column_id: int, value: str) -> None:
         with self.connect() as connection:
@@ -207,8 +263,29 @@ class Repository:
                 (int(record_id),),
             )
 
-    def add_record(self, category_name: str) -> int:
+    def update_named_cell(self, record_id: int, category_name: str, column_name: str, value: str) -> bool:
         category = self.resolve_category(category_name)
+        if category_name == "Oblíbené":
+            category = self.resolve_category("Girls")
+        with self.connect() as connection:
+            row = connection.execute(
+                """
+                SELECT columns_meta.id
+                FROM columns_meta
+                JOIN categories ON categories.id = columns_meta.category_id
+                WHERE categories.name = ? AND columns_meta.name = ?
+                LIMIT 1
+                """,
+                (category, column_name),
+            ).fetchone()
+        if row is None:
+            return False
+        self.update_cell(record_id, int(row["id"]), value)
+        return True
+
+    def add_record(self, category_name: str) -> int:
+        favorite_after = category_name == "Oblíbené"
+        category = "Girls" if favorite_after else self.resolve_category(category_name)
         with self.connect() as connection:
             category_row = connection.execute(
                 "SELECT id FROM categories WHERE name = ? LIMIT 1", (category,)
@@ -226,7 +303,10 @@ class Repository:
                 "INSERT INTO records(category_id, sort_order) VALUES (?, ?)",
                 (category_id, order),
             )
-            return int(cursor.lastrowid)
+            record_id = int(cursor.lastrowid)
+        if favorite_after:
+            self.set_favorite(record_id, True)
+        return record_id
 
     def soft_delete(self, record_ids: Iterable[int]) -> None:
         ids = tuple(dict.fromkeys(int(value) for value in record_ids))

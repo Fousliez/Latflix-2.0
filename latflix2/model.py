@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
 
-from .database import Dataset, Repository
+from .database import Dataset, Repository, Row
 
 
 class TableModel(QAbstractTableModel):
@@ -25,12 +25,23 @@ class TableModel(QAbstractTableModel):
     def data(self, index: QModelIndex, role=Qt.DisplayRole):
         if not index.isValid():
             return None
-        if role in (Qt.DisplayRole, Qt.EditRole):
-            return self.dataset.rows[index.row()].values[index.column()]
+        row = self.dataset.rows[index.row()]
+        column = self.dataset.columns[index.column()]
+        raw = row.values[index.column()]
+        if role == Qt.DisplayRole:
+            if (
+                self.dataset.category in {"Girls", "Oblíbené"}
+                and column.name == "Jméno"
+                and row.id in self.dataset.favorite_ids
+            ):
+                return f"{raw} ★"
+            return raw
+        if role == Qt.EditRole:
+            return raw
         if role == Qt.TextAlignmentRole:
             return int(Qt.AlignVCenter | Qt.AlignLeft)
         if role == Qt.UserRole:
-            return self.dataset.rows[index.row()].id
+            return row.id
         return None
 
     def headerData(self, section: int, orientation, role=Qt.DisplayRole):
@@ -60,12 +71,22 @@ class TableModel(QAbstractTableModel):
         values = list(row.values)
         values[index.column()] = text
         rows = list(self.dataset.rows)
-        rows[index.row()] = type(row)(row.id, tuple(values))
-        self.dataset = type(self.dataset)(self.dataset.category, self.dataset.columns, tuple(rows))
+        rows[index.row()] = Row(row.id, tuple(values))
+        self.dataset = Dataset(
+            self.dataset.category,
+            self.dataset.columns,
+            tuple(rows),
+            self.dataset.favorite_ids,
+        )
         self.dataChanged.emit(index, index, [Qt.DisplayRole, Qt.EditRole])
         return True
 
     def record_id(self, source_row: int) -> int | None:
         if 0 <= source_row < len(self.dataset.rows):
             return self.dataset.rows[source_row].id
+        return None
+
+    def row_object(self, source_row: int) -> Row | None:
+        if 0 <= source_row < len(self.dataset.rows):
+            return self.dataset.rows[source_row]
         return None
