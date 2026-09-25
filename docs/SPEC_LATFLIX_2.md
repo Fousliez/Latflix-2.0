@@ -121,6 +121,17 @@ Jednotlivé sekce mohou mít ve stavovém řádku další vlastní informace. Ty
 - ve výchozím nastavení viditelný,
 - skrývá se přes nabídku Zobrazení.
 
+
+## 7. Chování hlavního okna vůči okrajům obrazovky
+
+Jednou ze základních funkcí desktopové verze je systémové přichytávání okna k okrajům monitoru.
+
+Požadované chování:
+- po přetažení okna k pravému okraji obrazovky se aplikace přichytí a vyplní pravou polovinu obrazovky,
+- po přetažení okna k levému okraji obrazovky se aplikace přichytí a vyplní levou polovinu obrazovky,
+- aplikace má respektovat běžné chování operačního systému pro přichytávání oken k okrajům a rohům monitoru,
+- tato funkce je základní požadavek pro desktopovou verzi na Windows i Linuxu a musí být zohledněna už od návrhu hlavního okna.
+
 ---
 
 ## Pracovní pravidlo specifikace
