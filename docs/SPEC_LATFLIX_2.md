@@ -15,6 +15,12 @@ Latflix 2.0 má být multiplatformní program pro správu hereček, videí a př
 - Vzhled je důležitý, ale nesmí být na úkor výkonu.
 - Do budoucna se počítá s tisíci záznamů a větším množstvím tabulek.
 
+### Platnost současné specifikace
+- Aktuální písemný popis aplikace a všechny přiložené screenshoty jsou primárně specifikací pro desktopovou verzi Latflixu 2.0, tedy Linux a Windows.
+- Budoucí Android verze má zachovat podobnou logiku, datový model a základní funkční principy, ale její GUI bude navrženo samostatně pro mobilní prostředí.
+- Vzhled desktopové verze se tedy nemá mechanicky přenášet na Android.
+- Android verze je zatím vzdálená budoucnost a současná specifikace ji neřeší jako vizuální referenci.
+
 ## 2. Hlavní rozložení aplikace
 
 Aplikace má mít klasické desktopové rozložení:
