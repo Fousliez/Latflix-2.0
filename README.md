@@ -35,7 +35,7 @@ Latflix 2.0 tedy automaticky nesahá na databázi původního Latflixu.
 Pro testování na reálných datech použij bezpečný kopírovací nástroj:
 
 ```bash
-.venv/bin/python tools/import_latflix1.py /cesta/k/puvodni/girls.db
+.venv/bin/python -m tools.import_latflix1 /cesta/k/puvodni/girls.db
 ```
 
 Import používá SQLite backup API a vytvoří vlastní kopii pro Latflix 2.0. Zdrojová databáze se otevírá pouze pro čtení.
