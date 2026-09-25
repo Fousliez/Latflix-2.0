@@ -276,12 +276,13 @@ class MainWindow(QMainWindow):
             }
             QPushButton#quickTagButton:hover { background: #e1e9f2; border-color: #b4c0cc; }
             QFrame#detailBox {
-                background: #ffffff; border: 1px solid #b8b8b8; border-radius: 2px;
+                background: #f7f7f7; border: 1px solid #cfcfcf; border-radius: 8px;
             }
             QLabel#profilePhoto {
-                background: #e5e5e5; border: 1px solid #b0b0b0; color: #777;
+                background: #dddddd; border: 1px solid #aaaaaa;
+                border-radius: 6px; color: #555555; font-weight: 700;
             }
-            QLabel#detailName { font-size: 20px; font-weight: 800; }
+            QLabel#detailName { font-size: 22px; font-weight: 700; }
             QLabel#metadataKey { font-weight: 700; background: transparent; }
             QLabel#metadataValue {
                 background: #eef2f7; color: #202020;
@@ -294,6 +295,20 @@ class MainWindow(QMainWindow):
             }
             QToolButton#girlAssignedLinkChip:hover {
                 background: #dfeefa; border-color: #8fb1d8;
+            }
+            QToolButton#girlLinkPagerButton {
+                border: 1px solid #b9c6d6; border-radius: 5px;
+                background: #f6f8fb; color: #31577f;
+                font-size: 18px; font-weight: 700; padding: 0;
+            }
+            QToolButton#girlLinkPagerButton:hover {
+                background: #e7eff8; border-color: #7f9fbe;
+            }
+            QToolButton#girlLinkPagerButton:disabled {
+                color: #b6bec8; background: #f4f4f4; border-color: #d5d9de;
+            }
+            QLabel#girlLinkPageLabel {
+                color: #6b7280; font-size: 11px;
             }
             QLabel#missingSourceBadge {
                 background: #fff0f0; border: 1px solid #e39a9a;
