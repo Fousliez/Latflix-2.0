@@ -50,6 +50,12 @@ class PersonDetail(QFrame):
             button.clicked.connect(lambda checked=False, rating=value: self._choose_rating(rating))
             stars.addWidget(button)
             self.star_buttons.append(button)
+        self.favorite_button = QPushButton("☆ Oblíbené", center)
+        self.favorite_button.setObjectName("favoriteButton")
+        self.favorite_button.setCheckable(True)
+        self.favorite_button.setMinimumHeight(28)
+        self.favorite_button.clicked.connect(self._toggle_favorite)
+        stars.addWidget(self.favorite_button)
         stars.addStretch(1)
         center_layout.addLayout(stars)
 
@@ -62,12 +68,9 @@ class PersonDetail(QFrame):
 
         actions = QVBoxLayout()
         actions.setSpacing(5)
-        self.favorite_button = QPushButton("☆ Oblíbené", self)
-        self.favorite_button.setObjectName("favoriteButton")
-        self.favorite_button.clicked.connect(self._toggle_favorite)
         self.links_button = QPushButton("Odkazy", self)
         self.detail_button = QPushButton("Detail", self)
-        for button in (self.favorite_button, self.links_button, self.detail_button):
+        for button in (self.links_button, self.detail_button):
             button.setFixedHeight(26)
             button.setMinimumWidth(105)
             actions.addWidget(button)
@@ -127,14 +130,17 @@ class PersonDetail(QFrame):
             self.summary.setText("   •   ".join(nonempty[4:8]))
 
     def _refresh_person_controls(self) -> None:
-        self.favorite_button.setText("★ Oblíbené" if self._favorite else "☆ Oblíbené")
+        self.favorite_button.blockSignals(True)
+        self.favorite_button.setChecked(self._favorite)
+        self.favorite_button.setText("★ V oblíbených" if self._favorite else "☆ Oblíbené")
+        self.favorite_button.blockSignals(False)
         for index, button in enumerate(self.star_buttons, start=1):
             button.setText("★" if index <= self._rating else "☆")
 
-    def _toggle_favorite(self) -> None:
+    def _toggle_favorite(self, checked=False) -> None:
         if self._record_id is None:
             return
-        self._favorite = not self._favorite
+        self._favorite = bool(checked)
         self._refresh_person_controls()
         self.favorite_changed.emit(self._record_id, self._favorite)
 
