@@ -232,6 +232,29 @@ Pravidla:
 - příklad: pokud je Little Caprice na řádku 1 odemčená a Anna Fox na řádku 2 zamčená, po vyhledání Anna Fox může být zobrazena jako řádek 1, ale její zámek musí zůstat zamčený,
 - zamykací sloupec tedy reprezentuje vlastnost záznamu, zatímco číslovací sloupec reprezentuje pouze aktuální pořadí zobrazení.
 
+### Střídání barev řádků a výběr řádků
+
+#### Střídání barev řádků
+- datové řádky budou mít vždy střídavé pozadí: světle modrá, světle zelená, světle modrá, světle zelená, ...
+- toto střídání se řídí aktuálním pořadím zobrazených řádků, nikoli konkrétním záznamem,
+- po filtrování, vyhledávání, řazení nebo jiném přeskupení se barvy vždy znovu přepočítají podle aktuálního pořadí shora dolů,
+- tím pádem první zobrazený řádek bude vždy modrý, druhý zelený, třetí modrý atd.
+
+#### Výběr řádků
+- kliknutí na číslo řádku v úzkém číslovacím sloupci vybere celý daný řádek,
+- zamykací buňka se do vizuálního zvýraznění vybraného řádku nezahrnuje,
+- vybraný řádek nemění svou základní modrou/zelenou barvu,
+- výběr se zobrazí zvýrazněným rámečkem po celé délce řádku, kromě zamykací buňky,
+- více řádků lze vybrat současně pomocí Ctrl,
+- souvislý rozsah řádků lze vybrat pomocí Shift,
+- více řádků lze vybrat také kliknutím a tažením přes číslovací oblast/řádky,
+- kliknutím do volné, prázdné části aplikace se aktuální výběr řádků zruší.
+
+#### Hromadné akce
+- při výběru více řádků bude možné provádět hromadné akce,
+- konkrétní seznam hromadných akcí se bude definovat později zvlášť pro jednotlivé sekce/tabulky.
+
+
 
 
 
