@@ -200,6 +200,17 @@ Toto nastavení bude:
 - zachované i po ukončení aplikace,
 - po novém spuštění aplikace automaticky obnovené do posledního uloženého stavu dané sekce.
 
+### Velikost zámku hlavičky a číslování řádků
+
+- zámek v hlavičce tabulky, který řídí přesouvání a změnu šířky sloupců, bude vizuálně větší než zámky jednotlivých datových řádků; vzhled se má řídit referenčním screenshotem,
+- bezprostředně vpravo vedle zamykacího sloupce bude úzký sloupec s pořadovým číslem řádku,
+- každý datový řádek bude mít číslo 1, 2, 3, ... podle své aktuální pozice v právě zobrazené tabulce,
+- tato čísla nejsou trvalé identifikátory záznamů,
+- při řazení, filtrování, vyhledávání nebo jiném přeskupení tabulky se číslování vždy přepočítá shora od 1,
+- příklad: pokud je po seřazení první Anna Fox, zobrazí číslo 1; pokud je po jiném seřazení první Little Caprice, zobrazí číslo 1 ona,
+- číslování tedy vyjadřuje pouze aktuální pořadí řádku v tabulce.
+
+
 
 
 ---
