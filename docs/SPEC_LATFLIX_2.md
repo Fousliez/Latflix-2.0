@@ -343,11 +343,12 @@ V levé části horního panelu bude profilová fotografie herečky v přibližn
 Chování:
 - **jedno kliknutí levým tlačítkem** otevře dialog pro výběr obrázku,
 - výchozí složka dialogu bude `/home/jirka/Plocha`; později bude tato cesta nastavitelná v Nastavení aplikace,
-- **dvojklik levým tlačítkem** spustí výřez oblasti obrazovky; uživatel může vybrat oblast i na jiném monitoru a po dokončení se výřez automaticky uloží jako profilová fotografie dané herečky,
-- pro linuxovou desktopovou verzi má být zachován současný osvědčený způsob přes `xfce4-screenshooter`, jakmile bude přesně dohledána jeho funkční implementace z běžící verze Latflix 5.36,
+- **dvojklik levým tlačítkem** spustí výřez oblasti obrazovky; kurzor přejde do režimu výběru oblasti a uživatel může vyříznout obrázek i z jiného monitoru,
+- po dokončení výřezu se vzniklý obrázek automaticky převezme a uloží jako profilová fotografie vybrané herečky do úložiště profilových obrázků,
+- přesná interní implementace nástroje pro výřez se nyní neřeší; požadované je výsledné chování shodné s funkčním Latflixem 5.36,
 - **pravé tlačítko** na fotografii otevře dialog pro smazání fotografie.
 
-Poznámka: současný kód v repozitáři starého Latflixu obsahuje starší/mrtvou vazbu, kde dvojklik vede na mazání fotografie. To neodpovídá reálně běžící verzi Latflix 5.36, ve které dvojklik podle ověření uživatelem spouští výřez. Pro novou specifikaci je směrodatné chování běžící verze 5.36 a tento dokument.
+Důležité: při pozdější implementaci se nesmí dvojklik zaměnit za mazání fotografie. Mazání patří výhradně na pravé tlačítko; dvojklik je výhradně rychlý výřez obrazovky.
 
 ### Jméno a Oblíbené
 
