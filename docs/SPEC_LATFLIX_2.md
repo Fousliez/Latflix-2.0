@@ -210,6 +210,15 @@ Toto nastavení bude:
 - příklad: pokud je po seřazení první Anna Fox, zobrazí číslo 1; pokud je po jiném seřazení první Little Caprice, zobrazí číslo 1 ona,
 - číslování tedy vyjadřuje pouze aktuální pořadí řádku v tabulce.
 
+### Vazba zámku na konkrétní záznam
+
+- stav zámku patří ke konkrétnímu záznamu, nikoli k jeho aktuální pozici v tabulce,
+- zamykací buňka se proto při řazení, filtrování, vyhledávání a jiném přeskupení vždy přesouvá spolu se svým záznamem,
+- pořadové číslo řádku se může změnit, ale stav zámku záznamu zůstává zachovaný,
+- příklad: pokud je Little Caprice na řádku 1 odemčená a Anna Fox na řádku 2 zamčená, po vyhledání Anna Fox může být zobrazena jako řádek 1, ale její zámek musí zůstat zamčený,
+- zamykací sloupec tedy reprezentuje vlastnost záznamu, zatímco číslovací sloupec reprezentuje pouze aktuální pořadí zobrazení.
+
+
 
 
 
