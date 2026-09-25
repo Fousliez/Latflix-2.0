@@ -98,17 +98,19 @@ class MainWindow(QMainWindow):
         self.bulk_button.setText("Hromadné akce ▾")
         self.bulk_button.setPopupMode(QToolButton.InstantPopup)
         bulk_menu = QMenu(self.bulk_button)
-        bulk_menu.addAction("★ Hodnotit vybrané…")
-        bulk_menu.addAction("☆ Přidat vybrané do oblíbených")
-        bulk_menu.addAction("Odebrat vybrané z oblíbených")
+        bulk_rating = bulk_menu.addAction("★ Hodnotit vybrané…")
+        bulk_favorite = bulk_menu.addAction("☆ Přidat vybrané do oblíbených")
+        bulk_unfavorite = bulk_menu.addAction("Odebrat vybrané z oblíbených")
+        bulk_rating.triggered.connect(self.bulk_set_rating)
+        bulk_favorite.triggered.connect(lambda: self.bulk_set_favorite(True))
+        bulk_unfavorite.triggered.connect(lambda: self.bulk_set_favorite(False))
         self.bulk_button.setMenu(bulk_menu)
-        self.bulk_button.setEnabled(False)
 
         self.search = QLineEdit(table_page)
         self.search.setPlaceholderText("Hledat v sekci…")
         self.search.setClearButtonEnabled(True)
         self.search.setMaximumWidth(220)
-        self.search.textChanged.connect(self.proxy.set_search)
+        self.search.textChanged.connect(self._search_changed)
 
         self.clear_filters_button = QToolButton(table_page)
         self.clear_filters_button.setText("Vyčistit")
@@ -332,7 +334,14 @@ class MainWindow(QMainWindow):
             f"{category}: {len(dataset.rows)} záznamů | načteno za {elapsed_ms:.1f} ms",
             5000,
         )
-        self.bulk_button.setVisible(category in {"Girls", "Oblíbené"})
+        people_view = category in {"Girls", "Oblíbené"}
+        self.bulk_button.setVisible(people_view)
+        self.add_button.setEnabled(bool(dataset.columns) and category != "SUPER")
+        self.delete_button.setEnabled(bool(dataset.columns))
+
+    def _search_changed(self, text: str) -> None:
+        self.proxy.set_search(text)
+        self.update_visible_count()
 
     def rebuild_filters(self, dataset: Dataset) -> None:
         while self.filters_host.count():
@@ -451,6 +460,58 @@ class MainWindow(QMainWindow):
         value = "" if rating <= 0 else str(rating)
         if self.repository.update_named_cell(record_id, self.current_category, "Hodnocení", value):
             self.load_category(self.current_category)
+
+    def bulk_set_favorite(self, favorite: bool) -> None:
+        ids = self.selected_record_ids()
+        if not ids:
+            return
+        for record_id in ids:
+            self.repository.set_favorite(record_id, favorite)
+        self.load_category(self.current_category)
+        action = "přidáno do" if favorite else "odebráno z"
+        self.statusBar().showMessage(
+            f"{len(ids)} záznamů bylo {action} oblíbených.",
+            2500,
+        )
+
+    def bulk_set_rating(self) -> None:
+        ids = self.selected_record_ids()
+        if not ids:
+            return
+        labels = (
+            "Bez hodnocení",
+            "★☆☆☆☆  1",
+            "★★☆☆☆  2",
+            "★★★☆☆  3",
+            "★★★★☆  4",
+            "★★★★★  5",
+        )
+        selected, ok = QInputDialog.getItem(
+            self,
+            "Hromadné hodnocení",
+            f"Nastavit hodnocení pro {len(ids)} vybraných řádků:",
+            labels,
+            0,
+            False,
+        )
+        if not ok:
+            return
+        rating = 0 if selected == labels[0] else labels.index(selected)
+        value = "" if rating <= 0 else str(rating)
+        changed = 0
+        for record_id in ids:
+            if self.repository.update_named_cell(
+                record_id,
+                self.current_category,
+                "Hodnocení",
+                value,
+            ):
+                changed += 1
+        self.load_category(self.current_category)
+        self.statusBar().showMessage(
+            f"Hodnocení změněno u {changed} záznamů.",
+            2500,
+        )
 
     def update_visible_count(self) -> None:
         visible = self.proxy.rowCount()
