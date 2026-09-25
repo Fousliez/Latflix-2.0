@@ -32,3 +32,35 @@ def test_favorites_are_a_view_over_girls(tmp_path: Path):
     assert favorites.category == "Oblíbené"
     assert [row.id for row in favorites.rows] == [record_id]
     assert record_id in favorites.favorite_ids
+
+
+def test_person_links_are_read_when_legacy_link_tables_exist(tmp_path: Path):
+    repo = Repository(tmp_path / "latflix2.db")
+    record_id = repo.add_record("Girls")
+    with repo.connect() as connection:
+        connection.executescript(
+            """
+            CREATE TABLE source_links (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                record_id INTEGER NOT NULL,
+                site TEXT NOT NULL,
+                url TEXT NOT NULL,
+                sort_order INTEGER NOT NULL DEFAULT 0
+            );
+            """
+        )
+        connection.execute(
+            "INSERT INTO source_links(record_id, site, url, sort_order) VALUES (?, ?, ?, 0)",
+            (record_id, "Example", "https://example.com"),
+        )
+
+    links = repo.person_links(record_id)
+    assert links == [
+        {
+            "type": "source_links",
+            "type_label": "Zdroj",
+            "site": "Example",
+            "url": "https://example.com",
+        }
+    ]
+    assert repo.missing_source_names(record_id) == []

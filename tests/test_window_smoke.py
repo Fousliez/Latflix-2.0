@@ -24,10 +24,12 @@ def test_main_window_starts_with_core_legacy_layout(tmp_path: Path):
 
         assert window.record_count_label.text().startswith("Záznamů:")
         assert window.average_age_label.text().startswith("Průměrný věk:")
-        assert "0.2.0" in window.build_label.text()
+        assert "0.3.0" in window.build_label.text()
         assert window.detail.links_button.text() == "Odkazy"
         assert window.detail.detail_button.text() == "Detail"
+        assert window.detail.show_links_button.text() == "Zobrazit odkazy"
         assert window.detail.favorite_button.text() == "☆ Oblíbené"
+        assert window.detail.height() == window.detail.GIRL_DETAIL_HEIGHT
     finally:
         window.close()
         app.processEvents()

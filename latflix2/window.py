@@ -82,6 +82,19 @@ class MainWindow(QMainWindow):
         self.detail = PersonDetail(content)
         self.detail.favorite_changed.connect(self.set_favorite)
         self.detail.rating_changed.connect(self.set_rating)
+        self.detail.links_requested.connect(
+            lambda _record_id: self.statusBar().showMessage(
+                "Editor odkazů bude přenesen v další funkční vrstvě.",
+                2500,
+            )
+        )
+        self.detail.detail_requested.connect(
+            lambda _record_id: self.statusBar().showMessage(
+                "Samostatný detail bude přenesen v další funkční vrstvě.",
+                2500,
+            )
+        )
+        self.detail.show_links_requested.connect(self.show_person_links)
         content_layout.addWidget(self.detail)
 
         self.pages = QStackedWidget(content)
@@ -269,12 +282,30 @@ class MainWindow(QMainWindow):
                 background: #e5e5e5; border: 1px solid #b0b0b0; color: #777;
             }
             QLabel#detailName { font-size: 20px; font-weight: 800; }
-            QLabel#detailMeta { color: #404040; }
-            QLabel#detailSummary { color: #4e4e4e; }
-            QPushButton#ratingStar {
-                border: none; background: transparent; font-size: 19px; padding: 0;
+            QLabel#metadataKey { font-weight: 700; background: transparent; }
+            QLabel#metadataValue {
+                background: #eef2f7; color: #202020;
+                padding: 2px 8px; border-radius: 8px;
             }
-            QPushButton#ratingStar:hover { background: #eaf1f8; }
+            QToolButton#girlAssignedLinkChip {
+                background: #eef5fd; border: 1px solid #b9cde6;
+                border-radius: 3px; color: #28517f;
+                font-size: 11px; font-weight: 600; padding: 0px 7px;
+            }
+            QToolButton#girlAssignedLinkChip:hover {
+                background: #dfeefa; border-color: #8fb1d8;
+            }
+            QLabel#missingSourceBadge {
+                background: #fff0f0; border: 1px solid #e39a9a;
+                border-radius: 3px; color: #9d2525;
+                font-size: 11px; font-weight: 600; padding: 2px 6px;
+            }
+            QPushButton#ratingStar {
+                border: none; background: transparent; font-size: 24px;
+                padding: 0; color: #9a9a9a;
+            }
+            QPushButton#ratingStar[activeRating="true"] { color: #f2b705; }
+            QPushButton#ratingStar:hover { color: #f2b705; background: transparent; }
             QPushButton#favoriteButton {
                 padding: 4px 9px; font-weight: 600;
             }
@@ -446,7 +477,18 @@ class MainWindow(QMainWindow):
         source_index = self.proxy.mapToSource(selected[0])
         row = self.model.row_object(source_index.row())
         if row is not None:
-            self.detail.show_record(self.current_dataset, row)
+            self.detail.show_record(
+                self.current_dataset,
+                row,
+                links=self.repository.person_links(row.id),
+                missing_sources=self.repository.missing_source_names(row.id),
+            )
+
+    def show_person_links(self, record_id: int) -> None:
+        self.statusBar().showMessage(
+            f"Odkazy záznamu #{record_id}: filtrování sekce Odkazy bude doplněno.",
+            2500,
+        )
 
     def selected_record_ids(self) -> list[int]:
         selection = self.table.selectionModel()

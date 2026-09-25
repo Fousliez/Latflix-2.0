@@ -247,6 +247,84 @@ class Repository:
             result["Videa"] = result["Scény / filmy"]
         return result
 
+    @staticmethod
+    def _table_exists(connection: sqlite3.Connection, table_name: str) -> bool:
+        row = connection.execute(
+            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ? LIMIT 1",
+            (str(table_name),),
+        ).fetchone()
+        return row is not None
+
+    def person_links(self, record_id: int | None) -> list[dict[str, str]]:
+        """Vrátí odkazy osoby ze starého schématu, pokud jsou v DB dostupné."""
+        if record_id is None:
+            return []
+
+        definitions = (
+            ("social_links", "Sociální"),
+            ("source_links", "Zdroj"),
+            ("directory_links", "Adresář"),
+        )
+        result: list[dict[str, str]] = []
+        with self.connect() as connection:
+            for table_name, type_label in definitions:
+                if not self._table_exists(connection, table_name):
+                    continue
+                rows = connection.execute(
+                    f"""
+                    SELECT site, url
+                    FROM {table_name}
+                    WHERE record_id = ?
+                    ORDER BY sort_order, id
+                    """,
+                    (int(record_id),),
+                ).fetchall()
+                result.extend(
+                    {
+                        "type": table_name,
+                        "type_label": type_label,
+                        "site": str(row["site"] or "").strip(),
+                        "url": str(row["url"] or "").strip(),
+                    }
+                    for row in rows
+                    if str(row["site"] or "").strip() or str(row["url"] or "").strip()
+                )
+        return result
+
+    def missing_source_names(self, record_id: int | None) -> list[str]:
+        """Zdrojové weby používané v databázi, které vybraná osoba nemá."""
+        if record_id is None:
+            return []
+        with self.connect() as connection:
+            if not self._table_exists(connection, "source_links"):
+                return []
+
+            assigned = {
+                str(row["site"] or "").strip().casefold()
+                for row in connection.execute(
+                    "SELECT site FROM source_links WHERE record_id = ?",
+                    (int(record_id),),
+                ).fetchall()
+                if str(row["site"] or "").strip()
+            }
+            rows = connection.execute(
+                """
+                SELECT MIN(TRIM(site)) AS display_name,
+                       LOWER(TRIM(site)) AS normalized_name,
+                       COUNT(DISTINCT record_id) AS people_count
+                FROM source_links
+                WHERE TRIM(COALESCE(site, '')) <> ''
+                GROUP BY LOWER(TRIM(site))
+                ORDER BY people_count DESC, normalized_name ASC
+                """
+            ).fetchall()
+
+        return [
+            str(row["display_name"])
+            for row in rows
+            if str(row["normalized_name"] or "").casefold() not in assigned
+        ]
+
     def update_cell(self, record_id: int, column_id: int, value: str) -> None:
         with self.connect() as connection:
             connection.execute(
