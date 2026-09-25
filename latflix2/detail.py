@@ -34,6 +34,8 @@ class PersonDetail(QFrame):
     GIRL_PHOTO_HEIGHT = 96
     GIRL_ACTION_BUTTON_HEIGHT = 26
     LINK_ROW_HEIGHT = 23
+    MAX_LINK_ROWS_PER_PAGE = 3
+    LINK_PAGER_HEIGHT = 26
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -42,6 +44,9 @@ class PersonDetail(QFrame):
         self._favorite = False
         self._rating = 0
         self._category = "Girls"
+        self._link_buttons: list[QToolButton] = []
+        self._link_pages: list[list[QToolButton]] = []
+        self._link_page_index = 0
 
         root = QHBoxLayout(self)
         root.setContentsMargins(8, 3, 8, 3)
@@ -106,18 +111,56 @@ class PersonDetail(QFrame):
         self.metadata_widget.setFixedHeight(21)
         center_layout.addWidget(self.metadata_widget)
 
-        self.links_widget = QWidget(center)
+        self.links_container = QWidget(center)
+        self.links_container.setObjectName("girlAssignedLinksContainer")
+        self.links_container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        links_container_layout = QVBoxLayout(self.links_container)
+        links_container_layout.setContentsMargins(0, 0, 0, 0)
+        links_container_layout.setSpacing(3)
+
+        self.links_widget = QWidget(self.links_container)
         self.links_widget.setObjectName("girlAssignedLinksFlow")
         self.links_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.links_flow = FlowLayout(
-            self.links_widget,
             margin=0,
             horizontal_spacing=8,
             vertical_spacing=3,
         )
         self.links_widget.setLayout(self.links_flow)
-        self.links_widget.hide()
-        center_layout.addWidget(self.links_widget)
+        links_container_layout.addWidget(self.links_widget)
+
+        self.link_pager = QWidget(self.links_container)
+        self.link_pager.setObjectName("girlAssignedLinksPager")
+        self.link_pager.setFixedHeight(self.LINK_PAGER_HEIGHT)
+        pager_layout = QHBoxLayout(self.link_pager)
+        pager_layout.setContentsMargins(0, 0, 0, 0)
+        pager_layout.setSpacing(3)
+        pager_layout.addStretch(1)
+
+        self.link_prev = QToolButton(self.link_pager)
+        self.link_prev.setObjectName("girlLinkPagerButton")
+        self.link_prev.setText("‹")
+        self.link_prev.setFixedSize(28, self.LINK_PAGER_HEIGHT)
+        self.link_prev.setToolTip("Předchozí stránka odkazů")
+        self.link_page_label = QLabel("1/1", self.link_pager)
+        self.link_page_label.setObjectName("girlLinkPageLabel")
+        self.link_page_label.setAlignment(Qt.AlignCenter)
+        self.link_page_label.setFixedWidth(38)
+        self.link_next = QToolButton(self.link_pager)
+        self.link_next.setObjectName("girlLinkPagerButton")
+        self.link_next.setText("›")
+        self.link_next.setFixedSize(28, self.LINK_PAGER_HEIGHT)
+        self.link_next.setToolTip("Další stránka odkazů")
+
+        self.link_prev.clicked.connect(lambda: self._change_link_page(-1))
+        self.link_next.clicked.connect(lambda: self._change_link_page(1))
+        pager_layout.addWidget(self.link_prev)
+        pager_layout.addWidget(self.link_page_label)
+        pager_layout.addWidget(self.link_next)
+        links_container_layout.addWidget(self.link_pager)
+        self.link_pager.hide()
+        self.links_container.hide()
+        center_layout.addWidget(self.links_container)
         center_layout.addStretch(1)
         root.addWidget(center, 1)
 
@@ -281,8 +324,14 @@ class PersonDetail(QFrame):
 
     def _clear_link_chips(self) -> None:
         self.links_flow.clear()
+        self._link_buttons.clear()
+        self._link_pages.clear()
+        self._link_page_index = 0
         self.links_widget.hide()
         self.links_widget.setFixedHeight(0)
+        self.link_pager.hide()
+        self.links_container.hide()
+        self.links_container.setFixedHeight(0)
 
     def _set_link_chips(self, links: list[dict[str, str]]) -> None:
         self._clear_link_chips()
@@ -320,8 +369,92 @@ class PersonDetail(QFrame):
                 button.setEnabled(False)
             button.setToolTip(tooltip)
             self.links_flow.addWidget(button)
+            self._link_buttons.append(button)
 
+        self.links_container.setVisible(bool(ordered))
         self.links_widget.setVisible(bool(ordered))
+        if ordered:
+            self._rebuild_link_pages(reset=True)
+
+    def _rebuild_link_pages(self, reset: bool = False) -> None:
+        if not self._link_buttons:
+            self._link_pages = []
+            self._link_page_index = 0
+            self.link_pager.hide()
+            return
+
+        available = max(220, int(self.links_container.width() or self.width() * 0.55))
+        rows: list[list[QToolButton]] = []
+        current: list[QToolButton] = []
+        used = 0
+        spacing = 8
+
+        for button in self._link_buttons:
+            width = max(34, int(button.sizeHint().width()))
+            needed = width if not current else spacing + width
+            if current and used + needed > available:
+                rows.append(current)
+                current = [button]
+                used = width
+            else:
+                current.append(button)
+                used += needed
+        if current:
+            rows.append(current)
+
+        pages: list[list[QToolButton]] = []
+        for start in range(0, len(rows), self.MAX_LINK_ROWS_PER_PAGE):
+            page: list[QToolButton] = []
+            for row in rows[start:start + self.MAX_LINK_ROWS_PER_PAGE]:
+                page.extend(row)
+            pages.append(page)
+
+        self._link_pages = pages or [[]]
+        if reset:
+            self._link_page_index = 0
+        else:
+            self._link_page_index = min(
+                self._link_page_index,
+                max(0, len(self._link_pages) - 1),
+            )
+        self._apply_link_page()
+
+    def _apply_link_page(self) -> None:
+        if not self._link_pages:
+            self.link_pager.hide()
+            return
+
+        page_count = len(self._link_pages)
+        self._link_page_index = max(
+            0,
+            min(self._link_page_index, page_count - 1),
+        )
+        visible = set(self._link_pages[self._link_page_index])
+        for button in self._link_buttons:
+            button.setVisible(button in visible)
+
+        self.link_page_label.setText(
+            f"{self._link_page_index + 1}/{page_count}"
+        )
+        self.link_prev.setEnabled(self._link_page_index > 0)
+        self.link_next.setEnabled(self._link_page_index < page_count - 1)
+        self.link_pager.setVisible(page_count > 1)
+        self._refresh_dynamic_height()
+
+    def _change_link_page(self, delta: int) -> None:
+        if not self._link_pages:
+            return
+        target = max(
+            0,
+            min(
+                self._link_page_index + int(delta),
+                len(self._link_pages) - 1,
+            ),
+        )
+        if target == self._link_page_index:
+            return
+        self._link_page_index = target
+        self._apply_link_page()
 
     def _set_missing_sources(self, names: list[str]) -> None:
         while self.missing_layout.count():
@@ -371,10 +504,15 @@ class PersonDetail(QFrame):
             else 0
         )
         self.links_widget.setFixedHeight(link_height)
-        extra = max(0, link_height - self.LINK_ROW_HEIGHT)
+        pager_height = self.LINK_PAGER_HEIGHT + 3 if self.link_pager.isVisible() else 0
+        self.links_container.setFixedHeight(link_height + pager_height)
+        extra = max(
+            0,
+            link_height - self.LINK_ROW_HEIGHT,
+        ) + pager_height
         self.setFixedHeight(self.GIRL_DETAIL_HEIGHT + extra)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
         if self._category in GIRL_CATEGORIES and self.links_flow.count():
-            self._refresh_dynamic_height()
+            self._rebuild_link_pages(reset=False)
