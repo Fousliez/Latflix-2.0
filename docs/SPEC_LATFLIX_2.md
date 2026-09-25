@@ -282,10 +282,22 @@ Pravidla:
 
 Stejné párování jako u tabulek platí také pro horní pracovní panel daných sekcí:
 
-- **Girls** a **Oblíbené** budou mít úplně stejný horní panel,
-- **Videa** a **Super** budou mít úplně stejný horní panel,
-- jakákoli budoucí změna, tlačítko, ovládací prvek, chování nebo výjimka definovaná pro horní panel Girls se automaticky vztahuje i na Oblíbené, pokud uživatel výslovně neurčí jinak,
-- stejně tak jakákoli budoucí změna, tlačítko, ovládací prvek, chování nebo výjimka definovaná pro horní panel Videa se automaticky vztahuje i na Super, pokud uživatel výslovně neurčí jinak.
+- **Girls** a **Oblíbené** budou mít stejný základ, rozložení a chování horního panelu,
+- **Videa** a **Super** budou mít stejný základ, rozložení a chování horního panelu,
+- mezi členy páru se mohou lehce lišit konkrétní tlačítka nad tabulkou; přesné rozdíly budou definovány později,
+- budoucí společné změny horního panelu se mají promítat do obou členů daného páru, pokud uživatel výslovně neurčí výjimku.
+
+
+### Rozdíly mezi párovými sekcemi
+
+Párové sekce **Girls / Oblíbené** a **Videa / Super** se mají vizuálně a funkčně držet co nejblíže sobě.
+
+Rozdíly budou pouze v tom, že:
+- v levém navigačním menu bude jako aktivní zvýrazněna právě otevřená sekce,
+- některá tlačítka nad tabulkou se mohou lehce lišit; budou definována později,
+- v tabulce budou zobrazena jiná data podle otevřené sekce.
+
+Samotný základ tabulky a její chování zůstává uvnitř každého páru stejné podle pravidel uvedených výše.
 
 ---
 
