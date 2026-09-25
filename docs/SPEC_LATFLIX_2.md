@@ -145,6 +145,22 @@ Základní požadavky:
 - tabulka má působit jednoduše, čistě a lehce,
 - konkrétní chování sloupců, řádků, výběrů, editace, řazení, filtrů a dalších funkcí bude doplněno postupně.
 
+### Sdílené chování tabulek napříč sekcemi
+
+Základní tabulkový systém bude napříč sekcemi co nejvíce jednotný.
+
+Platí zejména:
+- chování řádků bude stejné ve všech sekcích,
+- obecné chování buněk bude stejné ve všech sekcích,
+- zámky a jejich logika budou stejné ve všech sekcích,
+- výběr, zvýraznění, základní editace a další obecné interakce tabulky budou řešeny jedním společným systémem,
+- jednotlivé sekce se budou primárně lišit názvy a skladbou sloupců,
+- výjimkou mohou být specifické typy buněk nebo celé sloupce se zvláštním chováním,
+- tyto výjimky se budou definovat postupně pro konkrétní sekce a sloupce.
+
+Cílem je zabránit duplikování stejné tabulkové logiky v každé sekci a držet jednotné chování celé aplikace.
+
+
 ---
 
 ## Pracovní pravidlo specifikace
