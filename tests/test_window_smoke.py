@@ -33,3 +33,42 @@ def test_main_window_starts_with_core_legacy_layout(tmp_path: Path):
     finally:
         window.close()
         app.processEvents()
+
+
+def test_top_detail_link_pager_limits_visible_chips(tmp_path: Path):
+    app = QApplication.instance() or QApplication([])
+    repository = Repository(tmp_path / "latflix2.db")
+    window = MainWindow(repository)
+    try:
+        window.detail.links_container.resize(230, 80)
+        window.detail._set_link_chips(
+            [
+                {
+                    "site": f"Long source name {index}",
+                    "url": f"https://example.com/{index}",
+                    "type_label": "Zdroj",
+                }
+                for index in range(14)
+            ]
+        )
+        window.detail._rebuild_link_pages(reset=True)
+
+        assert len(window.detail._link_pages) >= 2
+        assert not window.detail.link_pager.isHidden()
+        assert window.detail.link_page_label.text().startswith("1/")
+        visible_first = sum(
+            not button.isHidden()
+            for button in window.detail._link_buttons
+        )
+
+        window.detail._change_link_page(1)
+        assert window.detail.link_page_label.text().startswith("2/")
+        visible_second = sum(
+            not button.isHidden()
+            for button in window.detail._link_buttons
+        )
+        assert visible_first > 0
+        assert visible_second > 0
+    finally:
+        window.close()
+        app.processEvents()
