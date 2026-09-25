@@ -160,6 +160,47 @@ Platí zejména:
 
 Cílem je zabránit duplikování stejné tabulkové logiky v každé sekci a držet jednotné chování celé aplikace.
 
+### Zamykání řádků a hlavičky tabulky
+
+První sloupec tabulky bude sloužit jako zamykací sloupec.
+
+#### Zamykání jednotlivých řádků
+- každý datový řádek bude mít v prvním sloupci zámek,
+- odemčený řádek bude mít u zámku bílé pozadí,
+- zamčený řádek bude mít u zámku tmavé pozadí,
+- kliknutím na zámek v daném řádku se řádek přepne mezi zamčeným a odemčeným stavem,
+- zamčený řádek nebude možné běžně editovat,
+- některé buňky nebo sloupce mohou být z tohoto pravidla výjimkou; tyto výjimky budou definovány později,
+- toto chování bude společné napříč sekcemi.
+
+#### Zamykání hlavičky tabulky
+Úplně první řádek tabulky, tedy řádek s názvy sloupců, bude mít vlastní zámek vlevo.
+
+Výchozí stav:
+- hlavička bude zamčená,
+- sloupce nepůjdou přesouvat,
+- nepůjde měnit jejich šířka.
+
+Po kliknutí na zámek hlavičky:
+- hlavička se odemkne,
+- sloupce půjdou přesouvat mezi sebou chycením a tažením,
+- půjde měnit jejich šířku tažením hranice mezi sloupci podobně jako v Excelu.
+
+Po opětovném zamknutí:
+- přesouvání sloupců se znovu zakáže,
+- změna jejich šířky se znovu zakáže.
+
+#### Ukládání rozložení sloupců
+Aplikace si bude pamatovat:
+- pořadí sloupců,
+- šířku jednotlivých sloupců.
+
+Toto nastavení bude:
+- uložené zvlášť pro každou sekci, protože jednotlivé sekce mají rozdílné sloupce,
+- zachované i po ukončení aplikace,
+- po novém spuštění aplikace automaticky obnovené do posledního uloženého stavu dané sekce.
+
+
 
 ---
 
