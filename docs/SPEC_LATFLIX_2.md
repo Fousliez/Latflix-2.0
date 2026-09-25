@@ -333,6 +333,28 @@ Screenshoty sekcí **Oblíbené** a **Super** nebyly samostatně dodány, proto�
 
 Při pozdějším doplňování konkrétních funkcí má písemná potvrzená specifikace přednost před starým screenshotem, pokud by si odporovaly.
 
+
+## 10. Sekce Girls / Oblíbené – horní panel
+
+### Profilová fotografie herečky
+
+V levé části horního panelu bude profilová fotografie herečky v přibližně portrétním poměru 9:16.
+
+Chování:
+- **jedno kliknutí levým tlačítkem** otevře dialog pro výběr obrázku,
+- výchozí složka dialogu bude `/home/jirka/Plocha`; později bude tato cesta nastavitelná v Nastavení aplikace,
+- **dvojklik levým tlačítkem** spustí výřez oblasti obrazovky; uživatel může vybrat oblast i na jiném monitoru a po dokončení se výřez automaticky uloží jako profilová fotografie dané herečky,
+- pro linuxovou desktopovou verzi má být zachován současný osvědčený způsob přes `xfce4-screenshooter`, jakmile bude přesně dohledána jeho funkční implementace z běžící verze Latflix 5.36,
+- **pravé tlačítko** na fotografii otevře dialog pro smazání fotografie.
+
+Poznámka: současný kód v repozitáři starého Latflixu obsahuje starší/mrtvou vazbu, kde dvojklik vede na mazání fotografie. To neodpovídá reálně běžící verzi Latflix 5.36, ve které dvojklik podle ověření uživatelem spouští výřez. Pro novou specifikaci je směrodatné chování běžící verze 5.36 a tento dokument.
+
+### Jméno a Oblíbené
+
+- hvězdičkové hodnocení zobrazené ve starém Latflixu se do nové verze zatím nepřenáší a má být při návrhu ignorováno,
+- ovládací prvek **Oblíbené** se posune doleva a bude umístěn vpravo vedle jména herečky,
+- přesný vzhled a chování dalších prvků horního panelu bude doplněno postupně.
+
 ---
 
 ## Pracovní pravidlo specifikace
