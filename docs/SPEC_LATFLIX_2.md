@@ -132,6 +132,19 @@ Požadované chování:
 - aplikace má respektovat běžné chování operačního systému pro přichytávání oken k okrajům a rohům monitoru,
 - tato funkce je základní požadavek pro desktopovou verzi na Windows i Linuxu a musí být zohledněna už od návrhu hlavního okna.
 
+
+## 8. Tabulkový základ aplikace
+
+Srdcem Latflixu 2.0 bude tabulkové zobrazení podobné principu Excelu, ale navržené jako lehká a svižná datová tabulka, nikoli jako plnohodnotný tabulkový procesor.
+
+Základní požadavky:
+- tabulka bude hlavní pracovní prvek aplikace,
+- musí zvládat tisíce záznamů bez pocitu těžkopádnosti,
+- priorita je rychlé vykreslování, rychlá odezva a nízká režie,
+- vzhled a efekty nesmí být na úkor výkonu,
+- tabulka má působit jednoduše, čistě a lehce,
+- konkrétní chování sloupců, řádků, výběrů, editace, řazení, filtrů a dalších funkcí bude doplněno postupně.
+
 ---
 
 ## Pracovní pravidlo specifikace
