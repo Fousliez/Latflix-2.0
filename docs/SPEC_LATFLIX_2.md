@@ -1022,6 +1022,44 @@ Chování:
 
 Tato logika se má implementovat sdíleně tak, aby ji bylo možné použít i u dalších hlavních textových sloupců, pokud budou později označeny pro stejné chování.
 
+
+### Girls / Oblíbené – sloupec Tagy
+
+Sloupec **Tagy** používá výběrový popup podobný dodané referenci.
+
+Chování a vzhled:
+- popup zobrazuje existující tagy jako **barevné štítky**,
+- barva každého štítku se bere z centrální sekce **Tagy**,
+- v tomto popupu se tagy pouze vybírají / odebírají pro konkrétní herečku,
+- správu seznamu tagů a jejich barev řeší samostatná sekce **Tagy**.
+
+V popupu nebudou:
+- pole **Nový tag**,
+- tlačítko **+** pro přidání nového tagu,
+- tlačítko **Smazat**.
+
+Dole zůstanou pouze:
+- **Zrušit**
+- **Uložit**
+
+### Girls / Oblíbené – sloupce Sledování, Posl. kontrola a Pozn.
+
+#### Sledování
+- sloupec **Sledování** zobrazuje celkový počet uložených odkazů u dané herečky,
+- počítá se každý uložený odkaz samostatně,
+- pokud má herečka například dva různé uložené odkazy na Instagram, oba se započítají,
+- hodnota je tedy počet konkrétních URL, nikoliv počet unikátních platforem.
+
+#### Posl. kontrola
+- sloupec **Posl. kontrola** je editovatelný,
+- používá běžný textový editor,
+- bez našeptávače / automatického doplňování.
+
+#### Pozn.
+- sloupec **Pozn.** je editovatelný,
+- používá běžný textový editor,
+- bez našeptávače / automatického doplňování.
+
 ---
 
 ## Pracovní pravidlo specifikace
