@@ -1076,6 +1076,19 @@ Požadované chování:
 - teprve pokud pod buňkou dostatek místa není, může se otevřít jiným směrem podle dostupného prostoru,
 - pravidlo platí globálně pro všechny výběrové / dropdown buňky ve všech tabulkách, pokud není u konkrétní sekce výslovně stanoveno jinak.
 
+
+### Výběrové buňky – bez změny barvy
+
+Výběrová / dropdown buňka nesmí při běžném použití měnit svoji základní barvu.
+
+Platí:
+- po kliknutí na buňku se její pozadí nepřebarví,
+- během otevřené nabídky zůstává pozadí buňky stejné,
+- po zvolení a uložení hodnoty se buňka kvůli této akci také nepřebarví,
+- buňka nadále používá základní barvu svého řádku podle globálního střídání bílá / světle šedá,
+- případný stav výběru celého řádku se řídí pouze globálními pravidly řádkového výběru; dropdown si nevytváří vlastní barevné zvýraznění,
+- pravidlo platí globálně pro všechny výběrové / dropdown buňky ve všech tabulkách, pokud není u konkrétní sekce výslovně stanoveno jinak.
+
 ### Globální tabulkové chování – rychlé kopírování hlavního názvu ze zamčeného řádku
 
 U zamčených řádků bude dvojklik do hlavního textového sloupce sloužit jako rychlé kopírování hodnoty.
