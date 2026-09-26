@@ -20,6 +20,9 @@ class Girl:
     last_check: str = ""
     note: str = ""
     status: str = ""
+    rating: str = ""
+    last_image: str = ""
+    birth_date: str = ""
     locked: bool = False
     favorite: bool = False
     profile_path: str = ""
@@ -28,6 +31,19 @@ class Girl:
     tracking: int = 0
     occurrences: int = 0
     created_seq: int = 0
+    created_at: str = ""
+    is_new: bool = False
+
+
+@dataclass(frozen=True)
+class CatalogRow:
+    id: int
+    kind: str
+    name: str
+    color: str
+    locked: bool
+    created_seq: int
+    is_new: bool
 
 
 @dataclass(frozen=True)
@@ -39,6 +55,7 @@ class Studio:
     locked: bool = False
     occurrences: int = 0
     created_seq: int = 0
+    is_new: bool = False
 
 
 @dataclass(frozen=True)
@@ -55,10 +72,12 @@ class Video:
     duration: str = ""
     mixed_gender: str = ""
     note: str = ""
+    rating: str = ""
     locked: bool = False
     in_super: bool = False
     participants: tuple[tuple[int, str, int], ...] = ()
     created_seq: int = 0
+    is_new: bool = False
 
 
 @dataclass(frozen=True)
@@ -72,25 +91,25 @@ class Link:
     url: str
     check_value: str = ""
     downloaded: str = ""
-    active: str = "Akt."
+    active: str = ""
     last_text: str = ""
     last_image: str = ""
     locked: bool = False
     created_seq: int = 0
+    is_new: bool = False
 
 
 class Repository:
-    """Persistence boundary for Latflix 2.1.
+    """Single persistence boundary for Latflix 2.1.
 
-    New lf21_* tables keep the 2.0 prototype intact. On first start the useful
-    lf2 Girls/catalog/link data is copied when available.
+    The 2.1 tables use the lf21_ prefix. User content is never imported
+    automatically at startup; importing old lf2_* content is an explicit action.
     """
 
     def __init__(self, path: Path):
         self.path = Path(path).expanduser().resolve()
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._ensure_schema()
-        self._migrate_from_lf2_once()
 
     def connect(self) -> sqlite3.Connection:
         db = sqlite3.connect(self.path, timeout=20.0)
@@ -111,6 +130,12 @@ class Repository:
         except Exception:
             return ()
         return tuple(str(x).strip() for x in value if str(x).strip()) if isinstance(value, list) else ()
+
+    @staticmethod
+    def _ensure_column(c: sqlite3.Connection, table: str, name: str, declaration: str) -> None:
+        columns = {str(row["name"]) for row in c.execute(f"PRAGMA table_info({table})")}
+        if name not in columns:
+            c.execute(f"ALTER TABLE {table} ADD COLUMN {name} {declaration}")
 
     def _ensure_schema(self) -> None:
         with self.connect() as c:
@@ -133,11 +158,15 @@ class Repository:
                     last_check TEXT NOT NULL DEFAULT '',
                     note TEXT NOT NULL DEFAULT '',
                     status TEXT NOT NULL DEFAULT '',
+                    rating TEXT NOT NULL DEFAULT '',
+                    last_image TEXT NOT NULL DEFAULT '',
+                    birth_date TEXT NOT NULL DEFAULT '',
                     locked INTEGER NOT NULL DEFAULT 0,
                     favorite INTEGER NOT NULL DEFAULT 0,
                     profile_path TEXT NOT NULL DEFAULT '',
                     aliases_json TEXT NOT NULL DEFAULT '[]',
                     created_seq INTEGER NOT NULL DEFAULT 0,
+                    is_new INTEGER NOT NULL DEFAULT 1,
                     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
@@ -147,7 +176,9 @@ class Repository:
                     kind TEXT NOT NULL,
                     name TEXT NOT NULL,
                     color TEXT NOT NULL DEFAULT '#d7e9ff',
+                    locked INTEGER NOT NULL DEFAULT 0,
                     created_seq INTEGER NOT NULL DEFAULT 0,
+                    is_new INTEGER NOT NULL DEFAULT 1,
                     UNIQUE(kind, name COLLATE NOCASE)
                 );
 
@@ -164,6 +195,7 @@ class Repository:
                     url TEXT NOT NULL DEFAULT '',
                     locked INTEGER NOT NULL DEFAULT 0,
                     created_seq INTEGER NOT NULL DEFAULT 0,
+                    is_new INTEGER NOT NULL DEFAULT 1,
                     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
@@ -180,9 +212,11 @@ class Repository:
                     duration TEXT NOT NULL DEFAULT '',
                     mixed_gender TEXT NOT NULL DEFAULT '',
                     note TEXT NOT NULL DEFAULT '',
+                    rating TEXT NOT NULL DEFAULT '',
                     locked INTEGER NOT NULL DEFAULT 0,
                     in_super INTEGER NOT NULL DEFAULT 0,
                     created_seq INTEGER NOT NULL DEFAULT 0,
+                    is_new INTEGER NOT NULL DEFAULT 1,
                     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
@@ -211,11 +245,12 @@ class Repository:
                     url TEXT NOT NULL DEFAULT '',
                     check_value TEXT NOT NULL DEFAULT '',
                     downloaded TEXT NOT NULL DEFAULT '',
-                    active TEXT NOT NULL DEFAULT 'Akt.',
+                    active TEXT NOT NULL DEFAULT '',
                     last_text TEXT NOT NULL DEFAULT '',
                     last_image TEXT NOT NULL DEFAULT '',
                     locked INTEGER NOT NULL DEFAULT 0,
                     created_seq INTEGER NOT NULL DEFAULT 0,
+                    is_new INTEGER NOT NULL DEFAULT 1,
                     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
@@ -229,6 +264,24 @@ class Repository:
                 CREATE INDEX IF NOT EXISTS idx_lf21_links_girl ON lf21_links(girl_id);
                 """
             )
+
+            # Technical migrations for databases created by earlier 2.1 prototypes.
+            for name, declaration in (
+                ("rating", "TEXT NOT NULL DEFAULT ''"),
+                ("last_image", "TEXT NOT NULL DEFAULT ''"),
+                ("birth_date", "TEXT NOT NULL DEFAULT ''"),
+                ("is_new", "INTEGER NOT NULL DEFAULT 0"),
+            ):
+                self._ensure_column(c, "lf21_girls", name, declaration)
+            for name, declaration in (
+                ("locked", "INTEGER NOT NULL DEFAULT 0"),
+                ("is_new", "INTEGER NOT NULL DEFAULT 0"),
+            ):
+                self._ensure_column(c, "lf21_catalog", name, declaration)
+            self._ensure_column(c, "lf21_studios", "is_new", "INTEGER NOT NULL DEFAULT 0")
+            self._ensure_column(c, "lf21_videos", "rating", "TEXT NOT NULL DEFAULT ''")
+            self._ensure_column(c, "lf21_videos", "is_new", "INTEGER NOT NULL DEFAULT 0")
+            self._ensure_column(c, "lf21_links", "is_new", "INTEGER NOT NULL DEFAULT 0")
             self._seed(c)
 
     @staticmethod
@@ -244,13 +297,15 @@ class Repository:
             "states": ("NOVÉ", "CHCI", "MÁM", "NECHCI"),
             "qualities": ("4K", "2160p", "1440p", "1080p", "720p", "480p"),
         }
+        tag_colors = ("#f6c0c0", "#c5dbff", "#d1efc6")
         for kind, values in seeds.items():
             if c.execute("SELECT 1 FROM lf21_catalog WHERE kind=? LIMIT 1", (kind,)).fetchone():
                 continue
             for idx, value in enumerate(values, 1):
+                color = tag_colors[idx - 1] if kind == "tags" and idx <= len(tag_colors) else "#d7e9ff"
                 c.execute(
-                    "INSERT OR IGNORE INTO lf21_catalog(kind,name,created_seq) VALUES(?,?,?)",
-                    (kind, value, idx),
+                    "INSERT OR IGNORE INTO lf21_catalog(kind,name,color,created_seq,is_new) VALUES(?,?,?,?,0)",
+                    (kind, value, color, idx),
                 )
 
         defaults = (
@@ -276,128 +331,187 @@ class Repository:
                 (category, name, web, idx),
             )
 
-    def _migrate_from_lf2_once(self) -> None:
+    # ---------- explicit import ----------
+
+    def import_from_lf2(self) -> dict[str, int]:
+        """Explicit one-time import of useful lf2_* content.
+
+        Returns counts of imported rows. It never runs automatically.
+        """
         with self.connect() as c:
             if c.execute("SELECT value FROM lf21_meta WHERE key='migrated_lf2'").fetchone():
-                return
+                return {"girls": 0, "links": 0, "catalog": 0, "already_done": 1}
             names = {r[0] for r in c.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-            if "lf2_girls" in names and not c.execute("SELECT 1 FROM lf21_girls LIMIT 1").fetchone():
-                rows = c.execute("SELECT * FROM lf2_girls ORDER BY sort_order, id").fetchall()
-                id_map: dict[int, int] = {}
-                for seq, r in enumerate(rows, 1):
-                    cur = c.execute(
-                        """INSERT INTO lf21_girls(
-                               name,face,sex,type_name,nudity,age_source,nationality,last_check,note,status,
-                               locked,favorite,profile_path,aliases_json,created_seq
-                           ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-                        (
-                            r["name"], r["face"], r["sex"], r["type_name"], r["nudity"],
-                            r["age_source"], r["nationality"], r["last_check"], r["note"],
-                            r["status"], r["locked"], r["favorite"], r["profile_path"],
-                            r["aliases_json"], seq,
-                        ),
+            if "lf2_girls" not in names:
+                return {"girls": 0, "links": 0, "catalog": 0, "missing_source": 1}
+
+            counts = {"girls": 0, "links": 0, "catalog": 0}
+            id_map: dict[int, int] = {}
+
+            for r in c.execute("SELECT * FROM lf2_girls ORDER BY sort_order,id"):
+                existing = c.execute(
+                    "SELECT id FROM lf21_girls WHERE name=? COLLATE NOCASE AND TRIM(name)<>''",
+                    (r["name"],),
+                ).fetchone()
+                if existing:
+                    id_map[int(r["id"])] = int(existing["id"])
+                    continue
+                cur = c.execute(
+                    """INSERT INTO lf21_girls(
+                        name,face,sex,type_name,nudity,age_source,nationality,last_check,note,status,
+                        locked,favorite,profile_path,aliases_json,created_seq,is_new
+                    ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)""",
+                    (
+                        r["name"], r["face"], r["sex"], r["type_name"], r["nudity"],
+                        r["age_source"], r["nationality"], r["last_check"], r["note"],
+                        r["status"], r["locked"], r["favorite"], r["profile_path"],
+                        r["aliases_json"], self._seq(c, "lf21_girls"),
+                    ),
+                )
+                id_map[int(r["id"])] = int(cur.lastrowid)
+                counts["girls"] += 1
+
+            if "lf2_catalog" in names:
+                for r in c.execute("SELECT kind,name,color FROM lf2_catalog"):
+                    before = c.total_changes
+                    c.execute(
+                        "INSERT OR IGNORE INTO lf21_catalog(kind,name,color,created_seq,is_new) VALUES(?,?,?,?,0)",
+                        (r["kind"], r["name"], r["color"], self._seq(c, "lf21_catalog")),
                     )
-                    id_map[int(r["id"])] = int(cur.lastrowid)
+                    if c.total_changes > before:
+                        counts["catalog"] += 1
 
-                if "lf2_catalog" in names:
-                    for r in c.execute("SELECT kind,name,color,sort_order FROM lf2_catalog").fetchall():
+            if "lf2_girl_tags" in names and "lf2_catalog" in names:
+                tag_by_name = {
+                    str(r["name"]): int(r["id"])
+                    for r in c.execute("SELECT id,name FROM lf21_catalog WHERE kind='tags'")
+                }
+                for r in c.execute(
+                    "SELECT gt.girl_id,c.name FROM lf2_girl_tags gt "
+                    "JOIN lf2_catalog c ON c.id=gt.tag_id"
+                ):
+                    new_girl = id_map.get(int(r["girl_id"]))
+                    tag_id = tag_by_name.get(str(r["name"]))
+                    if new_girl and tag_id:
                         c.execute(
-                            "INSERT OR IGNORE INTO lf21_catalog(kind,name,color,created_seq) VALUES(?,?,?,?)",
-                            (r["kind"], r["name"], r["color"], r["sort_order"]),
+                            "INSERT OR IGNORE INTO lf21_girl_tags(girl_id,tag_id) VALUES(?,?)",
+                            (new_girl, tag_id),
                         )
 
-                if "lf2_girl_tags" in names and "lf2_catalog" in names:
-                    tag_by_name = {
-                        r["name"]: r["id"]
-                        for r in c.execute("SELECT id,name FROM lf21_catalog WHERE kind='tags'")
-                    }
-                    for r in c.execute(
-                        "SELECT gt.girl_id,c.name FROM lf2_girl_tags gt "
-                        "JOIN lf2_catalog c ON c.id=gt.tag_id"
-                    ).fetchall():
-                        new_girl = id_map.get(int(r["girl_id"]))
-                        new_tag = tag_by_name.get(str(r["name"]))
-                        if new_girl and new_tag:
-                            c.execute(
-                                "INSERT OR IGNORE INTO lf21_girl_tags(girl_id,tag_id) VALUES(?,?)",
-                                (new_girl, new_tag),
-                            )
-
-                if "lf2_links" in names:
-                    for seq, r in enumerate(
-                        c.execute("SELECT * FROM lf2_links ORDER BY sort_order,id").fetchall(), 1
-                    ):
-                        new_girl = id_map.get(int(r["girl_id"]))
-                        source = str(r["source"] or "").strip()
-                        if not new_girl:
-                            continue
-                        row = c.execute(
-                            "SELECT id FROM lf21_link_types WHERE name=? COLLATE NOCASE",
-                            (source,),
-                        ).fetchone()
-                        if row is None:
-                            cur = c.execute(
-                                "INSERT INTO lf21_link_types(category,name,created_seq) VALUES('Zdroj',?,?)",
-                                (source, seq),
-                            )
-                            type_id = int(cur.lastrowid)
-                        else:
-                            type_id = int(row["id"])
-                        c.execute(
-                            "INSERT INTO lf21_links(type_id,girl_id,url,created_seq) VALUES(?,?,?,?)",
-                            (type_id, new_girl, r["url"], seq),
+            if "lf2_links" in names:
+                for r in c.execute("SELECT * FROM lf2_links ORDER BY sort_order,id"):
+                    girl_id = id_map.get(int(r["girl_id"]))
+                    if not girl_id:
+                        continue
+                    source = str(r["source"] or "").strip() or "Odkaz"
+                    type_row = c.execute(
+                        "SELECT id FROM lf21_link_types WHERE name=? COLLATE NOCASE",
+                        (source,),
+                    ).fetchone()
+                    if type_row is None:
+                        cur = c.execute(
+                            "INSERT INTO lf21_link_types(category,name,created_seq) VALUES('Zdroj',?,?)",
+                            (source, self._seq(c, "lf21_link_types")),
                         )
+                        type_id = int(cur.lastrowid)
+                    else:
+                        type_id = int(type_row["id"])
+                    c.execute(
+                        "INSERT INTO lf21_links(type_id,girl_id,url,created_seq,is_new) VALUES(?,?,?,?,0)",
+                        (type_id, girl_id, r["url"], self._seq(c, "lf21_links")),
+                    )
+                    counts["links"] += 1
+
             c.execute("INSERT OR REPLACE INTO lf21_meta(key,value) VALUES('migrated_lf2','1')")
+            return counts
+
+    # ---------- catalogs ----------
 
     def catalog(self, kind: str) -> list[str]:
         with self.connect() as c:
             return [
-                str(r[0])
+                str(r["name"])
                 for r in c.execute(
-                    "SELECT name FROM lf21_catalog WHERE kind=? ORDER BY created_seq,name COLLATE NOCASE",
+                    "SELECT name FROM lf21_catalog WHERE kind=? AND TRIM(name)<>'' "
+                    "ORDER BY created_seq,name COLLATE NOCASE",
                     (kind,),
                 )
             ]
 
-    def catalog_rows(self, kind: str) -> list[dict]:
+    def catalog_rows(self, kind: str) -> list[CatalogRow]:
         with self.connect() as c:
             return [
-                dict(r)
+                CatalogRow(
+                    int(r["id"]), str(r["kind"]), str(r["name"]), str(r["color"]),
+                    bool(r["locked"]), int(r["created_seq"]), bool(r["is_new"]),
+                )
                 for r in c.execute(
-                    "SELECT id,name,color,created_seq FROM lf21_catalog "
-                    "WHERE kind=? ORDER BY created_seq DESC,id DESC",
+                    "SELECT * FROM lf21_catalog WHERE kind=? ORDER BY created_seq DESC,id DESC",
                     (kind,),
                 )
             ]
 
-    def add_catalog(self, kind: str, name: str, color: str = "#d7e9ff") -> int:
-        name = name.strip()
+    def add_catalog(self, kind: str, name: str = "", color: str = "#d7e9ff") -> int:
+        text = name.strip()
         with self.connect() as c:
-            row = c.execute(
-                "SELECT id FROM lf21_catalog WHERE kind=? AND name=? COLLATE NOCASE",
-                (kind, name),
-            ).fetchone()
-            if row:
-                return int(row[0])
+            if text:
+                row = c.execute(
+                    "SELECT id FROM lf21_catalog WHERE kind=? AND name=? COLLATE NOCASE",
+                    (kind, text),
+                ).fetchone()
+                if row:
+                    return int(row["id"])
             cur = c.execute(
-                "INSERT INTO lf21_catalog(kind,name,color,created_seq) VALUES(?,?,?,?)",
-                (kind, name, color, self._seq(c, "lf21_catalog")),
+                "INSERT INTO lf21_catalog(kind,name,color,created_seq,is_new) VALUES(?,?,?,?,?)",
+                (kind, text, color, self._seq(c, "lf21_catalog"), 0 if text else 1),
             )
             return int(cur.lastrowid)
 
-    def update_catalog(self, row_id: int, name: str, color: str | None = None) -> None:
+    def update_catalog(self, row_id: int, name: str | None = None, color: str | None = None) -> None:
         with self.connect() as c:
-            if color is None:
-                c.execute("UPDATE lf21_catalog SET name=? WHERE id=?", (name, row_id))
-            else:
+            if name is not None:
                 c.execute(
-                    "UPDATE lf21_catalog SET name=?,color=? WHERE id=?",
-                    (name, color, row_id),
+                    "UPDATE lf21_catalog SET name=?,is_new=CASE WHEN TRIM(?)<>'' THEN 0 ELSE is_new END WHERE id=?",
+                    (name, name, row_id),
                 )
+            if color is not None:
+                c.execute(
+                    "UPDATE lf21_catalog SET color=?,is_new=0 WHERE id=?",
+                    (color, row_id),
+                )
+
+    def set_catalog_locked(self, row_id: int, value: bool) -> None:
+        with self.connect() as c:
+            c.execute("UPDATE lf21_catalog SET locked=? WHERE id=?", (int(value), row_id))
 
     def delete_catalog(self, row_id: int) -> None:
         with self.connect() as c:
-            c.execute("DELETE FROM lf21_catalog WHERE id=?", (row_id,))
+            c.execute("DELETE FROM lf21_catalog WHERE id=? AND locked=0", (row_id,))
+
+    def tag_usage(self) -> dict[str, int]:
+        with self.connect() as c:
+            return {
+                str(r["name"]): int(r["n"])
+                for r in c.execute(
+                    """
+                    SELECT c.name,COUNT(gt.girl_id) n
+                    FROM lf21_catalog c
+                    LEFT JOIN lf21_girl_tags gt ON gt.tag_id=c.id
+                    WHERE c.kind='tags'
+                    GROUP BY c.id
+                    """
+                )
+            }
+
+    def tag_color(self, name: str) -> str:
+        with self.connect() as c:
+            row = c.execute(
+                "SELECT color FROM lf21_catalog WHERE kind='tags' AND name=? COLLATE NOCASE",
+                (name,),
+            ).fetchone()
+            return str(row["color"]) if row else "#d7e9ff"
+
+    # ---------- validity / occurrence ----------
 
     def _valid_video_sql(self, alias: str = "v") -> str:
         a = alias
@@ -408,6 +522,7 @@ class Repository:
             f"(TRIM({a}.quality)<>'')+(TRIM({a}.available_quality)<>'')+"
             f"(TRIM({a}.size)<>'')+(TRIM({a}.duration)<>'')+"
             f"(TRIM({a}.mixed_gender)<>'')+(TRIM({a}.note)<>'')+"
+            f"(TRIM({a}.rating)<>'')+"
             f"(CASE WHEN EXISTS(SELECT 1 FROM lf21_video_girls vg0 "
             f"WHERE vg0.video_id={a}.id) THEN 1 ELSE 0 END))"
         )
@@ -418,6 +533,8 @@ class Repository:
             f"WHERE vg1.video_id={a}.id) THEN 1 ELSE 0 END))"
         )
         return f"({field_count}>=4 AND {key_count}>=2)"
+
+    # ---------- girls ----------
 
     def girls(self, favorites: bool = False) -> list[Girl]:
         with self.connect() as c:
@@ -436,7 +553,7 @@ class Repository:
             out: list[Girl] = []
             for r in rows:
                 tags = tuple(
-                    x[0]
+                    x["name"]
                     for x in c.execute(
                         "SELECT c.name FROM lf21_girl_tags gt "
                         "JOIN lf21_catalog c ON c.id=gt.tag_id "
@@ -447,41 +564,47 @@ class Repository:
                 out.append(
                     Girl(
                         id=int(r["id"]),
-                        name=r["name"],
-                        face=r["face"],
-                        sex=r["sex"],
-                        type_name=r["type_name"],
-                        nudity=r["nudity"],
-                        age_source=r["age_source"],
-                        nationality=r["nationality"],
-                        last_check=r["last_check"],
-                        note=r["note"],
-                        status=r["status"],
+                        name=str(r["name"]),
+                        face=str(r["face"]),
+                        sex=str(r["sex"]),
+                        type_name=str(r["type_name"]),
+                        nudity=str(r["nudity"]),
+                        age_source=str(r["age_source"]),
+                        nationality=str(r["nationality"]),
+                        last_check=str(r["last_check"]),
+                        note=str(r["note"]),
+                        status=str(r["status"]),
+                        rating=str(r["rating"]),
+                        last_image=str(r["last_image"]),
+                        birth_date=str(r["birth_date"]),
                         locked=bool(r["locked"]),
                         favorite=bool(r["favorite"]),
-                        profile_path=r["profile_path"],
-                        aliases=self._json_tuple(r["aliases_json"]),
+                        profile_path=str(r["profile_path"]),
+                        aliases=self._json_tuple(str(r["aliases_json"])),
                         tags=tags,
                         tracking=int(r["tracking"]),
                         occurrences=int(r["occurrences"]),
                         created_seq=int(r["created_seq"]),
+                        created_at=str(r["created_at"]),
+                        is_new=bool(r["is_new"]),
                     )
                 )
             return out
 
     def girl(self, girl_id: int) -> Girl | None:
-        return next((g for g in self.girls(False) if g.id == girl_id), None)
+        return next((g for g in self.girls(False) if g.id == int(girl_id)), None)
 
     def add_girl(self, name: str = "") -> int:
+        text = name.strip()
         with self.connect() as c:
             cur = c.execute(
-                "INSERT INTO lf21_girls(name,created_seq) VALUES(?,?)",
-                (name.strip(), self._seq(c, "lf21_girls")),
+                "INSERT INTO lf21_girls(name,created_seq,is_new) VALUES(?,?,?)",
+                (text, self._seq(c, "lf21_girls"), 0 if text else 1),
             )
             return int(cur.lastrowid)
 
     def add_girls(self, count: int = 1) -> list[int]:
-        return [self.add_girl("") for _ in range(max(1, count))]
+        return [self.add_girl("") for _ in range(max(1, int(count)))]
 
     def find_girl_exact(self, text: str) -> tuple[int, str] | None:
         q = text.strip().casefold()
@@ -505,9 +628,9 @@ class Repository:
                     out.append((g.name, g.id, g.occurrences))
                 continue
             for name in names:
-                n = name.strip()
-                if n and q in n.casefold():
-                    out.append((n, g.id, g.occurrences))
+                candidate = name.strip()
+                if candidate and q in candidate.casefold():
+                    out.append((candidate, g.id, g.occurrences))
         out.sort(
             key=lambda x: (
                 0 if x[0].casefold().startswith(q) else 1,
@@ -521,79 +644,79 @@ class Repository:
         allowed = {
             "name", "face", "sex", "type_name", "nudity", "age_source",
             "nationality", "last_check", "note", "status", "profile_path",
+            "rating", "last_image", "birth_date",
         }
         if field not in allowed:
             raise KeyError(field)
+        text = str(value or "")
         with self.connect() as c:
             c.execute(
-                f"UPDATE lf21_girls SET {field}=?,updated_at=CURRENT_TIMESTAMP WHERE id=?",
-                (str(value or ""), girl_id),
+                f"""UPDATE lf21_girls
+                    SET {field}=?,
+                        is_new=CASE WHEN TRIM(?)<>'' THEN 0 ELSE is_new END,
+                        updated_at=CURRENT_TIMESTAMP
+                    WHERE id=?""",
+                (text, text, int(girl_id)),
             )
 
     def set_girl_locked(self, girl_id: int, value: bool) -> None:
         with self.connect() as c:
-            c.execute("UPDATE lf21_girls SET locked=? WHERE id=?", (int(value), girl_id))
+            c.execute("UPDATE lf21_girls SET locked=? WHERE id=?", (int(value), int(girl_id)))
 
     def set_favorite(self, girl_id: int, value: bool) -> None:
         with self.connect() as c:
-            c.execute("UPDATE lf21_girls SET favorite=? WHERE id=?", (int(value), girl_id))
+            c.execute(
+                "UPDATE lf21_girls SET favorite=?,is_new=0,updated_at=CURRENT_TIMESTAMP WHERE id=?",
+                (int(value), int(girl_id)),
+            )
 
     def set_aliases(self, girl_id: int, aliases: Iterable[str]) -> None:
         cleaned = [str(x).strip() for x in aliases if str(x).strip()]
         with self.connect() as c:
             c.execute(
-                "UPDATE lf21_girls SET aliases_json=? WHERE id=?",
-                (json.dumps(cleaned, ensure_ascii=False), girl_id),
+                """UPDATE lf21_girls SET aliases_json=?,
+                   is_new=CASE WHEN ? THEN 0 ELSE is_new END,
+                   updated_at=CURRENT_TIMESTAMP WHERE id=?""",
+                (json.dumps(cleaned, ensure_ascii=False), bool(cleaned), int(girl_id)),
             )
 
     def set_tags(self, girl_id: int, tags: Iterable[str]) -> None:
+        values = [str(x).strip() for x in tags if str(x).strip()]
         with self.connect() as c:
-            c.execute("DELETE FROM lf21_girl_tags WHERE girl_id=?", (girl_id,))
-            for tag in tags:
-                name = str(tag).strip()
-                if not name:
-                    continue
+            c.execute("DELETE FROM lf21_girl_tags WHERE girl_id=?", (int(girl_id),))
+            for name in values:
                 row = c.execute(
                     "SELECT id FROM lf21_catalog WHERE kind='tags' AND name=? COLLATE NOCASE",
                     (name,),
                 ).fetchone()
                 if row is None:
                     cur = c.execute(
-                        "INSERT INTO lf21_catalog(kind,name,created_seq) VALUES('tags',?,?)",
+                        "INSERT INTO lf21_catalog(kind,name,created_seq,is_new) VALUES('tags',?,?,0)",
                         (name, self._seq(c, "lf21_catalog")),
                     )
                     tag_id = int(cur.lastrowid)
                 else:
-                    tag_id = int(row[0])
+                    tag_id = int(row["id"])
                 c.execute(
                     "INSERT OR IGNORE INTO lf21_girl_tags(girl_id,tag_id) VALUES(?,?)",
-                    (girl_id, tag_id),
+                    (int(girl_id), tag_id),
                 )
+            if values:
+                c.execute("UPDATE lf21_girls SET is_new=0 WHERE id=?", (int(girl_id),))
 
     def delete_girls(self, ids: Sequence[int]) -> int:
+        ids = list(dict.fromkeys(int(x) for x in ids))
         if not ids:
             return 0
-        placeholders = ",".join("?" * len(ids))
+        placeholders = ",".join("?" for _ in ids)
         with self.connect() as c:
             cur = c.execute(
                 f"DELETE FROM lf21_girls WHERE id IN ({placeholders}) AND locked=0",
-                tuple(ids),
+                ids,
             )
             return int(cur.rowcount)
 
-    def cleanup_blank_girls(self) -> None:
-        with self.connect() as c:
-            c.execute(
-                """
-                DELETE FROM lf21_girls
-                WHERE TRIM(name)='' AND TRIM(face)='' AND TRIM(sex)=''
-                  AND TRIM(type_name)='' AND TRIM(nudity)='' AND TRIM(age_source)=''
-                  AND TRIM(nationality)='' AND TRIM(last_check)='' AND TRIM(note)=''
-                  AND TRIM(status)='' AND favorite=0
-                  AND NOT EXISTS(SELECT 1 FROM lf21_links l WHERE l.girl_id=lf21_girls.id)
-                  AND NOT EXISTS(SELECT 1 FROM lf21_video_girls vg WHERE vg.girl_id=lf21_girls.id)
-                """
-            )
+    # ---------- studios ----------
 
     def studios(self) -> list[Studio]:
         with self.connect() as c:
@@ -608,57 +731,65 @@ class Repository:
             ).fetchall()
             return [
                 Studio(
-                    int(r["id"]), r["name"], r["type_name"], r["url"],
-                    bool(r["locked"]), int(r["occurrences"]), int(r["created_seq"]),
+                    id=int(r["id"]),
+                    name=str(r["name"]),
+                    type_name=str(r["type_name"]),
+                    url=str(r["url"]),
+                    locked=bool(r["locked"]),
+                    occurrences=int(r["occurrences"]),
+                    created_seq=int(r["created_seq"]),
+                    is_new=bool(r["is_new"]),
                 )
                 for r in rows
             ]
 
     def add_studio(self, name: str = "") -> int:
+        text = name.strip()
         with self.connect() as c:
-            existing = c.execute(
-                "SELECT id FROM lf21_studios WHERE name=? COLLATE NOCASE",
-                (name.strip(),),
-            ).fetchone()
-            if existing and name.strip():
-                return int(existing[0])
+            if text:
+                row = c.execute(
+                    "SELECT id FROM lf21_studios WHERE name=? COLLATE NOCASE",
+                    (text,),
+                ).fetchone()
+                if row:
+                    return int(row["id"])
             cur = c.execute(
-                "INSERT INTO lf21_studios(name,created_seq) VALUES(?,?)",
-                (name.strip(), self._seq(c, "lf21_studios")),
+                "INSERT INTO lf21_studios(name,created_seq,is_new) VALUES(?,?,?)",
+                (text, self._seq(c, "lf21_studios"), 0 if text else 1),
             )
             return int(cur.lastrowid)
 
     def update_studio(self, studio_id: int, field: str, value) -> None:
         if field not in {"name", "type_name", "url"}:
             raise KeyError(field)
+        text = str(value or "")
         with self.connect() as c:
             c.execute(
-                f"UPDATE lf21_studios SET {field}=?,updated_at=CURRENT_TIMESTAMP WHERE id=?",
-                (str(value or ""), studio_id),
+                f"""UPDATE lf21_studios SET {field}=?,
+                    is_new=CASE WHEN TRIM(?)<>'' THEN 0 ELSE is_new END,
+                    updated_at=CURRENT_TIMESTAMP WHERE id=?""",
+                (text, text, int(studio_id)),
             )
 
     def set_studio_locked(self, studio_id: int, value: bool) -> None:
         with self.connect() as c:
-            c.execute(
-                "UPDATE lf21_studios SET locked=? WHERE id=?",
-                (int(value), studio_id),
-            )
+            c.execute("UPDATE lf21_studios SET locked=? WHERE id=?", (int(value), int(studio_id)))
 
     def delete_studios(self, ids: Sequence[int]) -> int:
+        ids = list(dict.fromkeys(int(x) for x in ids))
         if not ids:
             return 0
-        placeholders = ",".join("?" * len(ids))
+        placeholders = ",".join("?" for _ in ids)
         with self.connect() as c:
             cur = c.execute(
                 f"DELETE FROM lf21_studios WHERE id IN ({placeholders}) AND locked=0",
-                tuple(ids),
+                ids,
             )
             return int(cur.rowcount)
 
     def studio_suggestions(self, text: str = "") -> list[tuple[str, int, int]]:
         q = text.strip().casefold()
-        rows = self.studios()
-        rows.sort(key=lambda s: (-s.occurrences, s.name.casefold()))
+        rows = sorted(self.studios(), key=lambda s: (-s.occurrences, s.name.casefold()))
         if not q:
             return [(s.name, s.id, s.occurrences) for s in rows if s.name]
         found = [s for s in rows if q in s.name.casefold()]
@@ -675,6 +806,8 @@ class Repository:
         q = name.strip().casefold()
         return next((s for s in self.studios() if s.name.casefold() == q), None)
 
+    # ---------- videos ----------
+
     def videos(self, super_only: bool = False) -> list[Video]:
         with self.connect() as c:
             where = "WHERE v.in_super=1" if super_only else ""
@@ -690,31 +823,46 @@ class Repository:
             occurrences = {g.id: g.occurrences for g in self.girls(False)}
             out: list[Video] = []
             for r in rows:
-                participants = []
-                for p in c.execute(
-                    "SELECT g.id,g.name FROM lf21_video_girls vg "
-                    "JOIN lf21_girls g ON g.id=vg.girl_id WHERE vg.video_id=?",
-                    (r["id"],),
-                ):
-                    participants.append(
-                        (int(p["id"]), str(p["name"]), occurrences.get(int(p["id"]), 0))
+                participants = [
+                    (int(p["id"]), str(p["name"]), occurrences.get(int(p["id"]), 0))
+                    for p in c.execute(
+                        "SELECT g.id,g.name FROM lf21_video_girls vg "
+                        "JOIN lf21_girls g ON g.id=vg.girl_id WHERE vg.video_id=?",
+                        (r["id"],),
                     )
+                ]
                 participants.sort(key=lambda x: (-x[2], x[1].casefold()))
                 out.append(
                     Video(
-                        int(r["id"]), r["title"], r["studio_id"], r["studio_name"],
-                        r["release_date"], r["state"], r["quality"],
-                        r["available_quality"], r["size"], r["duration"],
-                        r["mixed_gender"], r["note"], bool(r["locked"]),
-                        bool(r["in_super"]), tuple(participants), int(r["created_seq"]),
+                        id=int(r["id"]),
+                        title=str(r["title"]),
+                        studio_id=r["studio_id"],
+                        studio_name=str(r["studio_name"]),
+                        release_date=str(r["release_date"]),
+                        state=str(r["state"]),
+                        quality=str(r["quality"]),
+                        available_quality=str(r["available_quality"]),
+                        size=str(r["size"]),
+                        duration=str(r["duration"]),
+                        mixed_gender=str(r["mixed_gender"]),
+                        note=str(r["note"]),
+                        rating=str(r["rating"]),
+                        locked=bool(r["locked"]),
+                        in_super=bool(r["in_super"]),
+                        participants=tuple(participants),
+                        created_seq=int(r["created_seq"]),
+                        is_new=bool(r["is_new"]),
                     )
                 )
             return out
 
+    def video(self, video_id: int) -> Video | None:
+        return next((v for v in self.videos(False) if v.id == int(video_id)), None)
+
     def add_video(self) -> int:
         with self.connect() as c:
             cur = c.execute(
-                "INSERT INTO lf21_videos(created_seq) VALUES(?)",
+                "INSERT INTO lf21_videos(created_seq,is_new) VALUES(?,1)",
                 (self._seq(c, "lf21_videos"),),
             )
             return int(cur.lastrowid)
@@ -722,34 +870,37 @@ class Repository:
     def update_video(self, video_id: int, field: str, value) -> None:
         allowed = {
             "title", "release_date", "state", "quality", "available_quality",
-            "size", "duration", "mixed_gender", "note",
+            "size", "duration", "mixed_gender", "note", "rating",
         }
         if field not in allowed:
             raise KeyError(field)
+        text = str(value or "")
         with self.connect() as c:
             c.execute(
-                f"UPDATE lf21_videos SET {field}=?,updated_at=CURRENT_TIMESTAMP WHERE id=?",
-                (str(value or ""), video_id),
+                f"""UPDATE lf21_videos SET {field}=?,
+                    is_new=CASE WHEN TRIM(?)<>'' THEN 0 ELSE is_new END,
+                    updated_at=CURRENT_TIMESTAMP WHERE id=?""",
+                (text, text, int(video_id)),
             )
 
     def set_video_studio(self, video_id: int, studio_id: int | None) -> None:
         with self.connect() as c:
             c.execute(
-                "UPDATE lf21_videos SET studio_id=?,updated_at=CURRENT_TIMESTAMP WHERE id=?",
-                (studio_id, video_id),
+                """UPDATE lf21_videos SET studio_id=?,
+                   is_new=CASE WHEN ? IS NOT NULL THEN 0 ELSE is_new END,
+                   updated_at=CURRENT_TIMESTAMP WHERE id=?""",
+                (studio_id, studio_id, int(video_id)),
             )
 
     def set_video_locked(self, video_id: int, value: bool) -> None:
         with self.connect() as c:
-            c.execute(
-                "UPDATE lf21_videos SET locked=? WHERE id=?",
-                (int(value), video_id),
-            )
+            c.execute("UPDATE lf21_videos SET locked=? WHERE id=?", (int(value), int(video_id)))
 
     def set_video_super(self, ids: Sequence[int], value: bool) -> None:
+        ids = list(dict.fromkeys(int(x) for x in ids))
         if not ids:
             return
-        placeholders = ",".join("?" * len(ids))
+        placeholders = ",".join("?" for _ in ids)
         with self.connect() as c:
             c.execute(
                 f"UPDATE lf21_videos SET in_super=? WHERE id IN ({placeholders})",
@@ -757,47 +908,52 @@ class Repository:
             )
 
     def set_video_participants(self, video_id: int, girl_ids: Iterable[int]) -> None:
-        unique = list(dict.fromkeys(int(x) for x in girl_ids))
+        unique = list(dict.fromkeys(int(x) for x in girl_ids if int(x)))
         with self.connect() as c:
-            c.execute("DELETE FROM lf21_video_girls WHERE video_id=?", (video_id,))
+            c.execute("DELETE FROM lf21_video_girls WHERE video_id=?", (int(video_id),))
             c.executemany(
                 "INSERT OR IGNORE INTO lf21_video_girls(video_id,girl_id) VALUES(?,?)",
-                [(video_id, girl_id) for girl_id in unique],
+                [(int(video_id), girl_id) for girl_id in unique],
             )
+            if unique:
+                c.execute("UPDATE lf21_videos SET is_new=0 WHERE id=?", (int(video_id),))
 
-    def replace_video_participant_slot(
-        self, video_id: int, slot: int, girl_id: int | None
-    ) -> None:
-        video = next((v for v in self.videos(False) if v.id == video_id), None)
+    def replace_video_participant_slot(self, video_id: int, slot: int, girl_id: int | None) -> None:
+        video = self.video(video_id)
         ids = [p[0] for p in (video.participants if video else ())]
-        while len(ids) <= slot:
+        while len(ids) <= int(slot):
             ids.append(0)
-        ids[slot] = int(girl_id or 0)
+        ids[int(slot)] = int(girl_id or 0)
         self.set_video_participants(video_id, [x for x in ids if x])
 
     def delete_videos(self, ids: Sequence[int]) -> int:
+        ids = list(dict.fromkeys(int(x) for x in ids))
         if not ids:
             return 0
-        placeholders = ",".join("?" * len(ids))
+        placeholders = ",".join("?" for _ in ids)
         with self.connect() as c:
             cur = c.execute(
                 f"DELETE FROM lf21_videos WHERE id IN ({placeholders}) AND locked=0",
-                tuple(ids),
+                ids,
             )
             return int(cur.rowcount)
 
+    # ---------- link catalog ----------
+
     def link_types(self) -> list[dict]:
         with self.connect() as c:
-            rows = c.execute(
-                """
-                SELECT t.*,COUNT(DISTINCT l.girl_id) distinct_girls,COUNT(l.id) total_links
-                FROM lf21_link_types t
-                LEFT JOIN lf21_links l ON l.type_id=t.id
-                GROUP BY t.id
-                ORDER BY distinct_girls DESC,total_links DESC,t.name COLLATE NOCASE
-                """
-            ).fetchall()
-            return [dict(r) for r in rows]
+            return [
+                dict(r)
+                for r in c.execute(
+                    """
+                    SELECT t.*,COUNT(DISTINCT l.girl_id) distinct_girls,COUNT(l.id) total_links
+                    FROM lf21_link_types t
+                    LEFT JOIN lf21_links l ON l.type_id=t.id
+                    GROUP BY t.id
+                    ORDER BY distinct_girls DESC,total_links DESC,t.name COLLATE NOCASE
+                    """
+                )
+            ]
 
     def add_link_type(self, category: str, name: str, web: str = "") -> int:
         with self.connect() as c:
@@ -806,7 +962,7 @@ class Repository:
                 (name.strip(),),
             ).fetchone()
             if row:
-                return int(row[0])
+                return int(row["id"])
             cur = c.execute(
                 "INSERT INTO lf21_link_types(category,name,general_web,created_seq) VALUES(?,?,?,?)",
                 (category, name.strip(), web.strip(), self._seq(c, "lf21_link_types")),
@@ -817,30 +973,29 @@ class Repository:
         with self.connect() as c:
             c.execute(
                 "UPDATE lf21_link_types SET category=?,name=?,general_web=? WHERE id=?",
-                (category, name, web, type_id),
+                (category, name, web, int(type_id)),
             )
 
     def set_link_type_visibility(
-        self,
-        type_id: int,
-        all_visible: bool | None = None,
-        category_visible: bool | None = None,
+        self, type_id: int, all_visible: bool | None = None, category_visible: bool | None = None
     ) -> None:
         with self.connect() as c:
             if all_visible is not None:
                 c.execute(
                     "UPDATE lf21_link_types SET visible_all=? WHERE id=?",
-                    (int(all_visible), type_id),
+                    (int(all_visible), int(type_id)),
                 )
             if category_visible is not None:
                 c.execute(
                     "UPDATE lf21_link_types SET visible_category=? WHERE id=?",
-                    (int(category_visible), type_id),
+                    (int(category_visible), int(type_id)),
                 )
 
     def delete_link_type(self, type_id: int) -> None:
         with self.connect() as c:
-            c.execute("DELETE FROM lf21_link_types WHERE id=?", (type_id,))
+            c.execute("DELETE FROM lf21_link_types WHERE id=?", (int(type_id),))
+
+    # ---------- links ----------
 
     def links(self) -> list[Link]:
         with self.connect() as c:
@@ -857,13 +1012,27 @@ class Repository:
             ).fetchall()
             return [
                 Link(
-                    int(r["id"]), r["type_id"], r["type_name"], r["category"],
-                    r["girl_id"], r["girl_name"], r["url"], r["check_value"],
-                    r["downloaded"], r["active"], r["last_text"], r["last_image"],
-                    bool(r["locked"]), int(r["created_seq"]),
+                    id=int(r["id"]),
+                    type_id=r["type_id"],
+                    type_name=str(r["type_name"]),
+                    category=str(r["category"]),
+                    girl_id=r["girl_id"],
+                    girl_name=str(r["girl_name"]),
+                    url=str(r["url"]),
+                    check_value=str(r["check_value"]),
+                    downloaded=str(r["downloaded"]),
+                    active=str(r["active"]),
+                    last_text=str(r["last_text"]),
+                    last_image=str(r["last_image"]),
+                    locked=bool(r["locked"]),
+                    created_seq=int(r["created_seq"]),
+                    is_new=bool(r["is_new"]),
                 )
                 for r in rows
             ]
+
+    def link(self, link_id: int) -> Link | None:
+        return next((link for link in self.links() if link.id == int(link_id)), None)
 
     def detect_link_type(self, url: str) -> int | None:
         low = url.casefold()
@@ -879,54 +1048,129 @@ class Repository:
                 best = int(item["id"])
         return best
 
-    def add_link(self, type_id: int | None, girl_id: int | None, url: str, **extra) -> int:
+    def add_link(
+        self,
+        type_id: int | None = None,
+        girl_id: int | None = None,
+        url: str = "",
+        *,
+        check_value: str = "",
+        downloaded: str = "",
+        active: str = "",
+        last_text: str = "",
+        last_image: str = "",
+        is_new: bool | None = None,
+    ) -> int:
+        actual_new = (
+            not any((type_id, girl_id, url.strip(), check_value.strip(), downloaded.strip(), active.strip(), last_text.strip(), last_image.strip()))
+            if is_new is None else bool(is_new)
+        )
         with self.connect() as c:
             cur = c.execute(
                 """INSERT INTO lf21_links(
-                       type_id,girl_id,url,check_value,downloaded,active,last_text,last_image,created_seq
-                   ) VALUES(?,?,?,?,?,?,?,?,?)""",
+                    type_id,girl_id,url,check_value,downloaded,active,last_text,last_image,created_seq,is_new
+                ) VALUES(?,?,?,?,?,?,?,?,?,?)""",
                 (
-                    type_id, girl_id, url, extra.get("check_value", ""),
-                    extra.get("downloaded", ""), extra.get("active", "Akt."),
-                    extra.get("last_text", ""), extra.get("last_image", ""),
-                    self._seq(c, "lf21_links"),
+                    type_id, girl_id, url, check_value, downloaded, active,
+                    last_text, last_image, self._seq(c, "lf21_links"), int(actual_new),
                 ),
             )
             return int(cur.lastrowid)
 
     def update_link(self, link_id: int, field: str, value) -> None:
-        if field not in {
-            "url", "check_value", "downloaded", "active", "last_text", "last_image"
-        }:
+        if field not in {"url", "check_value", "downloaded", "active", "last_text", "last_image"}:
             raise KeyError(field)
+        text = str(value or "")
         with self.connect() as c:
             c.execute(
-                f"UPDATE lf21_links SET {field}=?,updated_at=CURRENT_TIMESTAMP WHERE id=?",
-                (str(value or ""), link_id),
+                f"""UPDATE lf21_links SET {field}=?,
+                    is_new=CASE WHEN TRIM(?)<>'' THEN 0 ELSE is_new END,
+                    updated_at=CURRENT_TIMESTAMP WHERE id=?""",
+                (text, text, int(link_id)),
             )
 
     def set_link_type(self, link_id: int, type_id: int | None) -> None:
         with self.connect() as c:
-            c.execute("UPDATE lf21_links SET type_id=? WHERE id=?", (type_id, link_id))
+            c.execute(
+                "UPDATE lf21_links SET type_id=?,is_new=CASE WHEN ? IS NOT NULL THEN 0 ELSE is_new END WHERE id=?",
+                (type_id, type_id, int(link_id)),
+            )
 
     def set_link_girl(self, link_id: int, girl_id: int | None) -> None:
         with self.connect() as c:
-            c.execute("UPDATE lf21_links SET girl_id=? WHERE id=?", (girl_id, link_id))
+            c.execute(
+                "UPDATE lf21_links SET girl_id=?,is_new=CASE WHEN ? IS NOT NULL THEN 0 ELSE is_new END WHERE id=?",
+                (girl_id, girl_id, int(link_id)),
+            )
 
     def set_link_locked(self, link_id: int, value: bool) -> None:
         with self.connect() as c:
-            c.execute("UPDATE lf21_links SET locked=? WHERE id=?", (int(value), link_id))
+            c.execute("UPDATE lf21_links SET locked=? WHERE id=?", (int(value), int(link_id)))
 
     def delete_links(self, ids: Sequence[int]) -> int:
+        ids = list(dict.fromkeys(int(x) for x in ids))
         if not ids:
             return 0
-        placeholders = ",".join("?" * len(ids))
+        placeholders = ",".join("?" for _ in ids)
         with self.connect() as c:
             cur = c.execute(
                 f"DELETE FROM lf21_links WHERE id IN ({placeholders}) AND locked=0",
-                tuple(ids),
+                ids,
             )
             return int(cur.rowcount)
+
+    # ---------- cleanup / overview ----------
+
+    def cleanup_blank_new_rows(self) -> dict[str, int]:
+        deleted = {"girls": 0, "studios": 0, "videos": 0, "links": 0, "catalog": 0}
+        with self.connect() as c:
+            cur = c.execute(
+                """
+                DELETE FROM lf21_girls
+                WHERE is_new=1 AND locked=0 AND favorite=0
+                  AND TRIM(name)='' AND TRIM(face)='' AND TRIM(sex)='' AND TRIM(type_name)=''
+                  AND TRIM(nudity)='' AND TRIM(age_source)='' AND TRIM(nationality)=''
+                  AND TRIM(last_check)='' AND TRIM(note)='' AND TRIM(status)=''
+                  AND TRIM(rating)='' AND TRIM(last_image)='' AND TRIM(birth_date)=''
+                  AND TRIM(profile_path)='' AND aliases_json='[]'
+                  AND NOT EXISTS(SELECT 1 FROM lf21_girl_tags gt WHERE gt.girl_id=lf21_girls.id)
+                  AND NOT EXISTS(SELECT 1 FROM lf21_links l WHERE l.girl_id=lf21_girls.id)
+                  AND NOT EXISTS(SELECT 1 FROM lf21_video_girls vg WHERE vg.girl_id=lf21_girls.id)
+                """
+            )
+            deleted["girls"] = int(cur.rowcount)
+            cur = c.execute(
+                "DELETE FROM lf21_studios WHERE is_new=1 AND locked=0 "
+                "AND TRIM(name)='' AND TRIM(type_name)='' AND TRIM(url)='' "
+                "AND NOT EXISTS(SELECT 1 FROM lf21_videos v WHERE v.studio_id=lf21_studios.id)"
+            )
+            deleted["studios"] = int(cur.rowcount)
+            cur = c.execute(
+                """
+                DELETE FROM lf21_videos
+                WHERE is_new=1 AND locked=0 AND in_super=0 AND studio_id IS NULL
+                  AND TRIM(title)='' AND TRIM(release_date)='' AND TRIM(state)=''
+                  AND TRIM(quality)='' AND TRIM(available_quality)='' AND TRIM(size)=''
+                  AND TRIM(duration)='' AND TRIM(mixed_gender)='' AND TRIM(note)=''
+                  AND TRIM(rating)=''
+                  AND NOT EXISTS(SELECT 1 FROM lf21_video_girls vg WHERE vg.video_id=lf21_videos.id)
+                """
+            )
+            deleted["videos"] = int(cur.rowcount)
+            cur = c.execute(
+                """
+                DELETE FROM lf21_links
+                WHERE is_new=1 AND locked=0 AND type_id IS NULL AND girl_id IS NULL
+                  AND TRIM(url)='' AND TRIM(check_value)='' AND TRIM(downloaded)=''
+                  AND TRIM(active)='' AND TRIM(last_text)='' AND TRIM(last_image)=''
+                """
+            )
+            deleted["links"] = int(cur.rowcount)
+            cur = c.execute(
+                "DELETE FROM lf21_catalog WHERE is_new=1 AND locked=0 AND TRIM(name)=''"
+            )
+            deleted["catalog"] = int(cur.rowcount)
+        return deleted
 
     def overview(self) -> dict:
         girls = self.girls(False)
