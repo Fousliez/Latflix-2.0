@@ -282,6 +282,32 @@ class NoteDialog(QDialog):
         return self.editor.toPlainText()
 
 
+class LockHeaderView(QHeaderView):
+    def __init__(self, orientation, table, parent=None):
+        super().__init__(orientation, parent)
+        self.table = table
+
+    def paintSection(self, painter, rect, logicalIndex):
+        super().paintSection(painter, rect, logicalIndex)
+        if logicalIndex != 0:
+            return
+        painter.save()
+        font = painter.font()
+        size = font.pointSize()
+        if size > 0:
+            font.setPointSize(size + 4)
+        else:
+            font.setPixelSize(18)
+        painter.setFont(font)
+        painter.setPen(QColor("#333333"))
+        painter.drawText(
+            rect,
+            Qt.AlignCenter,
+            "🔒" if self.table.header_locked else "🔓",
+        )
+        painter.restore()
+
+
 class DataTableView(QTableView):
     noteRequested = Signal(QModelIndex)
     webRequested = Signal(QModelIndex)
@@ -300,6 +326,7 @@ class DataTableView(QTableView):
         self.verticalHeader().setVisible(False)
         self.horizontalHeader().setSortIndicatorShown(False)
         self.setWordWrap(False)
+        self.setHorizontalHeader(LockHeaderView(Qt.Horizontal, self, self))
         self.setMouseTracking(True)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self._context_menu)
