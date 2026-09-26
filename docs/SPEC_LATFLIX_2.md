@@ -751,6 +751,39 @@ Rozdíl oproti malé ikoně koše vedle pole Hledání:
 
 Vizuální umístění má odpovídat dodané referenci: tlačítko **Vyčistit** je na pravém okraji stejného řádku ovládací lišty.
 
+
+### Girls / Oblíbené – filtry Obličej a Profilovka
+
+Vpravo od filtru **Nahota** budou ještě dva filtry:
+
+#### Obličej
+
+Filtr **Obličej** je navázán na stejnojmenný sloupec **Obličej** v tabulce a má pevně dané hodnoty:
+
+- **Ano**
+- **Asi ano**
+- **Asi ne**
+- **Ne**
+- **Zjistit**
+
+Po výběru hodnoty se tabulka vyfiltruje podle hodnoty ve sloupci Obličej.
+
+#### Profilovka
+
+Filtr **Profilovka** nemá vlastní sloupec v tabulce.
+
+Má pouze dvě možnosti:
+- **Ano**
+- **Ne**
+
+Filtruje podle existence profilového obrázku herečky:
+- **Ano** = zobrazí pouze herečky, které mají uloženou profilovou fotografii,
+- **Ne** = zobrazí pouze herečky, které profilovou fotografii nemají.
+
+Tento filtr tedy pracuje přímo s datem / příznakem existence profilové fotografie, nikoliv s hodnotou v samostatném viditelném sloupci tabulky.
+
+Filtry **Obličej** a **Profilovka** se mohou kombinovat s fulltextovým hledáním a ostatními aktivními filtry.
+
 ---
 
 ## Pracovní pravidlo specifikace
