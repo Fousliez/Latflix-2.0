@@ -573,6 +573,19 @@ Příklad: pokud má jedna herečka dvě adresy Facebooku, pro globální pořad
 - vzhled má odpovídat modrým odkazovým obdélníkům z referenčních screenshotů současného Latflixu.
 
 
+### Modré prvky v horním panelu Videa / Super
+
+Horní panel sekcí **Videa / Super** bude používat stejný základní vizuální styl **modrých obdélníkových prvků / rámečků** jako horní panel Girls / Oblíbené.
+
+Platí zatím pouze vzhled:
+- stejný typ modrého obdélníkového prvku,
+- stejné základní vizuální proporce, odsazení a práce s textem,
+- stejné skládání do dostupného prostoru horního panelu tak, aby panel zůstal na pevné výšce,
+- přesný obsah, význam, klikací chování, pořadí a případné seskupování těchto prvků ve Videa / Super budou definovány samostatně později.
+
+Toto pravidlo zatím **nepřenáší datovou logiku odkazů z Girls / Oblíbené** do Videa / Super; sdílí se pouze vizuální komponenta.
+
+
 ### Společná lišta tlačítek a filtrů nad tabulkou
 
 Nad hlavní tabulkou bude v datových sekcích společná ovládací lišta podle dodané reference.
