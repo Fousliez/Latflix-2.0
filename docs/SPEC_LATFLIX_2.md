@@ -1241,6 +1241,16 @@ Jednotlivé sekce se budou lišit především:
 Cílem je jedna sdílená tabulková komponenta / logika s konfigurací podle sekce, nikoliv samostatná implementace tabulky pro každou sekci.
 
 
+
+### Výchozí rozsah pravidel chování tabulek
+
+Pokud uživatel při ladění chování tabulky, buněk, výběru, editace, myši, klávesnice, řazení, zvýraznění nebo podobných interakcí výslovně neurčí konkrétní sekci, bere se takový požadavek jako **globální pravidlo pro všechny tabulky v programu**.
+
+Výjimka:
+- pokud uživatel výslovně řekne, že dané chování platí jen pro konkrétní sekci (např. Girls), zůstává pravidlo omezené na tuto sekci.
+
+Toto pravidlo pouze zpřesňuje již definovaný společný tabulkový základ a nemění sekčně specifické názvy sloupců, hodnoty, filtry ani speciální akce.
+
 ### Girls vs. Oblíbené – rozdíl tlačítek nad tabulkou
 
 V sekci **Girls** zůstávají tlačítka **Přidat** a **Smazat** v liště nad tabulkou aktivní podle běžné logiky sekce.
