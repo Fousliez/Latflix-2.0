@@ -6,7 +6,7 @@ from PySide6.QtCore import QModelIndex, Qt, QUrl, Signal
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QApplication, QComboBox, QDialog, QFormLayout, QFrame, QGridLayout, QHBoxLayout,
-    QLabel, QMainWindow, QMenu, QMessageBox, QPushButton, QStackedWidget, QStatusBar,
+    QLabel, QMainWindow, QMenu, QMessageBox, QPushButton, QSpinBox, QStackedWidget, QStatusBar,
     QVBoxLayout, QWidget, QInputDialog,
 )
 
@@ -82,6 +82,12 @@ class BasePage(QWidget):
 
     def refresh(self):
         pass
+
+    def status_info(self):
+        return ("", "")
+
+    def set_row_scale(self, scale: int):
+        return
 
 
 class OverviewCard(QFrame):
@@ -294,7 +300,7 @@ class TablePage(BasePage):
         self.toolbar_lay.setSpacing(4)
         self.outer.addWidget(self.toolbar)
 
-        self.table = DataTableView(self)
+        self.table = DataTableView(title, self)
         self.table.setModel(self.proxy)
         self.outer.addWidget(self.table, 1)
         self.table.noteRequested.connect(lambda idx: open_note_for_table(self.table, idx))
@@ -387,6 +393,13 @@ class TablePage(BasePage):
         self.model.reload()
         self.proxy.invalidate()
         self._apply_widths()
+
+    def status_info(self):
+        return (f"Počet záznamů: {self.proxy.rowCount()}", "")
+
+    def set_row_scale(self, scale: int):
+        height = 22 + max(1, min(5, int(scale))) * 3
+        self.table.verticalHeader().setDefaultSectionSize(height)
 
 
 class GirlsPage(TablePage):
@@ -504,6 +517,10 @@ class GirlsPage(TablePage):
     def _add_rows(self, count):
         self.repo.add_girls(count)
         self.refresh()
+        if self.proxy.rowCount():
+            index = self.proxy.index(0, 2)
+            self.table.setCurrentIndex(index)
+            self.table.edit(index)
 
     def _delete(self):
         ids = selected_source_ids(self.table)
@@ -604,6 +621,36 @@ class GirlsPage(TablePage):
         for combo in self.filter_boxes.values():
             combo.setCurrentIndex(0)
         self.proxy.clear_filters()
+
+    def status_info(self):
+        from .models import age_display
+
+        def matches_without_search(girl):
+            for key, combo in self.filter_boxes.items():
+                if combo.currentIndex() == 0:
+                    continue
+                if key == "profile":
+                    wanted = combo.currentText() == "Ano"
+                    if bool(girl.profile_path) != wanted:
+                        return False
+                elif str(getattr(girl, key, "")) != combo.currentText():
+                    return False
+            return True
+
+        ages = []
+        for girl in self.repo.girls(self.favorites):
+            if not matches_without_search(girl):
+                continue
+            try:
+                value = int(age_display(girl.age_source))
+            except Exception:
+                continue
+            if 1 <= value <= 100:
+                ages.append(value)
+        avg = "Průměrný věk: —"
+        if ages:
+            avg = f"Průměrný věk: {sum(ages) / len(ages):.1f}".replace(".", ",")
+        return (f"Počet záznamů: {self.proxy.rowCount()}", avg)
 
     def refresh(self):
         super().refresh()
@@ -809,6 +856,10 @@ class VideosPage(TablePage):
         for _ in range(count):
             self.repo.add_video()
         self.refresh()
+        if self.proxy.rowCount():
+            index = self.proxy.index(0, 2)
+            self.table.setCurrentIndex(index)
+            self.table.edit(index)
 
     def _delete(self):
         ids = selected_source_ids(self.table)
@@ -885,6 +936,10 @@ class StudiosPage(TablePage):
         for _ in range(count):
             self.repo.add_studio("")
         self.refresh()
+        if self.proxy.rowCount():
+            index = self.proxy.index(0, 2)
+            self.table.setCurrentIndex(index)
+            self.table.edit(index)
 
     def _delete(self):
         ids = selected_source_ids(self.table)
@@ -1223,15 +1278,57 @@ class MainWindow(QMainWindow):
 
         self.status = QStatusBar()
         self.setStatusBar(self.status)
+        self.status_left = QLabel("")
+        self.status_middle = QLabel("")
+        self.status.addWidget(self.status_left, 1)
+        self.status.addWidget(self.status_middle, 1)
+        self.row_scale = QSpinBox()
+        self.row_scale.setRange(1, 5)
+        self.row_scale.setValue(1)
+        self.row_scale.setPrefix("Velikost řádků: ")
+        self.row_scale.valueChanged.connect(self._row_scale_changed)
+        self.status.addPermanentWidget(self.row_scale)
         self.navigate("Přehled")
 
     def _menu(self):
         bar = self.menuBar()
+        self.view_menu = None
         for name in ("Soubor", "Úpravy", "Nástroje", "Zobrazení", "Nastavení", "Nápověda"):
             menu = bar.addMenu(name)
             if name == "Zobrazení":
+                self.view_menu = menu
                 show = menu.addAction("Zobrazit levé menu")
                 show.triggered.connect(lambda: self.sidebar.setVisible(True))
+                self.toggle_top_action = menu.addAction("Skrýt / zobrazit horní panel")
+                self.toggle_top_action.triggered.connect(self._toggle_top_panel)
+
+    def _toggle_top_panel(self):
+        page = self.stack.currentWidget()
+        if hasattr(page, "top"):
+            page.top.setVisible(not page.top.isVisible())
+
+    def _row_scale_changed(self, value):
+        for page in getattr(self, "pages", {}).values():
+            page.set_row_scale(value)
+
+    def _refresh_status(self):
+        page = self.stack.currentWidget()
+        if page is None:
+            return
+        left, middle = page.status_info()
+        self.status_left.setText(left)
+        self.status_middle.setText(middle)
+
+    def _rebuild_view_columns_menu(self):
+        if not self.view_menu:
+            return
+        actions = self.view_menu.actions()
+        for action in actions[2:]:
+            self.view_menu.removeAction(action)
+        page = self.stack.currentWidget()
+        if hasattr(page, "table"):
+            self.view_menu.addSeparator()
+            page.table.restore_hidden_columns_menu(self.view_menu)
 
     def _build_pages(self):
         self.pages = {
@@ -1254,14 +1351,19 @@ class MainWindow(QMainWindow):
     def navigate(self, name: str, girl_filter=None):
         if name not in self.pages:
             return
+        current = self.stack.currentWidget()
+        if current is not None and current is not self.pages[name]:
+            self.repo.cleanup_blank_rows()
         page = self.pages[name]
         page.refresh()
         self.stack.setCurrentWidget(page)
         self.sidebar.set_active(name)
         if name == "Odkazy" and girl_filter:
             self.pages["Odkazy"].set_girl_filter(girl_filter)
-        self.status.showMessage("" if name == "Přehled" else name)
+        page.set_row_scale(self.row_scale.value())
+        self._refresh_status()
+        self._rebuild_view_columns_menu()
 
     def closeEvent(self, event):
-        self.repo.cleanup_blank_girls()
+        self.repo.cleanup_blank_rows()
         event.accept()
