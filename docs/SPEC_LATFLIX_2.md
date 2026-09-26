@@ -824,6 +824,19 @@ Po odemknutí záhlaví:
 
 Výchozí názvy a pořadí uvedené výše slouží jako počáteční stav nové instalace / resetu rozložení.
 
+
+### Girls / Oblíbené – editační režim nově přidaného řádku
+
+Po přidání nového řádku se tento řádek automaticky otevře v **editačním režimu**.
+
+Chování klávesy **Enter**:
+- stisknutí Enteru potvrdí / ukončí editaci aktuálního řádku,
+- následně se aktivní pozice přesune na **následující řádek**,
+- tento následující řádek se automaticky otevře v editačním režimu,
+- automatické otevření dalšího řádku v editačním režimu nastane **pouze při potvrzení Enterem**.
+
+Jinými způsoby opuštění nebo změny výběru řádku se tento automatický přechod do editačního režimu dalšího řádku nespouští.
+
 ---
 
 ## Pracovní pravidlo specifikace
