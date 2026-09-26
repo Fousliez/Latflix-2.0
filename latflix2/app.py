@@ -1,19 +1,8 @@
 from __future__ import annotations
 
-import sys
+# Pre-alpha runtime: the old Latflix 2.0 shell is intentionally bypassed.
+# The specification remains in docs/SPEC_LATFLIX_2.md; this runtime is for
+# hands-on testing of Girls / Oblíbené interaction before the final rewrite.
+from .prototype import run
 
-from PySide6.QtWidgets import QApplication
-
-from .config import APP_NAME, database_path
-from .database import Repository
-from .window import MainWindow
-
-
-def run() -> int:
-    app = QApplication(sys.argv)
-    app.setApplicationName(APP_NAME)
-    app.setOrganizationName("Latflix")
-    repository = Repository(database_path())
-    window = MainWindow(repository)
-    window.showMaximized()
-    return app.exec()
+__all__ = ["run"]
