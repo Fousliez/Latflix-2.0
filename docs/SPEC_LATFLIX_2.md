@@ -598,6 +598,44 @@ Chování:
 - pokud výběr obsahuje zamčené řádky, tyto řádky se nesmějí odstranit,
 - přesné znění potvrzovacího dialogu může později uvádět počet řádků, které budou skutečně smazány.
 
+
+### Girls / Oblíbené – Hromadné akce
+
+Třetí tlačítko v liště nad tabulkou je **Hromadné akce**. Otevře nabídku s položkami:
+
+- **Přidat do Oblíbených**
+- **Odebrat z Oblíbených**
+- **Hromadně přidat odkazy**
+
+#### Přidat / odebrat z Oblíbených
+
+- akce se použije na všechny aktuálně označené herečky,
+- **Přidat do Oblíbených** přidá všechny označené herečky do Oblíbených,
+- **Odebrat z Oblíbených** vyžaduje potvrzovací dialog před provedením,
+- zamčenost řádku sama o sobě nemění členství v Oblíbených; jde o samostatnou hromadnou akci nad vybranými záznamy.
+
+#### Hromadně přidat odkazy
+
+Tato akce otevře samostatný dialog. Počet řádků v dialogu bude přesně odpovídat počtu označených hereček.
+
+Každý řádek představuje jednu konkrétní herečku a obsahuje tři sloupce:
+
+1. **Herečka**
+   - zobrazí jméno herečky,
+   - hodnota je pouze pro čtení a nelze ji editovat.
+
+2. **Zdroj / platforma**
+   - funguje stejně jako pole Zdroj / platforma v dialogu **Odkazy** z horního panelu,
+   - ve výchozím stavu se aplikace pokusí podle zadané URL automaticky rozpoznat platformu / název odkazu,
+   - uživatel může automaticky rozpoznanou hodnotu ručně změnit přes rozbalovací seznam,
+   - seznam dostupných platforem se načítá ze stejného centrálního katalogu jako v běžném dialogu Odkazy,
+   - v jednom hromadném dialogu mohou být různé platformy zároveň; není zde žádný společný typ odkazu pro celý dialog.
+
+3. **URL**
+   - uživatel zadá konkrétní adresu odkazu pro danou herečku.
+
+Příklad použití: v jednom dialogu lze třem označeným herečkám přidat Instagram a dalším třem Facebook; platforma se určuje po jednotlivých řádcích, automaticky podle URL, s možností ruční opravy.
+
 ---
 
 ## Pracovní pravidlo specifikace
