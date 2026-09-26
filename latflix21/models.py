@@ -79,7 +79,7 @@ class BaseModel(QAbstractTableModel):
         if orientation == Qt.Horizontal:
             col = self.col(section)
             if col.kind == "lock":
-                return "🔓" if self.header_unlocked else "🔒"
+                return ""
             return self.title_overrides.get(col.key, col.title)
         return str(section + 1)
 
