@@ -674,13 +674,7 @@ class LinkCatalogDialog(QDialog):
         add.clicked.connect(self.add)
         delete.clicked.connect(self.delete)
         open_web.clicked.connect(self.open_web)
-        merge.clicked.connect(
-            lambda: QMessageBox.information(
-                self,
-                "Sloučit názvy",
-                "Sloučení názvů bude doladěno při testování 2.1.",
-            )
-        )
+        merge.clicked.connect(self.merge_names)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
         buttons.accepted.connect(self.save)
@@ -716,6 +710,43 @@ class LinkCatalogDialog(QDialog):
             return
         combo = self.table.cellWidget(row, 0)
         self.repo.delete_link_type(int(combo.property("id")))
+        self.reload()
+
+    def merge_names(self):
+        rows = sorted({index.row() for index in self.table.selectedIndexes()})
+        if len(rows) < 2:
+            QMessageBox.information(
+                self,
+                "Sloučit názvy",
+                "Označ alespoň dva názvy, které se mají sloučit.",
+            )
+            return
+        candidates = []
+        ids = []
+        for row in rows:
+            combo = self.table.cellWidget(row, 0)
+            ids.append(int(combo.property("id")))
+            candidates.append(self.table.item(row, 1).text())
+        target_name, ok = QInputDialog.getItem(
+            self,
+            "Sloučit názvy",
+            "Který název má zůstat?",
+            candidates,
+            0,
+            False,
+        )
+        if not ok:
+            return
+        target_row = rows[candidates.index(target_name)]
+        target_combo = self.table.cellWidget(target_row, 0)
+        target_id = int(target_combo.property("id"))
+        if QMessageBox.question(
+            self,
+            "Sloučit názvy",
+            f"Sloučit {len(rows)} názvů do '{target_name}'?",
+        ) != QMessageBox.Yes:
+            return
+        self.repo.merge_link_types(target_id, ids)
         self.reload()
 
     def save(self):
