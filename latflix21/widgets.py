@@ -94,6 +94,14 @@ class AutoCompleteDelegate(QStyledItemDelegate):
         completer.setCompletionMode(QCompleter.PopupCompletion)
         model = QStringListModel(self.suggestions(""), completer)
         completer.setModel(model)
+        popup = completer.popup()
+        popup.setMinimumWidth(280)
+        popup.setStyleSheet(
+            "QListView{font-size:14px;outline:0;}"
+            "QListView::item{min-height:28px;padding:3px 7px;}"
+            "QListView::item:selected{background:#2f77c8;color:white;}"
+            "QListView::item:hover{background:#2f77c8;color:white;}"
+        )
         edit.setCompleter(completer)
         edit.textEdited.connect(lambda text: model.setStringList(self.suggestions(text)))
         return edit
