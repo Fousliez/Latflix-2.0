@@ -899,6 +899,21 @@ V aktivním editačním režimu textové buňky musí být na Linuxu zachováno 
 - funkce má být dostupná ve všech editovatelných textových buňkách napříč aplikací,
 - klasické Ctrl+C / Ctrl+V zůstává současně zachováno.
 
+
+### Globální tabulkové chování – aktivace editačního režimu myší
+
+Pro sloupec **Jméno** v sekcích Girls / Oblíbené a obecně pro všechny sloupce, které budou označené jako **editovatelné**, platí:
+
+- **jedno kliknutí** do řádku / buňky pouze označí řádek podle běžných pravidel výběru,
+- jedno kliknutí samo o sobě nesmí zapnout textový editační režim buňky,
+- **dvojklik** do editovatelné buňky zapne editační režim této buňky,
+- po aktivaci dvojklikem fungují běžné textové operace včetně výběru části textu, Ctrl+C / Ctrl+V a na Linuxu vložení primárního výběru prostředním tlačítkem,
+- toto pravidlo platí jednotně pro všechny sloupce, které budou ve specifikaci nebo konfiguraci označené jako editovatelné.
+
+Výjimka z aktivace dvojklikem:
+- nově přidaný řádek se otevře v editačním režimu automaticky podle již definovaného pravidla,
+- následující řádek se může otevřít v editačním režimu automaticky po potvrzení předchozího řádku klávesou Enter.
+
 ---
 
 ## Pracovní pravidlo specifikace
