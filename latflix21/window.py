@@ -816,24 +816,40 @@ class GirlsPage(TablePage):
     def _update_top(self):
         girl = self._selected_girl()
         if not girl:
-            self.name.setText(self.title)
-            self.favorite_btn.setText("Oblíbené")
+            self.name.setText("Vyber herečku")
+            self.favorite_btn.setText("☆ Oblíbené")
             self.favorite_btn.setStyleSheet("")
             self.photo.setPixmap(QPixmap())
-            self.photo.setText("Bez foto")
-            self.age.setText("Věk: —")
-            self.occ.setText("Počet výskytů: —")
+            self.photo.setText("FOTKA")
+            self.age.setText("<b>Věk:</b> —")
+            self.occ.setText("<b>Počet výskytů:</b> 0")
             self.chips.set_items([])
+            for widget in (
+                self.favorite_btn,
+                self.links_btn,
+                self.detail_btn,
+                self.show_links_btn,
+                self.photo,
+            ):
+                widget.setEnabled(False)
             return
 
         from .models import age_display
-        self.name.setText(girl.name)
-        self.favorite_btn.setText("★ V oblíbených" if girl.favorite else "Oblíbené")
+        self.name.setText(girl.name or "(bez jména)")
+        for widget in (
+            self.favorite_btn,
+            self.links_btn,
+            self.detail_btn,
+            self.show_links_btn,
+            self.photo,
+        ):
+            widget.setEnabled(True)
+        self.favorite_btn.setText("★ V oblíbených" if girl.favorite else "☆ Oblíbené")
         self.favorite_btn.setStyleSheet(
             "background:#f3cf55;font-weight:700;" if girl.favorite else ""
         )
-        self.age.setText(f"Věk: {age_display(girl.age_source) or '—'}")
-        self.occ.setText(f"Počet výskytů: {girl.occurrences}")
+        self.age.setText(f"<b>Věk:</b> {age_display(girl.age_source) or '—'}")
+        self.occ.setText(f"<b>Počet výskytů:</b> {girl.occurrences}")
         if girl.profile_path and Path(girl.profile_path).exists():
             pix = QPixmap(girl.profile_path)
             self.photo.setPixmap(
