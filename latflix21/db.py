@@ -971,7 +971,7 @@ class Repository:
                     FROM lf21_link_types t
                     LEFT JOIN lf21_links l ON l.type_id=t.id
                     GROUP BY t.id
-                    ORDER BY distinct_girls DESC,total_links DESC,t.name COLLATE NOCASE
+                    ORDER BY distinct_girls DESC,t.name COLLATE NOCASE
                     """
                 )
             ]
