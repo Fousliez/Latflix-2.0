@@ -115,7 +115,7 @@ Zobrazuje:
 - **Počet dívek**
 - **Průměrný věk**
 - **Nejčastější národnosti** – až 3 nejčastější hodnoty, seřazené podle počtu výskytů sestupně, včetně počtu v závorce; při shodě abecedně
-- **Ohodnoceno** – počet dívek, které mají vyplněné hodnocení
+- **Oblíbené** – počet dívek z Girls, které jsou aktuálně zařazené v sekci Oblíbené
 
 ### Detail karty Oblíbené
 
