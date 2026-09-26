@@ -210,7 +210,9 @@ class OverviewPage(BasePage):
         girls = self.repo.girls(False)
         favorites = [g for g in girls if g.favorite]
         videos = self.repo.videos(False)
+        valid_video_ids = self.repo.valid_video_ids(False)
         super_videos = [v for v in videos if v.in_super]
+        valid_super_ids = self.repo.valid_video_ids(True)
         studios = self.repo.studios()
         links = self.repo.links()
 
@@ -252,6 +254,8 @@ class OverviewPage(BasePage):
         elif name == "Videa":
             counts = Counter()
             for video in videos:
+                if video.id not in valid_video_ids:
+                    continue
                 for _, girl_name, _ in video.participants:
                     counts[girl_name] += 1
             top = sorted(counts.items(), key=lambda x: (-x[1], x[0].casefold()))[:3]
@@ -268,8 +272,17 @@ class OverviewPage(BasePage):
                 QLabel(str(sum(1 for video in videos if video.rating.strip()))),
             )
         elif name == "SUPER":
-            studios_count = Counter(v.studio_name for v in super_videos if v.studio_name)
-            girls_count = Counter(p[1] for v in super_videos for p in v.participants)
+            studios_count = Counter(
+                v.studio_name
+                for v in super_videos
+                if v.id in valid_super_ids and v.studio_name
+            )
+            girls_count = Counter(
+                p[1]
+                for v in super_videos
+                if v.id in valid_super_ids
+                for p in v.participants
+            )
             form.addRow("Počet videí:", QLabel(str(len(super_videos))))
             form.addRow(
                 "Nejčastější studia:",
