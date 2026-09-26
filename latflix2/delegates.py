@@ -6,6 +6,7 @@ from PySide6.QtCore import QEvent, QModelIndex, QPersistentModelIndex, Qt, Signa
 from PySide6.QtGui import QKeyEvent, QPainter, QPen
 from PySide6.QtWidgets import (
     QApplication,
+    QAbstractItemDelegate,
     QComboBox,
     QCompleter,
     QLineEdit,
@@ -101,7 +102,7 @@ class TableDelegate(QStyledItemDelegate):
 
     def _finish_combo(self, editor: QComboBox) -> None:
         self.commitData.emit(editor)
-        self.closeEditor.emit(editor, QStyledItemDelegate.NoHint)
+        self.closeEditor.emit(editor, QAbstractItemDelegate.NoHint)
 
     def eventFilter(self, editor, event):
         if isinstance(event, QKeyEvent):
