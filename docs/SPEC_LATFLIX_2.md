@@ -326,6 +326,32 @@ Požadované chování:
 - rozdíl mezi sekcemi je pouze v datech: sekce **Super** zobrazuje pouze vybranou podmnožinu dat ze sekce **Videa**.
 
 
+### Videa / Super – více účinkujících hereček než viditelných sloupců
+
+Video může mít výrazně více účinkujících hereček, než kolik bude praktické zobrazovat jako samostatné sloupce přímo v tabulce.
+
+Platí:
+- tabulka může obsahovat pouze omezený počet běžně viditelných sloupců **Herečka**,
+- další účinkující herečky se budou k videozáznamu přidávat a upravovat přes **Detail videa**,
+- tyto další herečky nejsou druhořadé ani pouze poznámkové; datově jsou plnohodnotnými účinkujícími stejného videozáznamu,
+- všechny účinkující herečky jednoho videa, bez ohledu na to, zda jsou zobrazené přímo ve sloupci tabulky nebo přidané pouze přes Detail, se berou jako jeden společný seznam účinkujících.
+
+Dopad na **Počet výskytů**:
+- pokud je video platným / plnohodnotným videozáznamem podle již definovaného pravidla, započítá se výskyt každé jeho účinkující herečce,
+- platí to i pro herečky přidané pouze přes Detail videa,
+- pro podmínku platného videozáznamu se klíčové pole **Herečka** považuje za vyplněné, pokud je k videu přiřazena alespoň jedna účinkující herečka, ať už je vidět v tabulce nebo je uložená pouze přes Detail.
+
+Dopad na filtrování:
+- všechny filtry ve Videa / Super, které pracují s herečkami, musí kontrolovat **celý seznam účinkujících**, nikoliv jen viditelné sloupce Herečka,
+- to platí zejména pro modré rámečky **Herečky** v horním panelu,
+- video se tedy zobrazí při filtru konkrétní herečky i tehdy, pokud je tato herečka u videa uložená pouze přes Detail.
+
+Dopad na fulltextové **Hledání**:
+- v sekcích Videa / Super fulltext kromě běžných buněk tabulky prohledává také jména všech účinkujících hereček přiřazených k videozáznamu,
+- hledání tedy musí najít video podle jména herečky i tehdy, když tato herečka není právě zobrazena v žádném viditelném sloupci tabulky,
+- toto je sekčně specifické rozšíření globálního fulltextového hledání; stále se hledá pouze v aktuální sekci / tabulce.
+
+
 ### Sdílené horní panely mezi párovými sekcemi
 
 Stejné párování jako u tabulek platí také pro horní pracovní panel daných sekcí:
