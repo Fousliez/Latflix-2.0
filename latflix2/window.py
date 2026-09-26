@@ -703,6 +703,7 @@ class MainWindow(QMainWindow):
             self._restoring_header = False
 
     def _header_lock_changed(self, locked: bool) -> None:
+        self.model.header_locked = bool(locked)
         self.model.headerDataChanged.emit(Qt.Horizontal, 0, 0)
 
     def _load_title_overrides(self) -> None:
