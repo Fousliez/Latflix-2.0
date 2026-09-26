@@ -924,7 +924,8 @@ V tabulce Girls / Oblíbené se následující sloupce neupravují volným texte
 - **Typ**
 - **Nahota**
 
-Po dvojkliku do odemčené výběrové buňky se otevře příslušná nabídka hodnot; nejde o klasický textový editační režim.
+U odemčeného řádku se příslušná nabídka otevře už **jedním kliknutím** do výběrové buňky; nejde o klasický textový editační režim.
+Toto chování se odlišuje od běžně editovatelných textových buněk, které se při neaktivním editačním režimu otevírají až **dvojklikem**.
 
 Zdroj hodnot:
 - **Obličej**: pevné hodnoty `Ano`, `Asi ano`, `Asi ne`, `Ne`, `Zjistit`,
@@ -1099,7 +1100,8 @@ Po aktivaci editačního režimu se otevře nabídka těchto stavů a zvolená h
 #### Výběrové buňky
 Pro výběrové buňky, např. **Obličej, Sex, Typ, Nahota, Národnost, Stav**:
 - nejde o klasický textový editační režim,
-- po otevření nabídky a výběru hodnoty se zvolená hodnota ihned uloží do buňky,
+- v odemčeném řádku se nabídka otevře už **prvním kliknutím** do buňky,
+- po výběru hodnoty se zvolená hodnota ihned uloží do buňky,
 - tím je akce hotová,
 - klávesa **Enter** u těchto výběrových buněk nemá žádnou speciální funkci,
 - klávesa **Esc** zde ani obecně v tabulce nespouští žádnou speciální akci.
@@ -1159,6 +1161,16 @@ Nové společné vizuální pravidlo pro Latflix 2.0:
 #### Výška prvků v liště nad tabulkou
 - všechna tlačítka v liště nad tabulkou mají být stejně vysoká jako pole **Hledání**,
 - společná výška se má držet jednotně napříč sekcemi, které tuto lištu používají.
+
+
+### Lišta nad tabulkou – šířka tlačítek a text
+
+Pro tlačítka v liště nad tabulkou platí:
+- text tlačítka se musí zobrazit **vždy celý**, bez zkrácení nebo ořezu,
+- šířka tlačítka se proto přizpůsobí délce jeho textu,
+- uvnitř tlačítka musí zůstat alespoň minimální vodorovná rezerva odpovídající přibližně **jedné mezeře před textem a jedné mezeře za textem**,
+- větší rezerva je v pořádku, pokud to odpovídá vzhledu a rozložení,
+- toto pravidlo neznamená doslovné vkládání znaků mezery do popisku, ale minimální vnitřní odsazení tlačítka.
 
 ---
 
