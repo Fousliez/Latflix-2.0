@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout, QWidget, QInputDialog,
 )
 
-from .config import APP_NAME
+from .config import APP_NAME, data_root
 from .db import Repository
 from .dialogs import (
     BulkGirlLinksDialog, BulkLinksDialog, ExportLinksDialog, GirlDetailDialog, GirlLinksDialog,
@@ -20,8 +20,8 @@ from .dialogs import (
 from .models import BaseModel, Col, GirlsModel, LinksModel, SmartProxy, StudiosModel, VideosModel
 from .widgets import (
     AutoCompleteDelegate, ChoiceDelegate, ChipButton, DataTableView, FlowWidget,
-    MenuFilter, SearchBox, SplitAddButton, TextDelegate, open_note_for_table,
-    selected_source_ids,
+    MenuFilter, PhotoLabel, ScreenSnipDialog, SearchBox, SplitAddButton, TextDelegate,
+    open_note_for_table, selected_source_ids,
 )
 
 BUTTON_H = 30
@@ -443,14 +443,12 @@ class GirlsPage(TablePage):
         layout = QHBoxLayout(self.top)
         layout.setContentsMargins(6, 5, 6, 5)
 
-        self.photo = QLabel("Bez foto")
-        self.photo.setAlignment(Qt.AlignCenter)
+        self.photo = PhotoLabel(self.top)
         self.photo.setFixedSize(72, 118)
-        self.photo.setStyleSheet("border:1px solid #bbb;background:#fafafa")
-        self.photo.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.photo.customContextMenuRequested.connect(self._photo_context)
-        self.photo.mousePressEvent = self._photo_press
-        self.photo.mouseDoubleClickEvent = self._photo_double
+        self.photo.setText("Bez foto")
+        self.photo.clicked.connect(self._photo_pick)
+        self.photo.doubleClicked.connect(self._photo_snip)
+        self.photo.contextRequested.connect(self._photo_context)
         layout.addWidget(self.photo, 0, Qt.AlignVCenter)
 
         middle = QVBoxLayout()
@@ -649,9 +647,7 @@ class GirlsPage(TablePage):
         if girl and GirlLinksDialog(self.repo, girl.id, self).exec():
             self.refresh()
 
-    def _photo_press(self, event):
-        if event.button() != Qt.LeftButton:
-            return
+    def _photo_pick(self):
         girl = self._selected_girl()
         if not girl:
             return
@@ -665,10 +661,22 @@ class GirlsPage(TablePage):
             self.repo.update_girl(girl.id, "profile_path", path)
             self.refresh()
 
-    def _photo_double(self, event):
-        # Výřez obrazovky se bude implementovat jako samostatný full-screen overlay.
-        # Do té doby dvojklik nesmí mazat fotografii ani dělat jinou akci.
-        event.accept()
+    def _photo_snip(self):
+        girl = self._selected_girl()
+        if not girl:
+            return
+        dialog = ScreenSnipDialog(self.window())
+        if dialog.exec() != QDialog.Accepted:
+            return
+        pixmap = dialog.selected_pixmap()
+        if pixmap.isNull():
+            return
+        folder = data_root() / "profile_images"
+        folder.mkdir(parents=True, exist_ok=True)
+        path = folder / f"girl_{girl.id}.png"
+        if pixmap.save(str(path), "PNG"):
+            self.repo.update_girl(girl.id, "profile_path", str(path))
+            self.refresh()
 
     def _photo_context(self, pos):
         girl = self._selected_girl()
