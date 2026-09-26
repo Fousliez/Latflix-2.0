@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from collections import Counter
+from pathlib import Path
 
 from PySide6.QtCore import QModelIndex, Qt, QUrl, Signal
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtGui import QDesktopServices, QPixmap
 from PySide6.QtWidgets import (
-    QApplication, QComboBox, QDialog, QFormLayout, QFrame, QGridLayout, QHBoxLayout,
+    QApplication, QComboBox, QDialog, QFileDialog, QFormLayout, QFrame, QGridLayout, QHBoxLayout,
     QLabel, QMainWindow, QMenu, QMessageBox, QPushButton, QSpinBox, QStackedWidget, QStatusBar,
     QVBoxLayout, QWidget, QInputDialog,
 )
@@ -13,8 +14,8 @@ from PySide6.QtWidgets import (
 from .config import APP_NAME
 from .db import Repository
 from .dialogs import (
-    BulkLinksDialog, ExportLinksDialog, GirlDetailDialog, LinkCatalogDialog,
-    TagsDialog, VideoDetailDialog, VisibleLinkFiltersDialog,
+    BulkGirlLinksDialog, BulkLinksDialog, ExportLinksDialog, GirlDetailDialog, GirlLinksDialog,
+    LinkCatalogDialog, TagsDialog, VideoDetailDialog, VisibleLinkFiltersDialog,
 )
 from .models import BaseModel, Col, GirlsModel, LinksModel, SmartProxy, StudiosModel, VideosModel
 from .widgets import (
@@ -420,14 +421,24 @@ class GirlsPage(TablePage):
 
         self.photo = QLabel("Bez foto")
         self.photo.setAlignment(Qt.AlignCenter)
-        self.photo.setFixedSize(72, 126)
+        self.photo.setFixedSize(72, 118)
         self.photo.setStyleSheet("border:1px solid #bbb;background:#fafafa")
-        layout.addWidget(self.photo)
+        self.photo.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.photo.customContextMenuRequested.connect(self._photo_context)
+        self.photo.mousePressEvent = self._photo_press
+        self.photo.mouseDoubleClickEvent = self._photo_double
+        layout.addWidget(self.photo, 0, Qt.AlignVCenter)
 
         middle = QVBoxLayout()
+        name_row = QHBoxLayout()
         self.name = QLabel(self.title)
         self.name.setStyleSheet("font-size:20px;font-weight:700")
-        middle.addWidget(self.name)
+        self.favorite_btn = QPushButton("Oblíbené")
+        self.favorite_btn.clicked.connect(self._toggle_favorite)
+        name_row.addWidget(self.name)
+        name_row.addWidget(self.favorite_btn)
+        name_row.addStretch()
+        middle.addLayout(name_row)
 
         info = QHBoxLayout()
         self.age = QLabel("Věk: —")
@@ -452,6 +463,7 @@ class GirlsPage(TablePage):
         right.addStretch()
         layout.addLayout(right)
 
+        self.links_btn.clicked.connect(self._links_dialog)
         self.detail_btn.clicked.connect(self._detail)
         self.show_links_btn.clicked.connect(self._show_links)
 
@@ -534,6 +546,7 @@ class GirlsPage(TablePage):
         menu = QMenu(self)
         add_favorite = menu.addAction("Přidat do Oblíbených")
         remove_favorite = menu.addAction("Odebrat z Oblíbených")
+        add_links = menu.addAction("Hromadně přidat odkazy")
         selected_action = menu.exec(
             self.bulk.mapToGlobal(self.bulk.rect().bottomLeft())
         )
@@ -551,11 +564,59 @@ class GirlsPage(TablePage):
         ):
             for row_id in ids:
                 self.repo.set_favorite(row_id, False)
+        elif selected_action == add_links and ids:
+            BulkGirlLinksDialog(self.repo, ids, self).exec()
         self.refresh()
 
     def _selected_girl(self):
         source = self.current_source_row()
         return self.model.rows[source.row()] if source.isValid() else None
+
+    def _toggle_favorite(self):
+        girl = self._selected_girl()
+        if not girl:
+            return
+        self.repo.set_favorite(girl.id, not girl.favorite)
+        self.refresh()
+
+    def _links_dialog(self):
+        girl = self._selected_girl()
+        if girl and GirlLinksDialog(self.repo, girl.id, self).exec():
+            self.refresh()
+
+    def _photo_press(self, event):
+        if event.button() != Qt.LeftButton:
+            return
+        girl = self._selected_girl()
+        if not girl:
+            return
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Profilový obrázek",
+            "/home/jirka/Plocha",
+            "Obrázky (*.png *.jpg *.jpeg *.webp)",
+        )
+        if path:
+            self.repo.update_girl(girl.id, "profile_path", path)
+            self.refresh()
+
+    def _photo_double(self, event):
+        # Výřez obrazovky se bude implementovat jako samostatný full-screen overlay.
+        # Do té doby dvojklik nesmí mazat fotografii ani dělat jinou akci.
+        event.accept()
+
+    def _photo_context(self, pos):
+        girl = self._selected_girl()
+        if not girl or not girl.profile_path:
+            return
+        menu = QMenu(self)
+        delete = menu.addAction("Smazat profilovou fotografii")
+        if menu.exec(self.photo.mapToGlobal(pos)) == delete:
+            if QMessageBox.question(
+                self, "Profilová fotografie", "Smazat profilovou fotografii?"
+            ) == QMessageBox.Yes:
+                self.repo.update_girl(girl.id, "profile_path", "")
+                self.refresh()
 
     def _detail(self):
         girl = self._selected_girl()
@@ -580,15 +641,36 @@ class GirlsPage(TablePage):
         girl = self._selected_girl()
         if not girl:
             self.name.setText(self.title)
+            self.favorite_btn.setText("Oblíbené")
+            self.favorite_btn.setStyleSheet("")
+            self.photo.setPixmap(QPixmap())
+            self.photo.setText("Bez foto")
             self.age.setText("Věk: —")
             self.occ.setText("Počet výskytů: —")
             self.chips.set_items([])
             return
 
         from .models import age_display
-        self.name.setText(("★ " if girl.favorite else "") + girl.name)
+        self.name.setText(girl.name)
+        self.favorite_btn.setText("★ V oblíbených" if girl.favorite else "Oblíbené")
+        self.favorite_btn.setStyleSheet(
+            "background:#f3cf55;font-weight:700;" if girl.favorite else ""
+        )
         self.age.setText(f"Věk: {age_display(girl.age_source) or '—'}")
         self.occ.setText(f"Počet výskytů: {girl.occurrences}")
+        if girl.profile_path and Path(girl.profile_path).exists():
+            pix = QPixmap(girl.profile_path)
+            self.photo.setPixmap(
+                pix.scaled(
+                    self.photo.size(),
+                    Qt.KeepAspectRatioByExpanding,
+                    Qt.SmoothTransformation,
+                )
+            )
+            self.photo.setText("")
+        else:
+            self.photo.setPixmap(QPixmap())
+            self.photo.setText("Bez foto")
 
         per_type = Counter(
             link.type_name for link in self.repo.links() if link.girl_id == girl.id
