@@ -269,6 +269,8 @@ class OverviewPage(BasePage):
         favorites = [g for g in girls if g.favorite]
         videos = self.repo.videos(False)
         super_videos = [v for v in videos if v.in_super]
+        valid_videos = [v for v in videos if self.repo.video_is_valid(v)]
+        valid_super_videos = [v for v in super_videos if self.repo.video_is_valid(v)]
         studios = self.repo.studios()
         links = self.repo.links()
 
@@ -297,7 +299,7 @@ class OverviewPage(BasePage):
                 "Nejčastější herečky:",
                 QLabel(self._rank_text(self._rank(
                     participant[1]
-                    for video in videos
+                    for video in valid_videos
                     for participant in video.participants
                 ))),
             )
@@ -309,13 +311,13 @@ class OverviewPage(BasePage):
             form.addRow("Počet videí:", QLabel(str(len(super_videos))))
             form.addRow(
                 "Nejčastější studia:",
-                QLabel(self._rank_text(self._rank(v.studio_name for v in super_videos))),
+                QLabel(self._rank_text(self._rank(v.studio_name for v in valid_super_videos))),
             )
             form.addRow(
                 "Nejčastější herečky:",
                 QLabel(self._rank_text(self._rank(
                     participant[1]
-                    for video in super_videos
+                    for video in valid_super_videos
                     for participant in video.participants
                 ))),
             )
