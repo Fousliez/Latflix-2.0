@@ -454,13 +454,12 @@ class Repository:
     def add_catalog(self, kind: str, name: str = "", color: str = "#d7e9ff") -> int:
         text = name.strip()
         with self.connect() as c:
-            if text:
-                row = c.execute(
-                    "SELECT id FROM lf21_catalog WHERE kind=? AND name=? COLLATE NOCASE",
-                    (kind, text),
-                ).fetchone()
-                if row:
-                    return int(row["id"])
+            row = c.execute(
+                "SELECT id FROM lf21_catalog WHERE kind=? AND name=? COLLATE NOCASE",
+                (kind, text),
+            ).fetchone()
+            if row:
+                return int(row["id"])
             cur = c.execute(
                 "INSERT INTO lf21_catalog(kind,name,color,created_seq,is_new) VALUES(?,?,?,?,?)",
                 (kind, text, color, self._seq(c, "lf21_catalog"), 0 if text else 1),
