@@ -677,6 +677,36 @@ Všechny tyto filtry používají stejnou společnou logiku:
 
 Filtry mohou fungovat současně s fulltextovým hledáním; výsledná tabulka musí respektovat všechny právě aktivní podmínky.
 
+
+### Girls / Oblíbené – zdroj hodnot pro filtry
+
+Filtry **Sex** a **Nahota** mají pevně danou nabídku hodnot:
+
+- **Ano**
+- **Ne**
+- **Asi ne**
+- **Asi ano**
+- **Zjistit**
+
+Filtry **Národnost**, **Typ** a **Stav** nemají hodnoty napevno v kódu.
+
+Jejich nabídka se dynamicky načítá z odpovídajících vedlejších sekcí v levém menu:
+- **Národnost** → sekce **Národnosti**
+- **Typ** → sekce **Typy**
+- **Stav** → sekce **Stavy**
+
+Do levého menu mezi vedlejší sekce se proto přidá nová položka:
+
+- **Národnosti**
+
+Tyto pomocné sekce budou sloužit jako centrální katalog hodnot pro příslušné sloupce a filtry. Jejich detailní struktura se specifikuje později; předběžně se počítá s jednoduchými tabulkami, pravděpodobně s jedním hlavním sloupcem.
+
+Pravidla dynamických nabídek:
+- počet položek v nabídce filtru **Národnost**, **Typ** nebo **Stav** odpovídá aktuálnímu počtu hodnot / řádků v příslušné pomocné sekci,
+- text každé položky filtru odpovídá hodnotě uložené v příslušném řádku pomocné sekce,
+- přidání, přejmenování nebo odstranění hodnoty v pomocné sekci se musí projevit i v nabídce navázaného filtru,
+- tyto katalogy se mají používat centrálně i pro další místa v aplikaci, kde se vybírá Národnost, Typ nebo Stav, aby nevznikaly různé nesynchronizované seznamy.
+
 ---
 
 ## Pracovní pravidlo specifikace
