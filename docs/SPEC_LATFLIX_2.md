@@ -1202,7 +1202,9 @@ Po aktivaci editačního režimu se otevře nabídka těchto stavů a zvolená h
 #### Počet výskytů
 - sloupec **Počet výskytů** je automaticky vypočítávaný,
 - nelze jej ručně editovat,
-- hodnota odpovídá počtu videí / výskytů, ve kterých je daná herečka evidovaná.
+- u **Girls / Oblíbené** hodnota odpovídá počtu záznamů v hlavní sekci **Videa**, ve kterých je daná herečka uvedená jako účinkující,
+- sekce **Super** je pouze podmnožina záznamů z Videa a její zobrazení se proto **nepočítá jako další výskyt**,
+- sekce **Oblíbené** je pouze podmnožina Girls a nemá vlastní samostatné výskyty.
 
 #### Sledování
 - sloupec **Sledování** je automaticky vypočítávaný,
@@ -1296,6 +1298,15 @@ Pro tlačítka v liště nad tabulkou platí:
 - účelem je na první pohled ukázat, ve které sekci se uživatel právě nachází,
 - ostatní rozměry, typografie a základní styl tlačítka zůstávají stejné.
 
+
+### Studia – Počet výskytů
+
+Sekce **Studia** používá stejný funkční typ automatického sloupce **Počet výskytů**, ale s jiným zdrojem dat:
+
+- hodnota odpovídá počtu záznamů v hlavní sekci **Videa**, ve kterých je dané studio uvedené ve sloupci **Studio**,
+- sloupec je pouze informativní a automaticky vypočítávaný; ručně se needituje,
+- **Super** je pouze podmnožina Videa a nezakládá další samostatné výskyty,
+- stejný videozáznam zobrazený ve Videa i v Super se tedy započítá pouze jednou.
 
 ### Globální tabulkový základ napříč sekcemi
 
