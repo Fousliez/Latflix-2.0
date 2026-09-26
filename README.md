@@ -1,23 +1,17 @@
-# Latflix 2.0
+# Latflix 2.1
 
-Čistý přepis Latflixu podle nové specifikace.
+Čistý desktopový přepis Latflixu podle `docs/SPEC_LATFLIX_2.md` a referenčních screenshotů.
 
-## Stav
-
-Aktuální větev je první skutečná model/view verze, ne rychlý QTableWidget prototyp.
-
-Základ:
+## Základ
 
 - Python + PySide6
-- SQLite přes jedinou `Repository` vrstvu
-- `QTableView` + vlastní `QAbstractTableModel`
-- jedna filtrační/řadicí proxy
-- jeden společný tabulkový základ pro další sekce
-- žádné runtime monkeypatchování
-- žádné kopírování Girls do Oblíbených; Oblíbené jsou pohled nad Girls
-
-První reálná etapa je zaměřená na **Girls / Oblíbené** a společnou tabulkovou logiku.
-Další sekce budou přidávány konfigurací stejného základu.
+- SQLite přes jednu `Repository` vrstvu
+- `QTableView` + `QAbstractTableModel`
+- sdílená filtrační/řadicí proxy
+- společná tabulková logika pro sekce
+- Girls / Oblíbené a Videa / Super jsou párové pohledy nad stejnými záznamy
+- samostatné tabulky `lf21_*`, takže starší prototypová data zůstávají nedotčená
+- při prvním spuštění se použitelné údaje z `lf2_*` jednorázově převedou do `lf21_*`
 
 ## Spuštění
 
@@ -33,14 +27,10 @@ Databáze:
 ~/.local/share/latflix2/database/latflix2.db
 ```
 
-Nová implementace používá vlastní tabulky s prefixem `lf2_`, takže nepřepisuje staré experimentální tabulky v existující testovací databázi.
-
-## Specifikace
-
-Zdroj pravdy je:
+## Zdroj pravdy
 
 ```text
 docs/SPEC_LATFLIX_2.md
 ```
 
-Psaná specifikace má přednost před starými screenshoty a prototypovým chováním.
+Psaná specifikace má přednost před starými screenshoty. Screenshoty slouží jako vizuální a funkční reference tam, kde specifikace není přesnější.
