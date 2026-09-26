@@ -1202,7 +1202,10 @@ Po aktivaci editačního režimu se otevře nabídka těchto stavů a zvolená h
 #### Počet výskytů
 - sloupec **Počet výskytů** je automaticky vypočítávaný,
 - nelze jej ručně editovat,
-- u **Girls / Oblíbené** hodnota odpovídá počtu záznamů v hlavní sekci **Videa**, ve kterých je daná herečka uvedená jako účinkující,
+- u **Girls / Oblíbené** hodnota odpovídá počtu **platných videozáznamů** v hlavní sekci **Videa**, ve kterých je daná herečka uvedená jako účinkující,
+- za platný videozáznam pro účely výskytů se považuje pouze řádek, který má vyplněná **alespoň 4 uživatelská datová pole** a současně jsou mezi nimi vyplněná **alespoň 2 ze 3 klíčových polí: Herečka, Název videa, Studio**,
+- do minimálního počtu 4 polí se **nezapočítávají systémová ani automaticky vypočítaná pole**, zejména zámek řádku, číslo řádku, automatická počítadla a jiné systémové hodnoty,
+- samotné předvyplnění jména herečky do jednoho či více budoucích řádků tedy výskyt nevytvoří,
 - sekce **Super** je pouze podmnožina záznamů z Videa a její zobrazení se proto **nepočítá jako další výskyt**,
 - sekce **Oblíbené** je pouze podmnožina Girls a nemá vlastní samostatné výskyty.
 
@@ -1303,7 +1306,10 @@ Pro tlačítka v liště nad tabulkou platí:
 
 Sekce **Studia** používá stejný funkční typ automatického sloupce **Počet výskytů**, ale s jiným zdrojem dat:
 
-- hodnota odpovídá počtu záznamů v hlavní sekci **Videa**, ve kterých je dané studio uvedené ve sloupci **Studio**,
+- hodnota odpovídá počtu **platných videozáznamů** v hlavní sekci **Videa**, ve kterých je dané studio uvedené ve sloupci **Studio**,
+- pro platnost videozáznamu platí stejné společné pravidlo jako u výskytů hereček: řádek musí mít vyplněná **alespoň 4 uživatelská datová pole** a současně **alespoň 2 ze 3 klíčových polí: Herečka, Název videa, Studio**,
+- systémová a automaticky vypočítaná pole se do těchto 4 polí nezapočítávají,
+- samotné předvyplnění studia do připravených budoucích řádků tedy výskyt nevytvoří,
 - sloupec je pouze informativní a automaticky vypočítávaný; ručně se needituje,
 - **Super** je pouze podmnožina Videa a nezakládá další samostatné výskyty,
 - stejný videozáznam zobrazený ve Videa i v Super se tedy započítá pouze jednou.
