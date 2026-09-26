@@ -326,6 +326,43 @@ Požadované chování:
 - rozdíl mezi sekcemi je pouze v datech: sekce **Super** zobrazuje pouze vybranou podmnožinu dat ze sekce **Videa**.
 
 
+### Videa / Super – lišta nad tabulkou
+
+Lišta nad tabulkou v sekcích **Videa / Super** používá stejný základní vzhled, rozměry a obecné chování jako lišta v **Girls / Oblíbené**. Platí tedy společná výška prvků, adaptivní šířka tlačítek, plné texty bez ořezu, stejné chování pole **Hledání** a koše a ostatní globální pravidla této lišty.
+
+Pořadí a funkce prvků:
+
+1. **Přidat**
+   - funguje stejně jako v Girls podle společné logiky přidávání řádků.
+
+2. **Smazat**
+   - funguje stejně jako v Girls podle společné logiky mazání, včetně ochrany zamčených řádků a potvrzení.
+
+3. Členské tlačítko pro **Super**
+   - v sekci **Videa** má text **Přidat do SUPER** a přidá označený / označené videozáznamy do podmnožiny Super,
+   - v sekci **Super** je na stejném místě tlačítko **Odebrat ze SUPER**,
+   - **Odebrat ze SUPER** vždy vyžaduje potvrzení před provedením,
+   - členství v Super je samostatná vlastnost záznamu; Super nevytváří kopii videa.
+
+V sekcích Videa / Super se **nepoužívá tlačítko Hromadné akce**.
+
+Následuje společné pole **Hledání** a jeho tlačítko s ikonou koše. Bezprostředně **za košem** budou zatím tyto tři filtry:
+
+- **Studio**
+  - výběr se dynamicky načítá ze sekce **Studia**,
+  - studia jsou seřazena podle **Počtu výskytů sestupně**; při shodě rozhoduje abecední pořadí,
+  - rozbalená nabídka má zobrazit přibližně **15 položek současně**,
+  - další položky jsou dostupné běžným svislým posouváním, včetně **kolečka myši**,
+  - nabídka má klasický viditelný **svislý posuvník**.
+
+- **Stav**
+  - výběr se dynamicky načítá ze sekce **Stavy**.
+
+- **Kvalita**
+  - výběr se dynamicky načítá ze sekce **Kvality**.
+
+Toto je zatím úplná sada filtrů za polem Hledání pro Videa / Super; další se nepřidávají bez pozdějšího výslovného požadavku.
+
 ### Videa / Super – základní sloupce a typy buněk
 
 Pro tabulku **Videa / Super** platí následující základní chování datových sloupců:
