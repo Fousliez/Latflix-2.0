@@ -78,6 +78,97 @@ Budou skrytelné a do budoucna půjde:
 
 Přesné chování rychlých filtrů bude doplněno později.
 
+## 3A. Přehled databáze
+
+Sekce **Přehled** bude vycházet z původního Latflixu podle dodaných referenčních screenshotů. Nejde o tabulkovou sekci.
+
+### Hlavní plocha Přehledu
+
+Nahoře bude nadpis **Přehled databáze** a krátký vysvětlující text. Pod ním budou větší přehledové karty ve více sloupcích podle dostupné šířky okna.
+
+Karty:
+- **Girls** – aktuální počet dívek v databázi; doplňkový text typu „Dívky v databázi“.
+- **Oblíbené** – aktuální počet oblíbených dívek; doplňkový text typu „Oblíbené dívky“.
+- **Videa** – aktuální počet videozáznamů; doplňkový text typu „Filmy a videa“.
+- **SUPER** – aktuální počet videozáznamů zařazených do Super; doplňkový text typu „Vybrané filmy a videa“.
+- **Studia** – aktuální počet studií; doplňkový text typu „Studia a platformy“.
+- **Odkazy** – aktuální celkový počet odkazů; doplňkový text typu „Sítě, zdroje a rozcestníky“.
+- **Tagy** – aktuální počet tagů; doplňkový text typu „Tagy a štítky“.
+
+Čísla na kartách jsou vždy **dynamická aktuální data**, nikoliv pevné hodnoty z referenčních screenshotů.
+
+Celá karta je klikací. Kliknutí otevře menší detailní okno dané kategorie.
+
+### Společné chování detailního okna karty
+
+- otevře se jako malé samostatné dialogové okno nad Přehledem,
+- nahoře bude název kategorie,
+- uprostřed budou stručné statistiky dané kategorie,
+- dole bude tlačítko **Přejít do sekce [název]** a tlačítko **Zavřít**,
+- tlačítko **Přejít do sekce** zavře dialog a přepne hlavní aplikaci do odpovídající sekce,
+- dialog lze zavřít také standardním **X** vpravo nahoře,
+- hodnoty uvnitř dialogu se počítají z aktuálních dat a musí odpovídat aktuálnímu stavu databáze.
+
+### Detail karty Girls
+
+Zobrazuje:
+- **Počet dívek**
+- **Průměrný věk**
+- **Nejčastější národnosti** – až 3 nejčastější hodnoty, seřazené podle počtu výskytů sestupně, včetně počtu v závorce; při shodě abecedně
+- **Ohodnoceno** – počet dívek, které mají vyplněné hodnocení
+
+### Detail karty Oblíbené
+
+Stejný princip jako Girls, ale statistiky se počítají pouze z aktuální podmnožiny **Oblíbené**:
+- **Počet dívek**
+- **Průměrný věk**
+- **Nejčastější národnosti** – podle dostupných dat až 3 položky, včetně počtů
+- **Ohodnoceno**
+
+### Detail karty Videa
+
+Zobrazuje:
+- **Počet videí**
+- **Nejčastější herečky** – až 3 herečky podle Počtu výskytů v platných / plnohodnotných videozáznamech, včetně počtu v závorce; při shodě abecedně
+- **Ohodnoceno** – počet videí, která mají vyplněné hodnocení
+
+Při určování nejčastějších hereček se započítávají **všechny účinkující herečky videa**, včetně těch přidaných pouze přes Detail videa.
+
+### Detail karty SUPER
+
+Zobrazuje statistiky pouze z videozáznamů aktuálně zařazených do **Super**:
+- **Počet videí**
+- **Nejčastější studia** – až 3 podle četnosti v této podmnožině, včetně počtů; pokud nejsou data, zobrazí se pomlčka
+- **Nejčastější herečky** – až 3 podle četnosti v této podmnožině, včetně hereček přidaných pouze přes Detail videa; pokud nejsou data, zobrazí se pomlčka
+- **Ohodnoceno**
+
+### Detail karty Studia
+
+Zobrazuje:
+- **Počet studií**
+- **Použitých ve videích** – počet studií, která mají alespoň jeden výskyt v platném / plnohodnotném videozáznamu
+- **Nejčastější studia** – až 3 studia podle Počtu výskytů sestupně, včetně počtu v závorce; při shodě abecedně
+
+### Detail karty Odkazy
+
+Zobrazuje:
+- **Celkem odkazů**
+- **Sítě**
+- **Zdroje**
+- **Rozcestníky**
+
+Hodnoty odpovídají aktuálním počtům odkazů podle jejich příslušné kategorie / typu v databázi.
+
+### Detail karty Tagy
+
+Zobrazuje:
+- **Počet tagů**
+- **Použitých tagů** – počet tagů použitých alespoň u jednoho záznamu
+- **Nejpoužívanější tag** – tag s nejvyšším počtem použití, včetně počtu v závorce
+- **Kategorií tagů** – aktuální počet kategorií tagů
+
+Při shodném počtu použití pro nejpoužívanější tag rozhoduje abecední pořadí.
+
 ## 4. Horní pracovní panel
 
 Horní pracovní panel bude ve výchozím nastavení viditelný.
