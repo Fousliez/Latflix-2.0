@@ -18,6 +18,7 @@ class Col:
     width: int = 120
     source: str | None = None
     read_only: bool = False
+    primary: bool = False
 
 
 def age_display(value: str) -> str:
@@ -40,6 +41,7 @@ class BaseModel(QAbstractTableModel):
         super().__init__()
         self.repo = repo
         self.rows = []
+        self.title_overrides: dict[str, str] = {}
         self.reload()
 
     def reload(self) -> None:
@@ -72,7 +74,12 @@ class BaseModel(QAbstractTableModel):
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         if role != Qt.DisplayRole:
             return None
-        return self.col(section).title if orientation == Qt.Horizontal else str(section + 1)
+        if orientation == Qt.Horizontal:
+            col = self.col(section)
+            if col.kind == "lock":
+                return "🔒"
+            return self.title_overrides.get(col.key, col.title)
+        return str(section + 1)
 
     def flags(self, index):
         if not index.isValid():
@@ -100,8 +107,12 @@ class BaseModel(QAbstractTableModel):
             if col.key == "age_source" and role == Qt.DisplayRole:
                 return age_display(value)
             return value
-        if role == Qt.TextAlignmentRole and col.kind in {"row", "computed"}:
+        if role == Qt.TextAlignmentRole and col.kind in {"row", "computed", "lock"}:
             return int(Qt.AlignCenter)
+        if role == Qt.BackgroundRole and col.kind == "lock":
+            return QColor("#555555") if self.locked(row) else QColor("#ffffff")
+        if role == Qt.ForegroundRole and col.kind == "lock" and self.locked(row):
+            return QColor("#ffffff")
         return self.extra_data(record, col, index, role)
 
     def value(self, record, key):
@@ -140,7 +151,7 @@ class BaseModel(QAbstractTableModel):
 
 
 GIRL_COLS = (
-    Col("name", "Jméno", width=190),
+    Col("name", "Jméno", width=190, primary=True),
     Col("face", "Obličej", "choice", 105, source="face"),
     Col("sex", "Sex", "choice", 90, source="yes"),
     Col("type_name", "Typ", "choice", 120, source="types"),
@@ -206,7 +217,7 @@ class StudiosModel(BaseModel):
 
 
 VIDEO_COLS = (
-    Col("title", "Název", width=250),
+    Col("title", "Název", width=250, primary=True),
     Col("studio_name", "Studio", "autocomplete", 180, source="studios"),
     Col("release_date", "Datum vydání", width=110),
     Col("girl0", "Dívka 1", "autocomplete", 165, source="girls"),
