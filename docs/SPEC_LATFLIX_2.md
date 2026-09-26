@@ -283,6 +283,18 @@ Požadovaný princip:
 
 Latflix 5.36 může sloužit jako vizuální reference. Převzít lze vzhledový princip, ne automaticky starou implementaci. Pokud je starý kód technicky nečistý nebo komplikovaný, nový Latflix má stejného výsledku dosáhnout čistším způsobem.
 
+
+### Vícenásobný výběr – bez zvýraznění cílové buňky
+
+Při výběru více řádků tažením myši se po uvolnění levého tlačítka nesmí samostatně zvýraznit buňka, nad kterou bylo tlačítko uvolněno.
+
+Požadované chování:
+- výběr je vizuálně **řádkový**, ne buněčný,
+- poslední / aktuální buňka může existovat interně kvůli navigaci, ale nesmí mít vlastní viditelný Excel-like rámeček, výplň ani jiné samostatné zvýraznění,
+- po dokončení taženého výběru mají být vidět pouze vybrané řádky podle pravidel řádkového výběru,
+- uvolnění myši nad konkrétní buňkou nesmí vytvořit druhou vizuální úroveň výběru,
+- stejné pravidlo platí i při výběru více nesousedících řádků pomocí Ctrl nebo rozsahu pomocí Shift, pokud tabulka interně mění current index.
+
 ### Vztah tabulek Girls a Oblíbené
 
 - tabulka v sekci **Girls** a tabulka v sekci **Oblíbené** budou z hlediska tabulkového systému úplně totožné,
