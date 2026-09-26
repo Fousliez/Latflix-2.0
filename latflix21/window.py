@@ -1441,17 +1441,17 @@ class LinksPage(TablePage):
         layout.addLayout(left, 1)
 
         right = QVBoxLayout()
-        right.setSpacing(4)
+        right.setSpacing(3)
         self.bulk_add = QPushButton("Přidat odkazy")
         self.catalog = QPushButton("Seznam položek")
         self.visible = QPushButton("Viditelné filtry…")
         self.export = QPushButton("Exportovat odkazy")
         self.show = QPushButton("Zobrazit odkazy")
         for button in (self.bulk_add, self.catalog, self.visible, self.export):
-            button.setFixedHeight(25)
+            button.setFixedHeight(22)
             right.addWidget(button)
         right.addStretch()
-        self.show.setFixedHeight(25)
+        self.show.setFixedHeight(22)
         right.addWidget(self.show)
         layout.addLayout(right)
 
