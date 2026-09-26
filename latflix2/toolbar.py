@@ -90,7 +90,11 @@ class TableToolbar(QWidget):
         self.clear_button.clicked.connect(self.clear_all.emit)
         layout.addWidget(self.clear_button)
 
-        for widget in self.findChildren((QPushButton, QToolButton, QLineEdit)):
+        for widget in self.findChildren(QPushButton):
+            widget.setFixedHeight(self.HEIGHT)
+        for widget in self.findChildren(QToolButton):
+            widget.setFixedHeight(self.HEIGHT)
+        for widget in self.findChildren(QLineEdit):
             widget.setFixedHeight(self.HEIGHT)
 
     def _clear_search(self) -> None:
