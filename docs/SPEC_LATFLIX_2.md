@@ -1172,6 +1172,14 @@ Pro tlačítka v liště nad tabulkou platí:
 - větší rezerva je v pořádku, pokud to odpovídá vzhledu a rozložení,
 - toto pravidlo neznamená doslovné vkládání znaků mezery do popisku, ale minimální vnitřní odsazení tlačítka.
 
+
+### Levé menu – zvýraznění aktivní sekce
+
+- tlačítko právě vybrané / aktivní sekce v levém menu bude mít **lehce odlišnou barvu** než ostatní tlačítka,
+- zvýraznění má být jemné, nikoliv křiklavé,
+- účelem je na první pohled ukázat, ve které sekci se uživatel právě nachází,
+- ostatní rozměry, typografie a základní styl tlačítka zůstávají stejné.
+
 ---
 
 ## Pracovní pravidlo specifikace
