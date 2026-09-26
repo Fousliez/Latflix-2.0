@@ -654,6 +654,29 @@ Vpravo od pole Hledání bude malé tlačítko s ikonou **koše**:
 - současně zruší fulltextový filtr,
 - tabulka se vrátí do stavu před aktivací hledání, při zachování ostatních nezávislých nastavení a filtrů dané sekce.
 
+
+### Girls / Oblíbené – sloupcové filtry nad tabulkou
+
+Za polem Hledání následují filtrační prvky:
+
+- **Národnost**
+- **Typ**
+- **Stav**
+- **Sex**
+- **Nahota**
+
+Filtr **Hodnocení** zde nebude.
+
+Všechny tyto filtry používají stejnou společnou logiku:
+- každý filtr je navázán na stejnojmenný sloupec v tabulce,
+- po otevření nabídky lze vybrat konkrétní hodnotu,
+- tabulka se následně vyfiltruje tak, aby zůstaly pouze řádky, které mají ve svém příslušném sloupci zvolenou hodnotu,
+- názvy filtrů a názvy sloupců jsou přímo svázané; například filtr **Národnost** filtruje sloupec **Národnost**, filtr **Stav** sloupec **Stav** atd.,
+- všechny tyto filtry mají stejný vzhled a interakční chování,
+- konkrétní nabídka hodnot se odvozuje od příslušného sloupce / jeho povolených hodnot.
+
+Filtry mohou fungovat současně s fulltextovým hledáním; výsledná tabulka musí respektovat všechny právě aktivní podmínky.
+
 ---
 
 ## Pracovní pravidlo specifikace
