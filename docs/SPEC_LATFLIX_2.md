@@ -865,6 +865,16 @@ Chování klávesy **Enter**:
 Jinými způsoby opuštění nebo změny výběru řádku se tento automatický přechod do editačního režimu dalšího řádku nespouští.
 
 
+
+### Enter v textové editaci – právě jeden řádek
+
+Jedno fyzické stisknutí klávesy Enter smí ukončit editaci a posunout editaci **právě o jeden řádek dolů** ve stejném sloupci.
+
+Implementační poznámka:
+- obsluha Enteru musí reagovat pouze jednou na jedno stisknutí (typicky jen na KeyPress),
+- nesmí se zpracovat znovu při KeyRelease ani jinou druhou cestou,
+- nesmí tak dojít k přeskočení ob řádek.
+
 ### Girls / Oblíbené – chování našeptávače a ukončení editace myší
 
 Při editaci řádku, zejména pole **Jméno**, platí:
