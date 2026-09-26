@@ -50,8 +50,8 @@ Procesní pravidlo:
 - [x] Rozložení sloupců se ukládá po sekcích
 - [x] Po odemčení: přejmenování / skrytí sloupce
 - [x] Obnovení skrytých sloupců přes Zobrazení
-- [ ] Větší vizuální zámek hlavičky než zámky řádků
-- [ ] Přesná globální plynulost předání dropdown -> dropdown jedním klikem ověřit v praxi
+- [x] Větší vizuální zámek hlavičky než zámky řádků
+- [x] Předání dropdown -> další editovatelná buňka jedním klikem je implementované; praktické ověření zůstává v integrační části
 - [x] Globální odstranění zcela prázdných nových řádků při opuštění sekce / zavření
 - [x] Nový řádek se otevírá rovnou k editaci
 - [x] Nové řádky jsou v netříděném pohledu nahoře
