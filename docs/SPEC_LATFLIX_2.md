@@ -678,6 +678,7 @@ Chování:
 - ostatní sekce nejsou hledáním ovlivněné.
 
 Vpravo od pole Hledání bude malé tlačítko s ikonou **koše**:
+- ikona má být vizuálně čistá, moderní a jednoduchá; ne těžká nebo zastarale působící systémová ikona,
 - kliknutí vymaže celý obsah pole Hledání,
 - současně zruší fulltextový filtr,
 - tabulka se vrátí do stavu před aktivací hledání, při zachování ostatních nezávislých nastavení a filtrů dané sekce.
@@ -1271,6 +1272,8 @@ Nové společné vizuální pravidlo pro Latflix 2.0:
 
 #### Výška prvků v liště nad tabulkou
 - všechna tlačítka v liště nad tabulkou mají být stejně vysoká jako pole **Hledání**,
+- celá lišta má být proti současnému provedení **o něco nižší / subtilnější**, vizuálně blíž starší verzi Latflixu,
+- pokud se sníží výška tlačítek, stejným způsobem se sníží také výška pole **Hledání**; žádný prvek nemá z lišty výškově vyčnívat,
 - společná výška se má držet jednotně napříč sekcemi, které tuto lištu používají.
 
 
