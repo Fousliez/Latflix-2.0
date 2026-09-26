@@ -22,7 +22,7 @@ Procesní pravidlo:
 - [x] Počet aktuálně zobrazených záznamů
 - [x] Girls / Oblíbené: průměrný věk ve stavovém řádku
 - [x] Nastavení velikosti řádků 1–5
-- [ ] Přetrvávající uživatelské nastavení velikosti řádků
+- [x] Přetrvávající uživatelské nastavení velikosti řádků
 
 ## B. Společný tabulkový základ
 
@@ -84,7 +84,7 @@ Procesní pravidlo:
 - [x] Dialog Detail: základní pole včetně aliasů po 4 na řádek
 - [x] Dialog Odkazy: uložené odkazy + 10 řádků pro nové
 - [x] Profilovka: klik = výběr souboru, pravé = smazání
-- [ ] Profilovka: dvojklik = výřez libovolné oblasti obrazovky včetně jiného monitoru
+- [x] Profilovka: dvojklik = výřez libovolné oblasti obrazovky včetně jiného monitoru
 - [ ] Přesné vizuální doladění panelu proti screenshotům
 
 ## D. Videa / Super
@@ -109,8 +109,8 @@ Procesní pravidlo:
 - [x] Ctrl / Shift vícenásobné modré filtry s OR
 - [x] Max. 3 řádky modrých prvků
 - [x] Detail videa
-- [ ] Vzhled našeptávače: větší font/řádky, modrá aktivní položka s bílým textem
-- [ ] Studio dropdown filtr: cca 15 viditelných položek + scrollbar explicitně nastavit
+- [x] Vzhled našeptávače: větší font/řádky, modrá aktivní položka s bílým textem
+- [x] Studio dropdown filtr: cca 15 viditelných položek + scrollbar explicitně nastavit
 - [ ] Detail videa vizuálně dorovnat referenci
 
 ## E. Studia
@@ -135,9 +135,9 @@ Procesní pravidlo:
 - [x] Každý exportní typ má vlastní checkbox
 - [x] TXT = jedna URL na řádek
 - [x] Vyčistit ruší i modré filtry a filtr herečky
-- [ ] Viditelný indikátor aktivního filtru „odkazy konkrétní herečky“
-- [ ] Stránkování modrých filtrů podle reference (např. 1/2 + šipky)
-- [ ] Tlačítko Zobrazit odkazy – výsledné chování dorovnat podle praktického testu
+- [x] Viditelný indikátor aktivního filtru „odkazy konkrétní herečky“
+- [x] Stránkování modrých filtrů podle reference (např. 1/2 + šipky)
+- [x] Tlačítko Zobrazit odkazy – nyní otevírá po potvrzení právě aktuálně zobrazené URL; případné odlišné chování upravit podle praktického testu
 - [ ] Přesné významy a workflow Kontrola / Staženo / Akt. / Poslední text / Poslední obrázek doladit v testování
 
 ## G. Přehled
@@ -149,9 +149,9 @@ Procesní pravidlo:
 - [x] Studia: počet / použitá / nejčastější
 - [x] Odkazy: celkem / sítě / zdroje / rozcestníky
 - [x] Tagy: počet / použité / nejpoužívanější
-- [ ] Oblíbené: položka Ohodnoceno dle SPEC
-- [ ] Videa: položka Ohodnoceno dle SPEC
-- [ ] SUPER: položka Ohodnoceno dle SPEC
+- [x] Oblíbené: položka Ohodnoceno dle SPEC
+- [x] Videa: položka Ohodnoceno dle SPEC
+- [x] SUPER: položka Ohodnoceno dle SPEC
 - [ ] Přesnější vzhled karet podle původního Latflixu
 
 ## H. Pomocné sekce
