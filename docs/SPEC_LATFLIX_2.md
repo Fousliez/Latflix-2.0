@@ -93,11 +93,13 @@ Horní pracovní panel půjde skrýt přes nabídku **Zobrazení**.
 Ze současné implementace Latflixu vychází základní výška horního detailního/pracovního panelu na **136 px**.
 
 Pro Latflix 2.0 platí:
-- výška horního panelu bude pevně **136 px**,
-- tato výška se nebude měnit podle obsahu, sekce, šířky okna ani jiného stavu aplikace,
+- ve všech běžných datových sekcích bude horní pracovní/detailní panel stejně vysoký, pevně **136 px**,
+- velikost panelu bude mezi těmito sekcemi jednotná; přechod mezi Girls, Oblíbené, Videa, Super, Studia a dalšími běžnými datovými sekcemi nesmí měnit jeho výšku,
+- výška se nebude měnit podle obsahu, šířky okna ani jiného stavu aplikace,
 - panel se nesmí automaticky zvětšovat ani zmenšovat,
 - jediná změna jeho vertikálního prostoru bude úplné skrytí panelu přes nabídku **Zobrazení**,
-- po opětovném zobrazení se panel vrátí na pevnou výšku **136 px**.
+- po opětovném zobrazení se panel vrátí na pevnou výšku **136 px**,
+- **Přehled je výjimka** z tohoto pravidla; jeho horní část může mít vlastní rozložení a velikost podle samostatné specifikace Přehledu.
 
 Poznámka k současnému kódu: současný panel používá základní hodnotu `GIRL_DETAIL_HEIGHT = 136`, ale může se dynamicky zvětšovat podle obsahu odkazů. Toto dynamické zvětšování se do nové specifikace nepřenáší.
 
