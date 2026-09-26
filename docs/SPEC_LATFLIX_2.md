@@ -370,7 +370,8 @@ V levé části horního panelu bude profilová fotografie herečky v přibližn
 Vizuální upřesnění:
 - zobrazovací plocha fotografie bude oproti současnému provedení **o něco nižší na výšku**,
 - změna má být jen mírná; fotografie nemá být výrazně zmenšená ani působit stísněně,
-- zachová se portrétní charakter a proporce, pouze se upraví její výška tak, aby v horním panelu nepůsobila zbytečně dlouze.
+- zachová se portrétní charakter a proporce, pouze se upraví její výška tak, aby v horním panelu nepůsobila zbytečně dlouze,
+- fotografie bude v rámci pevně vysokého horního panelu **svisle vystředěná**.
 
 Chování:
 - **jedno kliknutí levým tlačítkem** otevře dialog pro výběr obrázku,
@@ -384,6 +385,8 @@ Důležité: při pozdější implementaci se nesmí dvojklik zaměnit za mazán
 
 ### Jméno, Oblíbené a základní údaje
 
+- horní hrana textového bloku se jménem herečky bude **zarovnaná s horní hranou profilové fotografie**,
+- jméno tedy začne ve stejné výšce jako fotografie; textový blok nebude svisle posunutý výš ani níž,
 - hvězdičkové hodnocení zobrazené ve starém Latflixu se do nové verze zatím nepřenáší a má být při návrhu ignorováno,
 - ovládací prvek **Oblíbené** bude umístěn vpravo vedle jména herečky,
 - pokud herečka **není v Oblíbených**, tlačítko/obdélník Oblíbené bude v běžném neaktivním vzhledu,
