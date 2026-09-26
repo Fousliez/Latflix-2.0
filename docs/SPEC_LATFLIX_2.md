@@ -636,6 +636,24 @@ Každý řádek představuje jednu konkrétní herečku a obsahuje tři sloupce:
 
 Příklad použití: v jednom dialogu lze třem označeným herečkám přidat Instagram a dalším třem Facebook; platforma se určuje po jednotlivých řádcích, automaticky podle URL, s možností ruční opravy.
 
+
+### Girls / Oblíbené – pole Hledání
+
+Dalším prvkem v liště nad tabulkou je fulltextové pole **Hledání**.
+
+Chování:
+- hledání funguje vždy pouze v aktuální sekci,
+- prohledává všechny buňky všech řádků v dané tabulce,
+- řádek se zobrazí, pokud hledaný text obsahuje alespoň jedna jeho buňka,
+- porovnání je **case-insensitive**; velká a malá písmena se nerozlišují,
+- hledání má filtrovat průběžně podle obsahu pole,
+- ostatní sekce nejsou hledáním ovlivněné.
+
+Vpravo od pole Hledání bude malé tlačítko s ikonou **koše**:
+- kliknutí vymaže celý obsah pole Hledání,
+- současně zruší fulltextový filtr,
+- tabulka se vrátí do stavu před aktivací hledání, při zachování ostatních nezávislých nastavení a filtrů dané sekce.
+
 ---
 
 ## Pracovní pravidlo specifikace
