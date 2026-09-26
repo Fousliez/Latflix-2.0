@@ -1121,6 +1121,13 @@ Chování a vzhled:
 - v tomto popupu se tagy pouze vybírají / odebírají pro konkrétní záznam,
 - správu seznamu tagů a jejich barev řeší samostatná sekce **Tagy**.
 
+Řazení tagů v popupu:
+- tagy se zobrazují **po řádcích zleva doprava**,
+- první položka vlevo v prvním řádku je **nejpoužívanější tag**,
+- další položky pokračují podle četnosti použití směrem doprava a po zaplnění řádku se pokračuje na dalším řádku opět zleva,
+- primární řazení je podle **počtu použití tagu sestupně**,
+- pokud mají dva nebo více tagů stejný počet použití, rozhoduje **abecední pořadí názvu tagu vzestupně**.
+
 Umístění a velikost popupu:
 - popup musí být **ukotvený k právě otevřené buňce / řádku Tagy**,
 - standardně se otevře **hned pod příslušným řádkem**, co nejblíže buňce Tagy,
