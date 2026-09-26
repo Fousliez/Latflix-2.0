@@ -1572,6 +1572,18 @@ class LinksPage(TablePage):
 
     def set_girl_filter(self, girl_id):
         self.external_girl_filter = int(girl_id) if girl_id is not None else None
+        if self.external_girl_filter is not None:
+            # "Zobrazit odkazy" z Girls má ukázat všechny odkazy dané herečky,
+            # proto nesmí zůstat viset staré hledání, kategorie ani rychlé filtry.
+            self.search.clear()
+            self.image_filter.set_value("", emit=False)
+            self.category = "Vše"
+            self.chip_page = 0
+            self._chip_selected.clear()
+            for name, button in self.tabs.items():
+                button.setChecked(name == "Vše")
+            self.proxy.clear_filters()
+            self._refresh_chips()
         girl = self.repo.girl(self.external_girl_filter) if self.external_girl_filter else None
         self.girl_filter_label.setText(
             f"Herečka: {girl.name}" if girl else ""
