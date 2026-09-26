@@ -348,7 +348,8 @@ Dopad na filtrování:
 
 Dopad na fulltextové **Hledání**:
 - v sekcích Videa / Super fulltext kromě běžných buněk tabulky prohledává také jména všech účinkujících hereček přiřazených k videozáznamu,
-- hledání tedy musí najít video podle jména herečky i tehdy, když tato herečka není právě zobrazena v žádném viditelném sloupci tabulky,
+- u hereček se při fulltextovém hledání prohledává **hlavní jméno i všechny uložené aliasy**,
+- hledání tedy musí najít video podle hlavního jména i aliasu herečky, a to i tehdy, když je herečka uložená pouze přes Detail a není právě zobrazena v žádném viditelném sloupci tabulky,
 - toto je sekčně specifické rozšíření globálního fulltextového hledání; stále se hledá pouze v aktuální sekci / tabulce.
 
 
@@ -1420,6 +1421,7 @@ Společná logika těchto našeptávačů:
 - nejdřív se zobrazí hodnoty, které dotazem **začínají**,
 - potom hodnoty, které dotaz obsahují **uvnitř názvu**,
 - uvnitř každé z těchto dvou skupin rozhoduje nejdřív **Počet výskytů sestupně** a při shodě **abecední pořadí**,
+- u našeptávače hereček se návrhy filtrují podle **hlavního jména herečky**, nikoliv podle jejích aliasů,
 - u hereček se pro tuto četnost používá jejich **Počet výskytů** z Girls,
 - u studií se používá jejich **Počet výskytů** ze Studií.
 
