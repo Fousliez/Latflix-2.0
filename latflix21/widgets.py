@@ -13,7 +13,7 @@ from PySide6.QtGui import (
 from PySide6.QtWidgets import (
     QApplication, QAbstractItemDelegate, QAbstractItemView, QComboBox, QCompleter,
     QDialog, QDialogButtonBox, QGridLayout, QHBoxLayout, QHeaderView, QLabel,
-    QLineEdit, QListWidget, QListWidgetItem, QMenu, QPushButton, QRubberBand,
+    QLineEdit, QListWidget, QListWidgetItem, QMenu, QPushButton, QRubberBand, QScrollArea,
     QSizePolicy, QStyledItemDelegate, QTableView, QTextEdit, QToolTip, QVBoxLayout,
     QWidget,
 )
@@ -815,20 +815,32 @@ class TagPopup(QDialog):
             "QDialog{background:#f5f5f5;border:1px solid #777;}"
             "QPushButton#tagChip{padding:5px 9px;border-radius:4px;border:1px solid #888;}"
         )
+
         root = QVBoxLayout(self)
         root.setContentsMargins(8, 8, 8, 8)
-        grid = QGridLayout()
+        root.setSpacing(6)
+
+        self.scroll = QScrollArea(self)
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setFrameShape(QFrame.NoFrame)
+        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        content = QWidget(self.scroll)
+        grid = QGridLayout(content)
+        grid.setContentsMargins(0, 0, 0, 0)
         grid.setHorizontalSpacing(6)
         grid.setVerticalSpacing(6)
-        root.addLayout(grid)
+        self.scroll.setWidget(content)
+        root.addWidget(self.scroll, 1)
 
         columns = max(1, min(6, int(ceil(len(tags) ** 0.5)) if tags else 1))
         for index, (name, color, usage) in enumerate(tags):
-            button = QPushButton(name + (f" ({usage})" if usage else ""), self)
+            button = QPushButton(name, content)
             button.setObjectName("tagChip")
             button.setCheckable(True)
             button.setChecked(name in selected)
             button.setProperty("tagName", name)
+            button.setFocusPolicy(Qt.NoFocus)
             button.setStyleSheet(
                 f"QPushButton#tagChip{{background:{color};padding:5px 9px;border-radius:4px;"
                 "border:1px solid #888;}"
@@ -847,22 +859,60 @@ class TagPopup(QDialog):
         root.addLayout(action_row)
         self.cancel_btn.clicked.connect(self.reject)
         self.save_btn.clicked.connect(self.accept)
+        self.cancel_btn.installEventFilter(self)
+        self.save_btn.installEventFilter(self)
 
-        self.adjustSize()
+        content.adjustSize()
         screen = QApplication.screenAt(anchor) if anchor else QApplication.primaryScreen()
         if screen:
             available = screen.availableGeometry()
+            desired_width = max(300, content.sizeHint().width() + 28)
+            desired_height = max(145, content.sizeHint().height() + 72)
             self.resize(
-                min(self.width(), max(280, available.width() - 30)),
-                min(self.height(), max(150, available.height() - 30)),
+                min(desired_width, max(300, available.width() - 30)),
+                min(desired_height, max(145, available.height() - 30)),
             )
             if anchor:
                 x = min(max(available.left(), anchor.x()), available.right() - self.width())
-                y = min(max(available.top(), anchor.y()), available.bottom() - self.height())
+                y_below = anchor.y()
+                y = y_below
+                if y + self.height() > available.bottom() + 1:
+                    y = max(available.top(), y_below - self.height())
                 self.move(x, y)
+        else:
+            self.resize(420, 320)
+
+        self.save_btn.setFocus()
 
     def selected_tags(self) -> list[str]:
         return [name for name, button in self.buttons.items() if button.isChecked()]
+
+    def eventFilter(self, watched, event):
+        if (
+            watched in (self.save_btn, self.cancel_btn)
+            and event.type() == QEvent.KeyPress
+            and isinstance(event, QKeyEvent)
+        ):
+            if event.key() in (Qt.Key_Left, Qt.Key_Right):
+                if watched is self.save_btn:
+                    self.cancel_btn.setFocus()
+                    self.cancel_btn.setDefault(True)
+                    self.save_btn.setDefault(False)
+                else:
+                    self.save_btn.setFocus()
+                    self.save_btn.setDefault(True)
+                    self.cancel_btn.setDefault(False)
+                return True
+            if event.key() in (Qt.Key_Return, Qt.Key_Enter):
+                if watched is self.cancel_btn:
+                    self.reject()
+                else:
+                    self.accept()
+                return True
+            if event.key() == Qt.Key_Escape:
+                # Popup closes only through explicit Save/Cancel semantics.
+                return True
+        return super().eventFilter(watched, event)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
