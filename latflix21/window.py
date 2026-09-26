@@ -1117,6 +1117,8 @@ class LinksPage(TablePage):
         self.category = "Vše"
         self._chip_selected = set()
         self.external_girl_filter = None
+        self.chip_page = 0
+        self.chips_per_page = 18
         self._build_top()
         self._build_toolbar()
         self._refresh_chips()
@@ -1150,7 +1152,28 @@ class LinksPage(TablePage):
             )
             head.addWidget(button)
             self.tabs[name] = button
+
+        self.active_filter_label = QLabel("")
+        self.active_filter_label.setStyleSheet(
+            "color:#555;background:#fff4c7;border:1px solid #dcc56b;padding:2px 6px;"
+        )
+        self.active_filter_label.hide()
+        head.addWidget(self.active_filter_label)
+
         head.addStretch()
+
+        self.page_prev = QPushButton("◀")
+        self.page_prev.setFixedWidth(28)
+        self.page_label = QLabel("1/1")
+        self.page_label.setAlignment(Qt.AlignCenter)
+        self.page_label.setFixedWidth(42)
+        self.page_next = QPushButton("▶")
+        self.page_next.setFixedWidth(28)
+        head.addWidget(self.page_prev)
+        head.addWidget(self.page_label)
+        head.addWidget(self.page_next)
+        self.page_prev.clicked.connect(lambda: self._change_chip_page(-1))
+        self.page_next.clicked.connect(lambda: self._change_chip_page(1))
         left.addLayout(head)
 
         self.chips = FlowWidget(max_rows=3, row_height=27)
@@ -1175,12 +1198,14 @@ class LinksPage(TablePage):
         self.catalog.clicked.connect(self._catalog)
         self.visible.clicked.connect(self._visible)
         self.export.clicked.connect(self._export)
+        self.show.clicked.connect(self._show_visible_links)
 
     def _build_toolbar(self):
         self.add = SplitAddButton()
         self.remove = QPushButton("Odebrat")
         self.bulk = QPushButton("Hromadné akce")
         self.search = SearchBox()
+        self.search.edit.setPlaceholderText("Hledat typ, název, herečku nebo URL")
         self.image_filter = QComboBox()
         self.image_filter.addItems(["Obrázek", "Má obrázek", "Bez obrázku"])
 
@@ -1201,6 +1226,7 @@ class LinksPage(TablePage):
 
     def _set_category(self, name):
         self.category = name
+        self.chip_page = 0
         for tab_name, button in self.tabs.items():
             button.setChecked(tab_name == name)
         self._chip_selected.clear()
@@ -1209,7 +1235,7 @@ class LinksPage(TablePage):
 
     def _refresh_chips(self):
         category = self.CATEGORY_MAP[self.category]
-        widgets = []
+        items = []
         for link_type in self.repo.link_types():
             if category and link_type["category"] != category:
                 continue
@@ -1217,6 +1243,23 @@ class LinksPage(TablePage):
                 continue
             if self.category != "Vše" and not link_type["visible_category"]:
                 continue
+            items.append(link_type)
+
+        total_pages = max(1, (len(items) + self.chips_per_page - 1) // self.chips_per_page)
+        self.chip_page = min(self.chip_page, total_pages - 1)
+        start = self.chip_page * self.chips_per_page
+        page_items = items[start:start + self.chips_per_page]
+
+        self.page_label.setText(f"{self.chip_page + 1}/{total_pages}")
+        self.page_prev.setEnabled(self.chip_page > 0)
+        self.page_next.setEnabled(self.chip_page < total_pages - 1)
+        show_pager = total_pages > 1
+        self.page_prev.setVisible(show_pager)
+        self.page_label.setVisible(show_pager)
+        self.page_next.setVisible(show_pager)
+
+        widgets = []
+        for link_type in page_items:
             name = str(link_type["name"])
             button = ChipButton(
                 f"{name} ({link_type['distinct_girls']})",
@@ -1228,6 +1271,10 @@ class LinksPage(TablePage):
             )
             widgets.append(button)
         self.chips.set_items(widgets)
+
+    def _change_chip_page(self, delta):
+        self.chip_page = max(0, self.chip_page + int(delta))
+        self._refresh_chips()
 
     def _chip_click(self, name, checked):
         multi = bool(
@@ -1260,6 +1307,12 @@ class LinksPage(TablePage):
 
     def set_girl_filter(self, girl_id):
         self.external_girl_filter = girl_id
+        girl = self.repo.girl(girl_id)
+        if girl:
+            self.active_filter_label.setText(f"Herečka: {girl.name}")
+            self.active_filter_label.show()
+        else:
+            self.active_filter_label.hide()
         self._apply_filters()
 
     def _quick_add(self, count):
@@ -1323,9 +1376,36 @@ class LinksPage(TablePage):
         ExportLinksDialog(self.repo, self.visible_links(), self).exec()
 
     def _web_clicked(self, index):
-        source = self.proxy.mapToSource(index)
-        link = self.model.rows[source.row()]
+        model, source, col = self.table.source_col(index)
+        if not source.isValid():
+            return
+        link = model.rows[source.row()]
+        if col and col.key == "last_image":
+            path, _ = QFileDialog.getOpenFileName(
+                self,
+                "Poslední obrázek",
+                "/home/jirka/Plocha",
+                "Obrázky (*.png *.jpg *.jpeg *.webp)",
+            )
+            if path:
+                self.repo.update_link(link.id, "last_image", path)
+                self.refresh()
+            return
         if link.url:
+            QDesktopServices.openUrl(QUrl(link.url))
+
+    def _show_visible_links(self):
+        links = [link for link in self.visible_links() if link.url]
+        if not links:
+            QMessageBox.information(self, "Zobrazit odkazy", "Nejsou zobrazené žádné odkazy.")
+            return
+        if QMessageBox.question(
+            self,
+            "Zobrazit odkazy",
+            f"Otevřít {len(links)} aktuálně zobrazených odkazů v prohlížeči?",
+        ) != QMessageBox.Yes:
+            return
+        for link in links:
             QDesktopServices.openUrl(QUrl(link.url))
 
     def _clear_all(self):
@@ -1333,6 +1413,7 @@ class LinksPage(TablePage):
         self.image_filter.setCurrentIndex(0)
         self._chip_selected.clear()
         self.external_girl_filter = None
+        self.active_filter_label.hide()
         self.proxy.clear_filters()
         self._refresh_chips()
         self._apply_filters()
