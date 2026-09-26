@@ -914,6 +914,26 @@ Výjimka z aktivace dvojklikem:
 - nově přidaný řádek se otevře v editačním režimu automaticky podle již definovaného pravidla,
 - následující řádek se může otevřít v editačním režimu automaticky po potvrzení předchozího řádku klávesou Enter.
 
+
+### Girls / Oblíbené – editace výběrem z nabídky
+
+V tabulce Girls / Oblíbené se následující sloupce neupravují volným textem, ale výběrem z nabídky:
+
+- **Obličej**
+- **Sex**
+- **Typ**
+- **Nahota**
+
+Po aktivaci editačního režimu dané buňky dvojklikem se otevře příslušná nabídka hodnot.
+
+Zdroj hodnot:
+- **Obličej**: pevné hodnoty `Ano`, `Asi ano`, `Asi ne`, `Ne`, `Zjistit`,
+- **Sex**: pevné hodnoty `Ano`, `Ne`, `Asi ne`, `Asi ano`, `Zjistit`,
+- **Nahota**: pevné hodnoty `Ano`, `Ne`, `Asi ne`, `Asi ano`, `Zjistit`,
+- **Typ**: dynamické hodnoty načítané z pomocné sekce **Typy**.
+
+Výběr hodnoty z nabídky zapíše hodnotu do buňky. Tyto buňky tedy používají výběrový editor namísto běžného textového pole.
+
 ---
 
 ## Pracovní pravidlo specifikace
