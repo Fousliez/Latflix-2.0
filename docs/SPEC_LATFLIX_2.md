@@ -631,6 +631,17 @@ Všechna tři tlačítka mají být stejně zarovnaná a působit jako jeden kom
 - toto hromadné chování se nesmí míchat s tlačítkem Oblíbené v horním panelu.
 
 
+## Sekce Odkazy – horní modré filtry
+
+V horním panelu sekce **Odkazy** jsou modré prvky představující jednotlivé názvy / typy odkazů, např. Instagram, X / Twitter, Threads apod.
+
+Výběr funguje stejně jako vícenásobné modré filtry ve Videa / Super:
+- běžný klik na jeden modrý prvek aktivuje pouze tento filtr a zruší předchozí samostatný výběr,
+- při držení **Ctrl** nebo **Shift** lze označit více modrých prvků současně,
+- při více označených prvcích se výsledky kombinují logikou **NEBO (OR)**,
+- tabulka tedy zobrazí všechny konkrétní odkazy odpovídající alespoň jednomu z označených názvů / typů,
+- všechny současně aktivní modré prvky musí zůstat vizuálně rozpoznatelně označené.
+
 ### Dialog Odkazy u herečky
 
 Tlačítko **Odkazy** v horním panelu otevře samostatné okno / dialog pro správu odkazů konkrétní aktuálně vybrané herečky.
