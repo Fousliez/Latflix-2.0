@@ -367,6 +367,11 @@ Při pozdějším doplňování konkrétních funkcí má písemná potvrzená s
 
 V levé části horního panelu bude profilová fotografie herečky v přibližně portrétním poměru 9:16.
 
+Vizuální upřesnění:
+- zobrazovací plocha fotografie bude oproti současnému provedení **o něco nižší na výšku**,
+- změna má být jen mírná; fotografie nemá být výrazně zmenšená ani působit stísněně,
+- zachová se portrétní charakter a proporce, pouze se upraví její výška tak, aby v horním panelu nepůsobila zbytečně dlouze.
+
 Chování:
 - **jedno kliknutí levým tlačítkem** otevře dialog pro výběr obrázku,
 - výchozí složka dialogu bude `/home/jirka/Plocha`; později bude tato cesta nastavitelná v Nastavení aplikace,
