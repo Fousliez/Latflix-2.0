@@ -1268,8 +1268,10 @@ Chování:
 - údaj se nezobrazuje v ostatních sekcích aplikace.
 
 Umístění:
-- přibližně střed spodního stavového řádku,
-- tak, aby nekolidoval s levým počtem záznamů ani pravými ovládacími prvky stavového řádku.
+- přibližně ve střední části spodního stavového řádku,
+- vizuálně zhruba **pod oblastí sloupce Věk** v běžném rozložení tabulky Girls / Oblíbené,
+- nejde o přesné pixelové zarovnání na sloupec; důležité je, aby údaj působil přirozeně uprostřed tabulkové části,
+- nesmí kolidovat s levým počtem záznamů ani pravými ovládacími prvky stavového řádku.
 
 
 ### Vizuální upřesnění tabulek a lišty nad tabulkou
