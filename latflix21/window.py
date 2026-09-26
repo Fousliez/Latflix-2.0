@@ -38,6 +38,7 @@ TOP_PANEL_H = 136
 class Sidebar(QWidget):
     sectionRequested = Signal(str)
     quickTagRequested = Signal(str)
+    collapsedChanged = Signal(bool)
 
     MAIN = ("Přehled", "Girls", "Oblíbené", "Odkazy", "Videa", "Super", "Studia")
     HELPERS = ("Stavy", "Kvality", "Tagy", "Typy", "Národnosti")
@@ -92,16 +93,22 @@ class Sidebar(QWidget):
         self.buttons[name] = button
         return button
 
-    def toggle(self):
-        self.collapsed = not self.collapsed
+    def set_collapsed(self, collapsed: bool):
+        collapsed = bool(collapsed)
+        if self.collapsed == collapsed:
+            return
+        self.collapsed = collapsed
         for widget in [*self.buttons.values(), self.quick_label, self.quick_host]:
             widget.setVisible(not self.collapsed)
         self.setFixedWidth(self.collapsed_width if self.collapsed else self.expanded_width)
         self.collapse_btn.setText("▶" if self.collapsed else "◀")
+        self.collapsedChanged.emit(self.collapsed)
+
+    def toggle(self):
+        self.set_collapsed(not self.collapsed)
 
     def expand(self):
-        if self.collapsed:
-            self.toggle()
+        self.set_collapsed(False)
 
     def toggle_quick(self):
         visible = not self.quick_host.isVisible()
@@ -679,7 +686,8 @@ class GirlsPage(TablePage):
         self.photo.deleteRequested.connect(self._delete_photo)
 
     def _build_toolbar(self):
-        self.add = SplitAddButton()
+        self.add = QPushButton("Přidat")
+        self.add.setFixedHeight(BUTTON_H)
         self.delete = QPushButton("Smazat")
         self.bulk = QPushButton("Hromadné akce")
         self.search = SearchBox()
@@ -841,8 +849,12 @@ class GirlsPage(TablePage):
 
     def _links(self):
         girl = self._selected_girl()
-        if girl and GirlLinksDialog(self.repo, girl.id, self).exec():
-            self.refresh()
+        if not girl:
+            return
+        GirlLinksDialog(self.repo, girl.id, self).exec()
+        # Uložené odkazy lze v dialogu editovat/smazat okamžitě, proto se
+        # horní panel obnoví i při zavření dialogu přes Zrušit.
+        self.refresh()
 
     def _detail(self):
         girl = self._selected_girl()
@@ -1022,7 +1034,6 @@ class GirlsPage(TablePage):
         current_id = current.id if current else None
         super().refresh()
         if current_id is not None:
-            self.table.start_edit_for_record(current_id, 2) if False else None
             for row in range(self.proxy.rowCount()):
                 source = self.proxy.mapToSource(self.proxy.index(row, 0))
                 if self.model.record_id(source.row()) == current_id:
@@ -1689,7 +1700,8 @@ class HelperPage(TablePage):
         top.addWidget(label)
         top.addStretch()
 
-        self.add = SplitAddButton()
+        self.add = QPushButton("Přidat")
+        self.add.setFixedHeight(BUTTON_H)
         self.delete = QPushButton("Smazat")
         self.delete.setFixedHeight(BUTTON_H)
         self.search = SearchBox()
@@ -1699,7 +1711,7 @@ class HelperPage(TablePage):
         self.toolbar_lay.addStretch()
         self.toolbar_lay.addWidget(self.clear)
 
-        self.add.addRequested.connect(self._add)
+        self.add.clicked.connect(self._add)
         self.delete.clicked.connect(self._delete)
         self.search.textChanged.connect(self._search_changed)
         self.clear.clicked.connect(self._clear_all)
@@ -1708,12 +1720,11 @@ class HelperPage(TablePage):
         self.proxy.set_query(text)
         self.update_status()
 
-    def _add(self, count):
+    def _add(self):
         self.reset_sort()
-        ids = [self.repo.add_catalog(self.kind, "") for _ in range(int(count))]
+        row_id = self.repo.add_catalog(self.kind, "")
         self.refresh()
-        if ids:
-            self.table.start_edit_for_record(ids[0], 2)
+        self.table.start_edit_for_record(row_id, 2)
 
     def _delete(self):
         ids = selected_source_ids(self.table)
@@ -1834,8 +1845,9 @@ class MainWindow(QMainWindow):
         self.sidebar_action.setCheckable(True)
         self.sidebar_action.setChecked(True)
         self.sidebar_action.triggered.connect(
-            lambda checked: self.sidebar.expand() if checked else self.sidebar.toggle()
+            lambda checked: self.sidebar.set_collapsed(not checked)
         )
+        self.sidebar.collapsedChanged.connect(self._sidebar_collapsed_changed)
         self.top_action = self.view_menu.addAction("Horní pracovní panel")
         self.top_action.setCheckable(True)
         self.top_action.setChecked(self.top_visible)
@@ -1890,6 +1902,11 @@ class MainWindow(QMainWindow):
             }
             """
         )
+
+    def _sidebar_collapsed_changed(self, collapsed: bool):
+        self.sidebar_action.blockSignals(True)
+        self.sidebar_action.setChecked(not collapsed)
+        self.sidebar_action.blockSignals(False)
 
     def _refresh_quick_tags(self):
         usage = self.repo.tag_usage()
