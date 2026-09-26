@@ -6,8 +6,8 @@ from pathlib import Path
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QAbstractItemView, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog,
-    QFormLayout, QHBoxLayout, QHeaderView, QLabel, QLineEdit, QListWidget,
-    QListWidgetItem, QMessageBox, QPushButton, QTableWidget, QTableWidgetItem,
+    QFormLayout, QGridLayout, QHBoxLayout, QHeaderView, QLabel, QLineEdit, QListWidget,
+    QListWidgetItem, QMessageBox, QPushButton, QScrollArea, QTableWidget, QTableWidgetItem,
     QTextEdit, QVBoxLayout, QWidget,
 )
 
@@ -20,18 +20,40 @@ class GirlDetailDialog(QDialog):
         self.repo = repo
         self.girl_id = girl_id
         self.girl = repo.girl(girl_id)
+        self.alias_edits: list[QLineEdit] = []
         self.setWindowTitle("Detail herečky")
-        self.resize(760, 540)
+        self.resize(900, 680)
 
-        layout = QVBoxLayout(self)
+        outer = QVBoxLayout(self)
+        scroll = QScrollArea(self)
+        scroll.setWidgetResizable(True)
+        body = QWidget()
+        scroll.setWidget(body)
+        outer.addWidget(scroll, 1)
+        layout = QVBoxLayout(body)
+
         form = QFormLayout()
         layout.addLayout(form)
 
         self.name = QLineEdit(self.girl.name if self.girl else "")
         form.addRow("Jméno", self.name)
 
-        self.aliases = QLineEdit(", ".join(self.girl.aliases if self.girl else ()))
-        form.addRow("Aliasy", self.aliases)
+        alias_box = QWidget()
+        self.alias_grid = QGridLayout(alias_box)
+        self.alias_grid.setContentsMargins(0, 0, 0, 0)
+        for alias in (self.girl.aliases if self.girl else ()):
+            self._append_alias(alias)
+        if not self.alias_edits:
+            self._append_alias("")
+        add_alias = QPushButton("Přidat alias")
+        add_alias.clicked.connect(lambda: self._append_alias(""))
+        alias_layout = QVBoxLayout()
+        alias_layout.setContentsMargins(0, 0, 0, 0)
+        alias_layout.addWidget(alias_box)
+        alias_layout.addWidget(add_alias, 0, Qt.AlignLeft)
+        alias_host = QWidget()
+        alias_host.setLayout(alias_layout)
+        form.addRow("Aliasy", alias_host)
 
         self.type_name = QComboBox()
         self.type_name.addItems([""] + repo.catalog("types"))
@@ -49,27 +71,29 @@ class GirlDetailDialog(QDialog):
         form.addRow("Nahota", self.nudity)
 
         self.age = QLineEdit(self.girl.age_source if self.girl else "")
-        form.addRow("Věk / rok narození", self.age)
+        form.addRow("Věk", self.age)
+
+        self.birth_date = QLineEdit(self.girl.birth_date if self.girl else "")
+        form.addRow("Datum narození", self.birth_date)
 
         self.nationality = QComboBox()
         self.nationality.addItems([""] + repo.catalog("nationalities"))
         self.nationality.setCurrentText(self.girl.nationality if self.girl else "")
         form.addRow("Národnost", self.nationality)
 
+        self.rating = QLineEdit(self.girl.rating if self.girl else "")
+        form.addRow("Hodnocení", self.rating)
+
+        self.tags = QLineEdit(", ".join(self.girl.tags if self.girl else ()))
+        form.addRow("Tagy", self.tags)
+
         self.last_check = QLineEdit(self.girl.last_check if self.girl else "")
         form.addRow("Poslední kontrola", self.last_check)
-
-        self.note = QTextEdit(self.girl.note if self.girl else "")
-        self.note.setMaximumHeight(100)
-        form.addRow("Poznámka", self.note)
-
-        self.favorite = QCheckBox("V oblíbených")
-        self.favorite.setChecked(bool(self.girl and self.girl.favorite))
-        form.addRow("", self.favorite)
 
         self.profile = QLineEdit(self.girl.profile_path if self.girl else "")
         browse = QPushButton("Vybrat…")
         picture_row = QHBoxLayout()
+        picture_row.setContentsMargins(0, 0, 0, 0)
         picture_row.addWidget(self.profile)
         picture_row.addWidget(browse)
         picture_box = QWidget()
@@ -77,16 +101,47 @@ class GirlDetailDialog(QDialog):
         form.addRow("Obrázek", picture_box)
         browse.clicked.connect(self._browse)
 
+        self.last_image = QLineEdit(self.girl.last_image if self.girl else "")
+        form.addRow("Poslední obrázek", self.last_image)
+
+        self.note = QTextEdit(self.girl.note if self.girl else "")
+        self.note.setMaximumHeight(110)
+        form.addRow("Poznámka", self.note)
+
+        created = "—"
+        if self.girl:
+            with repo.connect() as db:
+                row = db.execute("SELECT created_at FROM lf21_girls WHERE id=?", (girl_id,)).fetchone()
+                if row:
+                    created = str(row[0] or "—")
+        created_label = QLabel(created)
+        form.addRow("Datum přidání", created_label)
+
+        self.favorite = QCheckBox("V oblíbených")
+        self.favorite.setChecked(bool(self.girl and self.girl.favorite))
+        form.addRow("Oblíbené", self.favorite)
+
+        self.status = QComboBox()
+        self.status.addItems(["", "Aktivní", "Neaktivní", "Smazaná"])
+        self.status.setCurrentText(self.girl.status if self.girl else "")
+        form.addRow("Stav", self.status)
+
         buttons = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
         buttons.accepted.connect(self.save)
         buttons.rejected.connect(self.reject)
-        layout.addWidget(buttons)
+        outer.addWidget(buttons)
+
+    def _append_alias(self, text: str):
+        edit = QLineEdit(text)
+        index = len(self.alias_edits)
+        self.alias_edits.append(edit)
+        self.alias_grid.addWidget(edit, index // 4, index % 4)
 
     def _browse(self):
         path, _ = QFileDialog.getOpenFileName(
             self,
             "Profilový obrázek",
-            str(Path.home() / "Plocha"),
+            "/home/jirka/Plocha",
             "Obrázky (*.png *.jpg *.jpeg *.webp)",
         )
         if path:
@@ -99,16 +154,24 @@ class GirlDetailDialog(QDialog):
             "sex": self.sex.currentText(),
             "nudity": self.nudity.currentText(),
             "age_source": self.age.text(),
+            "birth_date": self.birth_date.text(),
             "nationality": self.nationality.currentText(),
+            "rating": self.rating.text(),
             "last_check": self.last_check.text(),
             "note": self.note.toPlainText(),
             "profile_path": self.profile.text(),
+            "last_image": self.last_image.text(),
+            "status": self.status.currentText(),
         }
         for key, value in values.items():
             self.repo.update_girl(self.girl_id, key, value)
         self.repo.set_aliases(
             self.girl_id,
-            [x.strip() for x in self.aliases.text().split(",") if x.strip()],
+            [edit.text().strip() for edit in self.alias_edits if edit.text().strip()],
+        )
+        self.repo.set_tags(
+            self.girl_id,
+            [x.strip() for x in self.tags.text().split(",") if x.strip()],
         )
         self.repo.set_favorite(self.girl_id, self.favorite.isChecked())
         self.accept()
@@ -329,6 +392,142 @@ class TagsDialog(QDialog):
             if self.list.item(i).checkState() == Qt.Checked
         ]
         self.repo.set_tags(self.girl_id, values)
+        self.accept()
+
+
+class GirlLinksDialog(QDialog):
+    def __init__(self, repo: Repository, girl_id: int, parent=None):
+        super().__init__(parent)
+        self.repo = repo
+        self.girl_id = girl_id
+        self.setWindowTitle("Odkazy herečky")
+        self.resize(760, 650)
+        self.outer = QVBoxLayout(self)
+        self.saved_title = QLabel("Uložené odkazy")
+        self.saved_title.setStyleSheet("font-weight:700")
+        self.outer.addWidget(self.saved_title)
+        self.saved_box = QVBoxLayout()
+        self.outer.addLayout(self.saved_box)
+        self.outer.addSpacing(8)
+        self.outer.addWidget(QLabel("Přidat nové odkazy"))
+        self.new_rows = QVBoxLayout()
+        self.outer.addLayout(self.new_rows)
+        self.rows = []
+        for _ in range(10):
+            self.add_row()
+        add = QPushButton("Přidat řádek")
+        add.clicked.connect(self.add_row)
+        self.outer.addWidget(add, 0, Qt.AlignLeft)
+        buttons = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.save_new)
+        buttons.rejected.connect(self.reject)
+        self.outer.addWidget(buttons)
+        self.reload_saved()
+
+    def reload_saved(self):
+        while self.saved_box.count():
+            item = self.saved_box.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+        links = [x for x in self.repo.links() if x.girl_id == self.girl_id]
+        if not links:
+            self.saved_box.addWidget(QLabel("Zatím nejsou uložené žádné odkazy."))
+            return
+        for link in links:
+            row = QWidget()
+            lay = QHBoxLayout(row)
+            lay.setContentsMargins(0, 0, 0, 0)
+            name = QPushButton(link.type_name or "Odkaz")
+            edit = QPushButton("Editovat")
+            delete = QPushButton("×")
+            lay.addWidget(name, 1)
+            lay.addWidget(edit)
+            lay.addWidget(delete)
+            self.saved_box.addWidget(row)
+            name.clicked.connect(lambda _=False, url=link.url: QMessageBox.information(self, "URL", url or "—"))
+            edit.clicked.connect(lambda _=False, lid=link.id: self.edit_link(lid))
+            delete.clicked.connect(lambda _=False, lid=link.id: self.delete_link(lid))
+
+    def add_row(self):
+        host = QWidget()
+        lay = QHBoxLayout(host)
+        lay.setContentsMargins(0, 0, 0, 0)
+        combo = QComboBox()
+        combo.addItem("Automaticky", None)
+        for item in self.repo.link_types():
+            combo.addItem(str(item["name"]), int(item["id"]))
+        url = QLineEdit()
+        url.setPlaceholderText("Adresa / URL")
+        lay.addWidget(combo, 0)
+        lay.addWidget(url, 1)
+        self.new_rows.addWidget(host)
+        self.rows.append((combo, url))
+
+    def edit_link(self, link_id: int):
+        link = next((x for x in self.repo.links() if x.id == link_id), None)
+        if not link:
+            return
+        text, ok = QInputDialog.getText(self, "Editovat odkaz", "URL", text=link.url)
+        if ok:
+            self.repo.update_link(link_id, "url", text)
+            self.reload_saved()
+
+    def delete_link(self, link_id: int):
+        if QMessageBox.question(self, "Smazat odkaz", "Chcete odkaz smazat?") == QMessageBox.Yes:
+            self.repo.delete_links([link_id])
+            self.reload_saved()
+
+    def save_new(self):
+        for combo, url_edit in self.rows:
+            url = url_edit.text().strip()
+            if not url:
+                continue
+            type_id = combo.currentData()
+            if type_id is None:
+                type_id = self.repo.detect_link_type(url)
+            self.repo.add_link(type_id, self.girl_id, url)
+        self.accept()
+
+
+class BulkGirlLinksDialog(QDialog):
+    def __init__(self, repo: Repository, girl_ids: list[int], parent=None):
+        super().__init__(parent)
+        self.repo = repo
+        self.girl_ids = girl_ids
+        self.setWindowTitle("Hromadně přidat odkazy")
+        self.resize(900, 520)
+        outer = QVBoxLayout(self)
+        self.table = QTableWidget(len(girl_ids), 3)
+        self.table.setHorizontalHeaderLabels(["Herečka", "Zdroj / platforma", "URL"])
+        self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
+        outer.addWidget(self.table, 1)
+        self.combos = []
+        for row, girl_id in enumerate(girl_ids):
+            girl = repo.girl(girl_id)
+            name = QTableWidgetItem(girl.name if girl else "")
+            name.setFlags(name.flags() & ~Qt.ItemIsEditable)
+            self.table.setItem(row, 0, name)
+            combo = QComboBox()
+            combo.addItem("Automaticky", None)
+            for item in repo.link_types():
+                combo.addItem(str(item["name"]), int(item["id"]))
+            self.table.setCellWidget(row, 1, combo)
+            self.table.setItem(row, 2, QTableWidgetItem(""))
+            self.combos.append(combo)
+        buttons = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.save)
+        buttons.rejected.connect(self.reject)
+        outer.addWidget(buttons)
+
+    def save(self):
+        for row, girl_id in enumerate(self.girl_ids):
+            url = self.table.item(row, 2).text().strip()
+            if not url:
+                continue
+            type_id = self.combos[row].currentData()
+            if type_id is None:
+                type_id = self.repo.detect_link_type(url)
+            self.repo.add_link(type_id, girl_id, url)
         self.accept()
 
 
