@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import Counter
 from pathlib import Path
 
-from PySide6.QtCore import QModelIndex, Qt, QUrl, Signal
+from PySide6.QtCore import QModelIndex, QSettings, Qt, QUrl, Signal
 from PySide6.QtGui import QDesktopServices, QPixmap
 from PySide6.QtWidgets import (
     QApplication, QColorDialog, QComboBox, QDialog, QFileDialog, QFormLayout, QFrame, QGridLayout, QHBoxLayout,
@@ -41,6 +41,11 @@ class Sidebar(QWidget):
         self.collapse = QPushButton("◀")
         self.collapse.setFixedHeight(28)
         layout.addWidget(self.collapse)
+
+        self.setStyleSheet(
+            "QPushButton{padding:4px 8px;text-align:left;}"
+            "QPushButton:checked{background:#dbe8f6;border:1px solid #9fb9d5;}"
+        )
 
         self.buttons = {}
         for name in ("Přehled", "Girls", "Oblíbené", "Odkazy", "Videa", "Super", "Studia"):
@@ -300,6 +305,10 @@ class TablePage(BasePage):
         self.toolbar_lay = QHBoxLayout(self.toolbar)
         self.toolbar_lay.setContentsMargins(0, 0, 0, 0)
         self.toolbar_lay.setSpacing(4)
+        self.toolbar.setStyleSheet(
+            "QPushButton,QLineEdit,QComboBox,QToolButton{"
+            "min-height:26px;max-height:26px;padding-left:6px;padding-right:6px;}"
+        )
         self.outer.addWidget(self.toolbar)
 
         self.table = DataTableView(title, self)
@@ -317,6 +326,8 @@ class TablePage(BasePage):
         self.clear.setFixedHeight(BUTTON_H)
 
     def _sort(self, section):
+        if section < 2:
+            return
         header = self.table.horizontalHeader()
         order = (
             Qt.DescendingOrder
@@ -458,6 +469,8 @@ class GirlsPage(TablePage):
         self.links_btn = QPushButton("Odkazy")
         self.detail_btn = QPushButton("Detail")
         self.show_links_btn = QPushButton("Zobrazit odkazy")
+        for button in (self.links_btn, self.detail_btn, self.show_links_btn):
+            button.setFixedWidth(122)
         right.addWidget(self.links_btn)
         right.addWidget(self.detail_btn)
         right.addWidget(self.show_links_btn)
@@ -1438,6 +1451,7 @@ class MainWindow(QMainWindow):
 
         self._build_pages()
 
+        self.settings = QSettings("Latflix", "Latflix 2.1")
         self.status = QStatusBar()
         self.setStatusBar(self.status)
         self.status_left = QLabel("")
@@ -1446,7 +1460,7 @@ class MainWindow(QMainWindow):
         self.status.addWidget(self.status_middle, 1)
         self.row_scale = QSpinBox()
         self.row_scale.setRange(1, 5)
-        self.row_scale.setValue(1)
+        self.row_scale.setValue(int(self.settings.value("ui/row_scale", 1)))
         self.row_scale.setPrefix("Velikost řádků: ")
         self.row_scale.valueChanged.connect(self._row_scale_changed)
         self.status.addPermanentWidget(self.row_scale)
@@ -1470,6 +1484,7 @@ class MainWindow(QMainWindow):
             page.top.setVisible(not page.top.isVisible())
 
     def _row_scale_changed(self, value):
+        self.settings.setValue("ui/row_scale", int(value))
         for page in getattr(self, "pages", {}).values():
             page.set_row_scale(value)
 
