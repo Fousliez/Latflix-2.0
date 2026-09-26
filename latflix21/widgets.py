@@ -232,12 +232,16 @@ class ChoiceDelegate(QStyledItemDelegate):
 
 
 class AutoCompleteDelegate(QStyledItemDelegate):
-    def __init__(self, suggestions: Callable[[str], list[str]], parent=None):
-        super().__init__(parent)
+    def __init__(self, suggestions: Callable[[str], list[str]], view, parent=None):
+        super().__init__(parent or view)
         self.suggestions = suggestions
+        self.view = view
 
     def createEditor(self, parent, option, index):
         edit = QLineEdit(parent)
+        edit.setProperty("row", index.row())
+        edit.setProperty("col", index.column())
+        edit.setProperty("_latflix_finishing", False)
         completer = QCompleter(edit)
         completer.setCaseSensitivity(Qt.CaseInsensitive)
         completer.setFilterMode(Qt.MatchContains)
@@ -254,7 +258,35 @@ class AutoCompleteDelegate(QStyledItemDelegate):
         )
         edit.setCompleter(completer)
         edit.textEdited.connect(lambda text: model.setStringList(self.suggestions(text)))
+        completer.activated.connect(lambda *_: self._schedule_finish(edit))
+        edit.returnPressed.connect(
+            lambda: None if popup.isVisible() else self._schedule_finish(edit)
+        )
         return edit
+
+    def _schedule_finish(self, editor):
+        if bool(editor.property("_latflix_finishing")):
+            return
+        editor.setProperty("_latflix_finishing", True)
+        QTimer.singleShot(0, lambda e=editor: self._finish_and_move(e))
+
+    def _finish_and_move(self, editor):
+        if editor is None:
+            return
+        row = int(editor.property("row"))
+        col = int(editor.property("col"))
+        self.commitData.emit(editor)
+        self.closeEditor.emit(editor)
+
+        def move():
+            model = self.view.model()
+            next_row = row + 1
+            if next_row < model.rowCount():
+                idx = model.index(next_row, col)
+                self.view.setCurrentIndex(idx)
+                self.view.edit(idx)
+
+        QTimer.singleShot(0, move)
 
     def setEditorData(self, editor, index):
         editor.setText(str(index.data(Qt.EditRole) or ""))
