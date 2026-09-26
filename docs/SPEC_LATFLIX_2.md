@@ -973,6 +973,36 @@ Příklad:
 
 Toto chování je nutné zachovat tak, aby bylo možné kdykoliv rozlišit ručně zadaný věk od roku narození.
 
+
+### Globální tabulkové chování – plynulé předávání editačního režimu mezi buňkami
+
+Toto pravidlo platí **napříč celou aplikací** pro všechny tabulkové sekce a všechny typy editovatelných buněk.
+
+Pokud je právě aktivní editační režim v jedné buňce a uživatel klikne myší do jiné buňky:
+
+- aktuální editace se nejprve korektně potvrdí / ukončí,
+- pokud je cílová buňka **odemčená a editovatelná**, její editor se **okamžitě aktivuje jediným kliknutím**,
+- není tedy nutný další dvojklik, protože aplikace už je v aktivním editačním toku,
+- pokud je cílová buňka zamčená nebo needitovatelná, pouze se ukončí stávající editační režim a nový editor se neotevře.
+
+Toto chování platí mezi libovolnými typy editorů, například:
+- textové pole → textové pole,
+- textové pole → výběrové pole,
+- výběrové pole → textové pole,
+- výběrové pole → výběrové pole.
+
+Příklad:
+- je aktivní editace ve sloupci **Jméno** a bliká textový kurzor,
+- uživatel jednou klikne do odemčené buňky **Obličej**,
+- editace Jména se ukončí a nabídka Obličej se okamžitě otevře.
+
+Další příklad:
+- nabídka **Obličej** je otevřená a uživatel z ní nic nevybere,
+- klikne do odemčené buňky **Sex**,
+- nabídka Obličej se zavře bez změny hodnoty a okamžitě se otevře nabídka Sex.
+
+Toto pravidlo je výjimkou z běžného chování „jedno kliknutí = pouze označení řádku“. Toto běžné pravidlo platí tehdy, když před kliknutím **není aktivní žádný editační režim**.
+
 ---
 
 ## Pracovní pravidlo specifikace
