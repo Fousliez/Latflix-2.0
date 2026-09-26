@@ -315,7 +315,7 @@ LINK_COLS = (
     Col("active", "Akt.", "choice", 70, source="active"),
     Col("web", "Web", "button", 80, read_only=True),
     Col("last_text", "Poslední text", width=240),
-    Col("last_image", "Poslední obrázek", width=180),
+    Col("last_image", "Poslední obrázek", "button", 180, read_only=True),
 )
 
 
@@ -332,6 +332,8 @@ class LinksModel(BaseModel):
     def value(self, record: Link, key):
         if key == "web":
             return "Otevřít"
+        if key == "last_image":
+            return "Nahrát"
         return super().value(record, key)
 
     def set_locked(self, row_id, value):
