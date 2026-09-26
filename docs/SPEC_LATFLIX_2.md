@@ -1678,6 +1678,19 @@ Vzhled standardních našeptávačů:
 - dostatečná šířka pro zobrazované hodnoty,
 - položka pod kurzorem myši i položka vybraná klávesnicí se výrazně označí modrým pozadím a bílým textem.
 
+### Videa / Super – vytvoření chybějící herečky nebo studia z editace
+
+Pokud uživatel ve Videa / Super potvrdí hodnotu ve sloupci herečky nebo Studio, která neodpovídá žádné existující položce v centrálním katalogu:
+
+- u herečky se nejprve kontroluje hlavní jméno i všechny aliasy, case-insensitive,
+- pokud jde o existující hlavní jméno nebo alias, použije se vždy tentýž existující záznam Girls a nesmí vzniknout duplikát,
+- pokud odpovídající herečka neexistuje, aplikace zobrazí potvrzení, zda ji přidat jako nový záznam do Girls,
+- po potvrzení se nová herečka vytvoří v Girls a současně se použije v právě editovaném videu,
+- u Studia se stejným způsobem kontroluje existující název studia,
+- pokud studio neexistuje, aplikace nabídne vytvoření nového záznamu ve Studiích a po potvrzení jej současně použije v právě editovaném videu,
+- nově vytvořená herečka nebo studio se ve výchozím / netříděném pohledu své sekce zobrazí nahoře stejně jako jiné nově přidané záznamy,
+- pokud uživatel tabulku ručně seřadí podle jiného sloupce, toto řazení má přednost před výchozím umístěním nového záznamu.
+
 ### Globální tabulkový základ napříč sekcemi
 
 Tabulky v ostatních datových sekcích budou vycházet ze stejného společného základu jako **Girls / Oblíbené**.
