@@ -1179,7 +1179,7 @@ class Repository:
             )
             deleted["girls"] = int(cur.rowcount)
             cur = c.execute(
-                "DELETE FROM lf21_studios WHERE is_new=1 AND locked=0 "
+                "DELETE FROM lf21_studios WHERE is_new=1 "
                 "AND TRIM(name)='' AND TRIM(type_name)='' AND TRIM(url)='' "
                 "AND NOT EXISTS(SELECT 1 FROM lf21_videos v WHERE v.studio_id=lf21_studios.id)"
             )
