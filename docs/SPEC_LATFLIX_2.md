@@ -1517,8 +1517,11 @@ Společná logika těchto našeptávačů:
 - nejdřív se zobrazí hodnoty, které dotazem **začínají**,
 - potom hodnoty, které dotaz obsahují **uvnitř názvu**,
 - uvnitř každé z těchto dvou skupin rozhoduje nejdřív **Počet výskytů sestupně** a při shodě **abecední pořadí**,
-- u našeptávače hereček se návrhy filtrují podle **hlavního jména herečky**, nikoliv podle jejích aliasů,
-- u hereček se pro tuto četnost používá jejich **Počet výskytů** z Girls,
+- u našeptávače hereček se prohledává **hlavní jméno i všechny aliasy** dané herečky,
+- zobrazí se ale pouze ta konkrétní jména / aliasy, která odpovídají právě psanému dotazu; ostatní aliasy stejné herečky se kvůli tomu nesmějí přidávat do výsledků,
+- příklad: má-li jedna herečka jména **Sona** a **Tereza**, při hledání `sona` se nabídne **Sona**, ale ne **Tereza** ani kombinovaný text typu `Tereza + Sona`; při hledání `tereza` se naopak může nabídnout **Tereza**,
+- alias zobrazený v našeptávači stále odkazuje na **tentýž existující záznam herečky v Girls**; výběr aliasu nevytváří novou herečku ani samostatnou duplicitní identitu,
+- u hereček se pro pořadí návrhů používá jejich **Počet výskytů** z Girls,
 - u studií se používá jejich **Počet výskytů** ze Studií.
 
 Vzhled standardních našeptávačů:
