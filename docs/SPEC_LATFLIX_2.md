@@ -688,12 +688,18 @@ Filtry **Sex** a **Nahota** mají pevně danou nabídku hodnot:
 - **Asi ano**
 - **Zjistit**
 
-Filtry **Národnost**, **Typ** a **Stav** nemají hodnoty napevno v kódu.
+Filtry **Národnost** a **Typ** nemají hodnoty napevno v kódu.
 
 Jejich nabídka se dynamicky načítá z odpovídajících vedlejších sekcí v levém menu:
 - **Národnost** → sekce **Národnosti**
 - **Typ** → sekce **Typy**
-- **Stav** → sekce **Stavy**
+
+Filtr **Stav** v sekcích **Girls / Oblíbené** je naopak pevně daný a obsahuje:
+- **Aktivní**
+- **Neaktivní**
+- **Smazaná**
+
+Sekce **Stavy** v levém menu se tedy nepoužívá pro herečky. Je určena pro stavové hodnoty videí a dalších navázaných video částí aplikace.
 
 Do levého menu mezi vedlejší sekce se proto přidá nová položka:
 
@@ -702,10 +708,10 @@ Do levého menu mezi vedlejší sekce se proto přidá nová položka:
 Tyto pomocné sekce budou sloužit jako centrální katalog hodnot pro příslušné sloupce a filtry. Jejich detailní struktura se specifikuje později; předběžně se počítá s jednoduchými tabulkami, pravděpodobně s jedním hlavním sloupcem.
 
 Pravidla dynamických nabídek:
-- počet položek v nabídce filtru **Národnost**, **Typ** nebo **Stav** odpovídá aktuálnímu počtu hodnot / řádků v příslušné pomocné sekci,
+- počet položek v nabídce filtru **Národnost** nebo **Typ** odpovídá aktuálnímu počtu hodnot / řádků v příslušné pomocné sekci,
 - text každé položky filtru odpovídá hodnotě uložené v příslušném řádku pomocné sekce,
 - přidání, přejmenování nebo odstranění hodnoty v pomocné sekci se musí projevit i v nabídce navázaného filtru,
-- tyto katalogy se mají používat centrálně i pro další místa v aplikaci, kde se vybírá Národnost, Typ nebo Stav, aby nevznikaly různé nesynchronizované seznamy.
+- tyto katalogy se mají používat centrálně i pro další místa v aplikaci, kde se vybírá Národnost nebo Typ, aby nevznikaly různé nesynchronizované seznamy.
 
 
 ### Girls / Oblíbené – pořadí položek ve filtru Národnost
