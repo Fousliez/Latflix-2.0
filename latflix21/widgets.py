@@ -180,7 +180,7 @@ class HandoffComboBox(QComboBox):
             and isinstance(event, QMouseEvent)
         ):
             obj = watched
-            if obj is self.view() or self.view().isAncestorOf(obj if isinstance(obj, QWidget) else None):
+            if isinstance(obj, QWidget) and (obj is self.view() or self.view().isAncestorOf(obj)):
                 return False
             gp = event.globalPosition().toPoint()
             viewport = self.table.viewport()
