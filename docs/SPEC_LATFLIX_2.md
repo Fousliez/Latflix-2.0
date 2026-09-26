@@ -364,6 +364,36 @@ Pod jménem herečky budou v jednom řádku zobrazeny základní údaje:
 
 Rozložení a styl mají odpovídat referenčním screenshotům současného Latflixu.
 
+
+### Pravá strana horního panelu – akce herečky
+
+U pravého kraje horního panelu budou tři tlačítka:
+
+1. **Odkazy**
+   - bude umístěno nahoře vlevo z dvojice horních tlačítek,
+   - otevře přehled / dialog odkazů vztahujících se ke konkrétní aktuálně vybrané herečce.
+
+2. **Detail**
+   - bude umístěno nahoře vpravo z dvojice horních tlačítek,
+   - otevře editační dialog herečky,
+   - dialog má vycházet z referenčního vzhledu současného Latflixu, ale může být upraven a zpřehledněn,
+   - musí umožnit editaci všech běžných údajů herečky,
+   - aliasy nemají být omezené jen na pevně dané tři položky; nová verze má umožnit přidat více aliasů, ideálně dynamicky tlačítkem typu **Přidat alias**.
+
+3. **Zobrazit odkazy**
+   - bude umístěno pod tlačítky Odkazy a Detail,
+   - po kliknutí přepne aplikaci do sekce **Odkazy**,
+   - v této sekci automaticky zobrazí pouze odkazy patřící aktuálně vybrané herečce,
+   - implementace může použít interní filtr podle ID herečky, jména nebo předvyplnění vyhledávacího pole; důležité je výsledné chování, nikoliv konkrétní technický způsob,
+   - po přechodu musí být jasně patrné, že jde o odkazy právě této herečky.
+
+### Hromadné přidání do Oblíbených
+
+- přes tlačítko Oblíbené v horním detailu se pracuje vždy jen s právě vybranou herečkou,
+- přidání více označených hereček do Oblíbených bude řešeno samostatným tlačítkem těsně nad tabulkou,
+- přesná podoba a chování hromadného tlačítka budou doplněny zvlášť později,
+- toto hromadné chování se nesmí míchat s tlačítkem Oblíbené v horním panelu.
+
 ---
 
 ## Pracovní pravidlo specifikace
