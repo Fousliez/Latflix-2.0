@@ -888,6 +888,17 @@ V aktivním textovém editoru buňky tabulky musí být možné:
 
 Toto chování platí obecně pro editovatelné textové buňky v tabulkách napříč aplikací.
 
+
+### Globální tabulkové chování – vložení primárního výběru prostředním tlačítkem
+
+V aktivním editačním režimu textové buňky musí být na Linuxu zachováno běžné systémové chování primárního výběru:
+
+- text označený myší v jiné aplikaci nebo jiném textovém poli lze vložit do právě editované buňky kliknutím **prostředního tlačítka myši**,
+- vložení proběhne na aktuální pozici textového kurzoru,
+- tato akce nesmí ukončit editační režim buňky,
+- funkce má být dostupná ve všech editovatelných textových buňkách napříč aplikací,
+- klasické Ctrl+C / Ctrl+V zůstává současně zachováno.
+
 ---
 
 ## Pracovní pravidlo specifikace
