@@ -232,6 +232,11 @@ Pravidla:
 
 ### Velikost zámku hlavičky a číslování řádků
 
+- **ve všech sekcích, které používají tabulku**, jsou první dva systémové sloupce vždy stejné jako v Girls / Oblíbené:
+  1. **zámek řádku**,
+  2. **číslo řádku**,
+- toto pořadí, vzhled i chování těchto dvou sloupců je globální a nesmí se mezi tabulkovými sekcemi lišit bez výslovné budoucí výjimky,
+- platí tedy i pro **Videa / Super**, Studia a další tabulkové sekce,
 - zámek v hlavičce tabulky, který řídí přesouvání a změnu šířky sloupců, bude vizuálně větší než zámky jednotlivých datových řádků; vzhled se má řídit referenčním screenshotem,
 - bezprostředně vpravo vedle zamykacího sloupce bude úzký sloupec s pořadovým číslem řádku,
 - každý datový řádek bude mít číslo 1, 2, 3, ... podle své aktuální pozice v právě zobrazené tabulce,
