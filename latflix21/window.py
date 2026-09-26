@@ -358,6 +358,7 @@ class TablePage(BasePage):
 
         self.table = DataTableView(title, self)
         self.table.setModel(self.proxy)
+        self.model.recordChanged.connect(self._restore_record_id)
         self.outer.addWidget(self.table, 1)
         self.table.noteRequested.connect(lambda idx: open_note_for_table(self.table, idx))
         self.table.webRequested.connect(self._web_clicked)
@@ -447,16 +448,51 @@ class TablePage(BasePage):
         index = self.table.currentIndex()
         return self.proxy.mapToSource(index) if index.isValid() else QModelIndex()
 
+    def _restore_record_id(self, record_id: int):
+        self._restore_selection([int(record_id)], int(record_id))
+
+    def _restore_selection(self, ids, current_id=None):
+        wanted = set(int(value) for value in ids)
+        selection = self.table.selectionModel()
+        if selection is None:
+            return
+        selection.clearSelection()
+        current_proxy = QModelIndex()
+        for source_row, record in enumerate(self.model.rows):
+            if int(record.id) not in wanted:
+                continue
+            source_index = self.model.index(source_row, 1)
+            proxy_index = self.proxy.mapFromSource(source_index)
+            if not proxy_index.isValid():
+                continue
+            self.table.selectRow(proxy_index.row())
+            if current_id is not None and int(record.id) == int(current_id):
+                current_proxy = self.proxy.index(proxy_index.row(), 2)
+        if current_proxy.isValid():
+            self.table.setCurrentIndex(current_proxy)
+
     def refresh(self):
+        selected = selected_source_ids(self.table) if self.table.model() else []
+        current = self.current_source_row()
+        current_id = (
+            self.model.record_id(current.row()) if current.isValid() else None
+        )
         self.model.reload()
         self.proxy.invalidate()
+        if selected:
+            self._restore_selection(selected, current_id)
 
     def status_info(self):
-        return (f"Počet záznamů: {self.proxy.rowCount()}", "")
+        visible = self.proxy.rowCount()
+        total = self.model.rowCount()
+        text = f"Záznamů: {total}" if visible == total else f"Záznamů: {visible} / {total}"
+        return (text, "")
 
     def set_row_scale(self, scale: int):
-        height = 22 + max(1, min(5, int(scale))) * 3
-        self.table.verticalHeader().setDefaultSectionSize(height)
+        heights = {1: 24, 2: 28, 3: 32, 4: 38, 5: 46}
+        self.table.verticalHeader().setDefaultSectionSize(
+            heights[max(1, min(5, int(scale)))]
+        )
 
 
 class GirlsPage(TablePage):
@@ -854,7 +890,10 @@ class GirlsPage(TablePage):
         avg = "Průměrný věk: —"
         if ages:
             avg = f"Průměrný věk: {sum(ages) / len(ages):.1f}".replace(".", ",")
-        return (f"Počet záznamů: {self.proxy.rowCount()}", avg)
+        visible = self.proxy.rowCount()
+        total = self.model.rowCount()
+        count_text = f"Záznamů: {total}" if visible == total else f"Záznamů: {visible} / {total}"
+        return (count_text, avg)
 
     def refresh(self):
         super().refresh()
