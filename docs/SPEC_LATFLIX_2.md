@@ -500,7 +500,7 @@ Pokud má jedna herečka více uložených URL stejné platformy:
 - počet uložených URL se uvede v závorce, např. `Facebook (2)`,
 - duplicity stejného typu u jedné herečky se tedy nesmí zobrazovat jako několik samostatných modrých prvků.
 
-Poznámka: přesné chování po kliknutí na prvek s více URL stejné platformy bude specifikováno samostatně; počet se však vždy zobrazí v závorce.
+Pokud má štítek více URL stejné platformy, kliknutí na něj otevře **všechny uložené URL této platformy** pro danou herečku, každou samostatně ve výchozím prohlížeči.
 
 #### Pořadí modrých prvků
 
