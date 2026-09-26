@@ -700,10 +700,8 @@ class LinkCatalogDialog(QDialog):
             self.table.setItem(
                 row, 2, QTableWidgetItem(str(link_type["general_web"] or ""))
             )
-            usage = str(link_type["distinct_girls"])
             total = int(link_type["total_links"])
-            if total != int(link_type["distinct_girls"]):
-                usage += f" ({total})"
+            usage = f"{int(link_type['distinct_girls'])} ({total})"
             usage_item = QTableWidgetItem(usage)
             usage_item.setFlags(usage_item.flags() & ~Qt.ItemIsEditable)
             self.table.setItem(row, 3, usage_item)
