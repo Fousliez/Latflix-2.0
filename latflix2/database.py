@@ -1,37 +1,65 @@
 from __future__ import annotations
 
+import json
 import sqlite3
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Iterable
 
 
 @dataclass(frozen=True)
-class Column:
+class GirlRecord:
     id: int
+    name: str = ""
+    face: str = ""
+    sex: str = ""
+    type_name: str = ""
+    nudity: str = ""
+    age_source: str = ""
+    nationality: str = ""
+    tags: tuple[str, ...] = ()
+    tracking: int = 0
+    last_check: str = ""
+    occurrences: int = 0
+    note: str = ""
+    status: str = ""
+    locked: bool = False
+    favorite: bool = False
+    profile_path: str = ""
+    aliases: tuple[str, ...] = ()
+    sort_order: int = 0
+    is_new: bool = False
+
+
+@dataclass(frozen=True)
+class CatalogEntry:
+    id: int
+    kind: str
     name: str
-    visible: bool = True
+    color: str
+    sort_order: int
 
 
 @dataclass(frozen=True)
-class Row:
+class LinkRecord:
     id: int
-    values: tuple[str, ...]
-
-
-@dataclass(frozen=True)
-class Dataset:
-    category: str
-    columns: tuple[Column, ...]
-    rows: tuple[Row, ...]
-    favorite_ids: frozenset[int] = frozenset()
+    girl_id: int
+    girl_name: str
+    source: str
+    url: str
+    sort_order: int
 
 
 class Repository:
-    """Jediná SQLite hranice Latflixu 2.0."""
+    """Single persistence boundary for the clean Latflix 2.0 rewrite."""
+
+    GIRL_FIELDS = {
+        "name", "face", "sex", "type_name", "nudity", "age_source",
+        "nationality", "last_check", "note", "status", "profile_path",
+    }
 
     def __init__(self, path: Path):
-        self.path = Path(path)
+        self.path = Path(path).expanduser().resolve()
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._ensure_schema()
 
@@ -47,356 +75,496 @@ class Repository:
         with self.connect() as connection:
             connection.executescript(
                 """
-                CREATE TABLE IF NOT EXISTS categories (
+                CREATE TABLE IF NOT EXISTS lf2_girls (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT NOT NULL UNIQUE,
-                    sort_order INTEGER NOT NULL DEFAULT 0
-                );
-                CREATE TABLE IF NOT EXISTS columns_meta (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    category_id INTEGER NOT NULL,
-                    name TEXT NOT NULL,
+                    name TEXT NOT NULL DEFAULT '',
+                    face TEXT NOT NULL DEFAULT '',
+                    sex TEXT NOT NULL DEFAULT '',
+                    type_name TEXT NOT NULL DEFAULT '',
+                    nudity TEXT NOT NULL DEFAULT '',
+                    age_source TEXT NOT NULL DEFAULT '',
+                    nationality TEXT NOT NULL DEFAULT '',
+                    last_check TEXT NOT NULL DEFAULT '',
+                    note TEXT NOT NULL DEFAULT '',
+                    status TEXT NOT NULL DEFAULT '',
+                    locked INTEGER NOT NULL DEFAULT 0,
+                    favorite INTEGER NOT NULL DEFAULT 0,
+                    profile_path TEXT NOT NULL DEFAULT '',
+                    aliases_json TEXT NOT NULL DEFAULT '[]',
                     sort_order INTEGER NOT NULL DEFAULT 0,
-                    is_visible INTEGER NOT NULL DEFAULT 1,
-                    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
-                    UNIQUE (category_id, name)
-                );
-                CREATE TABLE IF NOT EXISTS records (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    category_id INTEGER NOT NULL,
-                    sort_order INTEGER NOT NULL DEFAULT 0,
+                    is_new INTEGER NOT NULL DEFAULT 1,
                     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    deleted_at TEXT,
-                    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+                    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
-                CREATE TABLE IF NOT EXISTS cell_values (
-                    record_id INTEGER NOT NULL,
-                    column_id INTEGER NOT NULL,
-                    value TEXT NOT NULL DEFAULT '',
-                    PRIMARY KEY (record_id, column_id),
-                    FOREIGN KEY (record_id) REFERENCES records(id) ON DELETE CASCADE,
-                    FOREIGN KEY (column_id) REFERENCES columns_meta(id) ON DELETE CASCADE
+
+                CREATE TABLE IF NOT EXISTS lf2_catalog (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    kind TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    color TEXT NOT NULL DEFAULT '#d7e9ff',
+                    sort_order INTEGER NOT NULL DEFAULT 0,
+                    UNIQUE(kind, name)
                 );
-                CREATE TABLE IF NOT EXISTS favorite_girls (
-                    record_id INTEGER PRIMARY KEY,
-                    FOREIGN KEY (record_id) REFERENCES records(id) ON DELETE CASCADE
+
+                CREATE TABLE IF NOT EXISTS lf2_girl_tags (
+                    girl_id INTEGER NOT NULL,
+                    tag_id INTEGER NOT NULL,
+                    PRIMARY KEY(girl_id, tag_id),
+                    FOREIGN KEY(girl_id) REFERENCES lf2_girls(id) ON DELETE CASCADE,
+                    FOREIGN KEY(tag_id) REFERENCES lf2_catalog(id) ON DELETE CASCADE
                 );
+
+                CREATE TABLE IF NOT EXISTS lf2_links (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    girl_id INTEGER NOT NULL,
+                    source TEXT NOT NULL DEFAULT '',
+                    url TEXT NOT NULL DEFAULT '',
+                    sort_order INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY(girl_id) REFERENCES lf2_girls(id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS lf2_occurrences (
+                    girl_id INTEGER PRIMARY KEY,
+                    count INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY(girl_id) REFERENCES lf2_girls(id) ON DELETE CASCADE
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_lf2_girls_sort ON lf2_girls(sort_order DESC, id DESC);
+                CREATE INDEX IF NOT EXISTS idx_lf2_girls_favorite ON lf2_girls(favorite, sort_order DESC);
+                CREATE INDEX IF NOT EXISTS idx_lf2_girls_name ON lf2_girls(name COLLATE NOCASE);
+                CREATE INDEX IF NOT EXISTS idx_lf2_links_girl ON lf2_links(girl_id, sort_order, id);
+                CREATE INDEX IF NOT EXISTS idx_lf2_catalog_kind ON lf2_catalog(kind, sort_order, id);
                 """
             )
-            count = connection.execute("SELECT COUNT(*) FROM categories").fetchone()[0]
-            if count == 0:
-                self._seed_minimal(connection)
+            self._seed_catalogs(connection)
 
     @staticmethod
-    def _seed_minimal(connection: sqlite3.Connection) -> None:
+    def _seed_catalogs(connection: sqlite3.Connection) -> None:
         seeds = {
-            "Girls": ("Jméno", "Typ", "Národnost", "Věk", "Stav", "Hodnocení", "Tagy", "Posl. kontrola"),
-            "Videa": ("Název", "Typ", "Studio", "Dívka 1", "Dívka 2", "Dívka 3", "Stav", "Kvalita", "Dost. kv.", "Velikost", "Tagy"),
-            "Odkazy": ("Typ", "Název", "Herečka", "URL", "Kontrola", "Staženo", "Poslední text"),
-            "Studia": ("Název", "Typ", "Země", "Web", "Hodnocení", "Poznámka"),
-            "Stavy": ("Název", "Barva"),
-            "Tagy": ("Název", "Barva"),
-            "Typy": ("Název", "Barva"),
-            "Kvality": ("Název", "Barva"),
+            "types": ("Herečka", "Modelka", "Amatérka"),
+            "nationalities": (
+                "Česká", "Americká", "Britská", "Německá", "Francouzská",
+                "Italská", "Španělská", "Kanadská", "Australská", "Japonská", "Slovenská",
+            ),
+            "tags": ("Latex", "Ruined", "Softdomme"),
+            "link_sources": (
+                "Instagram", "Facebook", "Redgifs", "Pornhub", "Linktree",
+                "X", "TikTok", "Reddit", "YouTube",
+            ),
         }
-        for category_order, (name, columns) in enumerate(seeds.items()):
-            cursor = connection.execute(
-                "INSERT INTO categories(name, sort_order) VALUES (?, ?)",
-                (name, category_order),
-            )
-            category_id = int(cursor.lastrowid)
+        for kind, names in seeds.items():
+            existing = connection.execute(
+                "SELECT COUNT(*) FROM lf2_catalog WHERE kind = ?", (kind,)
+            ).fetchone()[0]
+            if existing:
+                continue
             connection.executemany(
-                "INSERT INTO columns_meta(category_id, name, sort_order) VALUES (?, ?, ?)",
-                [(category_id, column, index) for index, column in enumerate(columns)],
+                "INSERT INTO lf2_catalog(kind, name, sort_order) VALUES (?, ?, ?)",
+                [(kind, name, index) for index, name in enumerate(names)],
             )
-
-    def categories(self) -> list[str]:
-        with self.connect() as connection:
-            rows = connection.execute(
-                "SELECT name FROM categories ORDER BY sort_order, id"
-            ).fetchall()
-        return [str(row["name"]) for row in rows]
-
-    def resolve_category(self, requested: str) -> str:
-        requested = str(requested or "").strip()
-        available = set(self.categories())
-        if requested in available:
-            return requested
-        aliases = {"Videa": "Scény / filmy", "Scény / filmy": "Videa"}
-        alias = aliases.get(requested)
-        if alias in available:
-            return alias
-        return requested
-
-    def favorite_ids(self) -> frozenset[int]:
-        with self.connect() as connection:
-            rows = connection.execute("SELECT record_id FROM favorite_girls").fetchall()
-        return frozenset(int(row["record_id"]) for row in rows)
-
-    def is_favorite(self, record_id: int | None) -> bool:
-        if record_id is None:
-            return False
-        with self.connect() as connection:
-            row = connection.execute(
-                "SELECT 1 FROM favorite_girls WHERE record_id = ? LIMIT 1",
-                (int(record_id),),
-            ).fetchone()
-        return row is not None
-
-    def set_favorite(self, record_id: int, favorite: bool) -> None:
-        with self.connect() as connection:
-            if favorite:
-                connection.execute(
-                    "INSERT OR IGNORE INTO favorite_girls(record_id) VALUES (?)",
-                    (int(record_id),),
-                )
-            else:
-                connection.execute(
-                    "DELETE FROM favorite_girls WHERE record_id = ?",
-                    (int(record_id),),
-                )
-
-    def _load_base(self, requested_category: str) -> Dataset:
-        category = self.resolve_category(requested_category)
-        with self.connect() as connection:
-            category_row = connection.execute(
-                "SELECT id FROM categories WHERE name = ? LIMIT 1",
-                (category,),
-            ).fetchone()
-            if category_row is None:
-                return Dataset(requested_category, (), ())
-            category_id = int(category_row["id"])
-
-            column_rows = connection.execute(
-                """
-                SELECT id, name, is_visible
-                FROM columns_meta
-                WHERE category_id = ?
-                ORDER BY sort_order, id
-                """,
-                (category_id,),
-            ).fetchall()
-            columns = tuple(
-                Column(int(row["id"]), str(row["name"]), bool(row["is_visible"]))
-                for row in column_rows
-            )
-
-            record_rows = connection.execute(
-                """
-                SELECT id
-                FROM records
-                WHERE category_id = ? AND deleted_at IS NULL
-                ORDER BY sort_order, id
-                """,
-                (category_id,),
-            ).fetchall()
-            record_ids = [int(row["id"]) for row in record_rows]
-            favorites = self.favorite_ids() if requested_category in {"Girls", "Oblíbené"} else frozenset()
-            if not record_ids:
-                return Dataset(requested_category, columns, (), favorites)
-
-            values_by_record = {record_id: {} for record_id in record_ids}
-            placeholders = ",".join("?" for _ in record_ids)
-            value_rows = connection.execute(
-                f"""
-                SELECT record_id, column_id, value
-                FROM cell_values
-                WHERE record_id IN ({placeholders})
-                """,
-                record_ids,
-            ).fetchall()
-            for row in value_rows:
-                values_by_record[int(row["record_id"])][int(row["column_id"])] = str(row["value"] or "")
-
-        rows = tuple(
-            Row(
-                record_id,
-                tuple(values_by_record[record_id].get(column.id, "") for column in columns),
-            )
-            for record_id in record_ids
-        )
-        return Dataset(requested_category, columns, rows, favorites)
-
-    def load(self, requested_category: str) -> Dataset:
-        if requested_category == "Oblíbené":
-            girls = self._load_base("Girls")
-            rows = tuple(row for row in girls.rows if row.id in girls.favorite_ids)
-            return Dataset("Oblíbené", girls.columns, rows, girls.favorite_ids)
-        return self._load_base(requested_category)
-
-    def overview_counts(self) -> dict[str, int]:
-        result: dict[str, int] = {}
-        with self.connect() as connection:
-            rows = connection.execute(
-                """
-                SELECT categories.name, COUNT(records.id) AS total
-                FROM categories
-                LEFT JOIN records
-                  ON records.category_id = categories.id
-                 AND records.deleted_at IS NULL
-                GROUP BY categories.id
-                ORDER BY categories.sort_order, categories.id
-                """
-            ).fetchall()
-            result.update({str(row["name"]): int(row["total"]) for row in rows})
-            result["Oblíbené"] = int(
-                connection.execute("SELECT COUNT(*) FROM favorite_girls").fetchone()[0]
-            )
-        if "Scény / filmy" in result and "Videa" not in result:
-            result["Videa"] = result["Scény / filmy"]
-        return result
 
     @staticmethod
-    def _table_exists(connection: sqlite3.Connection, table_name: str) -> bool:
-        row = connection.execute(
-            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ? LIMIT 1",
-            (str(table_name),),
-        ).fetchone()
-        return row is not None
+    def _json_list(raw: str) -> tuple[str, ...]:
+        try:
+            value = json.loads(raw or "[]")
+        except (TypeError, json.JSONDecodeError):
+            return ()
+        if not isinstance(value, list):
+            return ()
+        return tuple(str(item).strip() for item in value if str(item).strip())
 
-    def person_links(self, record_id: int | None) -> list[dict[str, str]]:
-        """Vrátí odkazy osoby ze starého schématu, pokud jsou v DB dostupné."""
-        if record_id is None:
-            return []
+    def _tag_map(self, connection: sqlite3.Connection, ids: list[int]) -> dict[int, tuple[str, ...]]:
+        if not ids:
+            return {}
+        placeholders = ",".join("?" for _ in ids)
+        rows = connection.execute(
+            f"""
+            SELECT gt.girl_id, c.name
+            FROM lf2_girl_tags gt
+            JOIN lf2_catalog c ON c.id = gt.tag_id
+            WHERE gt.girl_id IN ({placeholders})
+            ORDER BY c.sort_order, c.id
+            """,
+            ids,
+        ).fetchall()
+        result: dict[int, list[str]] = {girl_id: [] for girl_id in ids}
+        for row in rows:
+            result[int(row["girl_id"])].append(str(row["name"]))
+        return {key: tuple(value) for key, value in result.items()}
 
-        definitions = (
-            ("social_links", "Sociální"),
-            ("source_links", "Zdroj"),
-            ("directory_links", "Adresář"),
-        )
-        result: list[dict[str, str]] = []
+    def list_girls(self, favorites: bool = False) -> tuple[GirlRecord, ...]:
         with self.connect() as connection:
-            for table_name, type_label in definitions:
-                if not self._table_exists(connection, table_name):
-                    continue
-                rows = connection.execute(
-                    f"""
-                    SELECT site, url
-                    FROM {table_name}
-                    WHERE record_id = ?
-                    ORDER BY sort_order, id
-                    """,
-                    (int(record_id),),
-                ).fetchall()
-                result.extend(
-                    {
-                        "type": table_name,
-                        "type_label": type_label,
-                        "site": str(row["site"] or "").strip(),
-                        "url": str(row["url"] or "").strip(),
-                    }
-                    for row in rows
-                    if str(row["site"] or "").strip() or str(row["url"] or "").strip()
-                )
-        return result
-
-    def missing_source_names(self, record_id: int | None) -> list[str]:
-        """Zdrojové weby používané v databázi, které vybraná osoba nemá."""
-        if record_id is None:
-            return []
-        with self.connect() as connection:
-            if not self._table_exists(connection, "source_links"):
-                return []
-
-            assigned = {
-                str(row["site"] or "").strip().casefold()
-                for row in connection.execute(
-                    "SELECT site FROM source_links WHERE record_id = ?",
-                    (int(record_id),),
-                ).fetchall()
-                if str(row["site"] or "").strip()
-            }
+            where = "WHERE g.favorite = 1" if favorites else ""
             rows = connection.execute(
-                """
-                SELECT MIN(TRIM(site)) AS display_name,
-                       LOWER(TRIM(site)) AS normalized_name,
-                       COUNT(DISTINCT record_id) AS people_count
-                FROM source_links
-                WHERE TRIM(COALESCE(site, '')) <> ''
-                GROUP BY LOWER(TRIM(site))
-                ORDER BY people_count DESC, normalized_name ASC
+                f"""
+                SELECT g.*,
+                       COALESCE(o.count, 0) AS occurrences,
+                       (SELECT COUNT(*) FROM lf2_links l WHERE l.girl_id = g.id) AS tracking
+                FROM lf2_girls g
+                LEFT JOIN lf2_occurrences o ON o.girl_id = g.id
+                {where}
+                ORDER BY g.sort_order DESC, g.id DESC
                 """
             ).fetchall()
+            ids = [int(row["id"]) for row in rows]
+            tags = self._tag_map(connection, ids)
 
-        return [
-            str(row["display_name"])
+        return tuple(
+            GirlRecord(
+                id=int(row["id"]),
+                name=str(row["name"] or ""),
+                face=str(row["face"] or ""),
+                sex=str(row["sex"] or ""),
+                type_name=str(row["type_name"] or ""),
+                nudity=str(row["nudity"] or ""),
+                age_source=str(row["age_source"] or ""),
+                nationality=str(row["nationality"] or ""),
+                tags=tags.get(int(row["id"]), ()),
+                tracking=int(row["tracking"] or 0),
+                last_check=str(row["last_check"] or ""),
+                occurrences=int(row["occurrences"] or 0),
+                note=str(row["note"] or ""),
+                status=str(row["status"] or ""),
+                locked=bool(row["locked"]),
+                favorite=bool(row["favorite"]),
+                profile_path=str(row["profile_path"] or ""),
+                aliases=self._json_list(str(row["aliases_json"] or "[]")),
+                sort_order=int(row["sort_order"] or 0),
+                is_new=bool(row["is_new"]),
+            )
             for row in rows
-            if str(row["normalized_name"] or "").casefold() not in assigned
-        ]
+        )
 
-    def update_cell(self, record_id: int, column_id: int, value: str) -> None:
+    def girl(self, girl_id: int) -> GirlRecord | None:
+        records = self.list_girls(False)
+        return next((record for record in records if record.id == int(girl_id)), None)
+
+    def add_girls(self, count: int = 1) -> list[int]:
+        count = max(1, int(count))
+        with self.connect() as connection:
+            maximum = int(
+                connection.execute("SELECT COALESCE(MAX(sort_order), 0) FROM lf2_girls").fetchone()[0]
+            )
+            result: list[int] = []
+            for offset in range(count):
+                cursor = connection.execute(
+                    "INSERT INTO lf2_girls(sort_order, is_new) VALUES (?, 1)",
+                    (maximum + count - offset,),
+                )
+                result.append(int(cursor.lastrowid))
+        return result
+
+    def update_field(self, girl_id: int, key: str, value: str) -> None:
+        if key not in self.GIRL_FIELDS:
+            raise KeyError(f"Unsupported girl field: {key}")
+        text = str(value or "")
+        touched = 1 if text.strip() else 0
+        with self.connect() as connection:
+            connection.execute(
+                f"""
+                UPDATE lf2_girls
+                SET {key} = ?,
+                    is_new = CASE WHEN ? = 1 THEN 0 ELSE is_new END,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+                """,
+                (text, touched, int(girl_id)),
+            )
+
+    def set_aliases(self, girl_id: int, aliases: Iterable[str]) -> None:
+        cleaned = [str(value).strip() for value in aliases if str(value).strip()]
         with self.connect() as connection:
             connection.execute(
                 """
-                INSERT INTO cell_values(record_id, column_id, value)
-                VALUES (?, ?, ?)
-                ON CONFLICT(record_id, column_id)
-                DO UPDATE SET value = excluded.value
+                UPDATE lf2_girls
+                SET aliases_json = ?, is_new = CASE WHEN ? THEN 0 ELSE is_new END,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
                 """,
-                (int(record_id), int(column_id), str(value or "")),
+                (json.dumps(cleaned, ensure_ascii=False), bool(cleaned), int(girl_id)),
             )
+
+    def set_locked(self, girl_id: int, locked: bool) -> None:
+        with self.connect() as connection:
             connection.execute(
-                "UPDATE records SET updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-                (int(record_id),),
+                "UPDATE lf2_girls SET locked = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                (1 if locked else 0, int(girl_id)),
             )
 
-    def update_named_cell(self, record_id: int, category_name: str, column_name: str, value: str) -> bool:
-        category = self.resolve_category(category_name)
-        if category_name == "Oblíbené":
-            category = self.resolve_category("Girls")
+    def set_favorite(self, girl_id: int, favorite: bool) -> None:
         with self.connect() as connection:
-            row = connection.execute(
-                """
-                SELECT columns_meta.id
-                FROM columns_meta
-                JOIN categories ON categories.id = columns_meta.category_id
-                WHERE categories.name = ? AND columns_meta.name = ?
-                LIMIT 1
-                """,
-                (category, column_name),
-            ).fetchone()
-        if row is None:
-            return False
-        self.update_cell(record_id, int(row["id"]), value)
-        return True
+            connection.execute(
+                "UPDATE lf2_girls SET favorite = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                (1 if favorite else 0, int(girl_id)),
+            )
 
-    def add_record(self, category_name: str) -> int:
-        favorite_after = category_name == "Oblíbené"
-        category = "Girls" if favorite_after else self.resolve_category(category_name)
+    def set_tags(self, girl_id: int, names: Iterable[str]) -> None:
+        wanted = [str(name).strip() for name in names if str(name).strip()]
         with self.connect() as connection:
-            category_row = connection.execute(
-                "SELECT id FROM categories WHERE name = ? LIMIT 1", (category,)
-            ).fetchone()
-            if category_row is None:
-                raise ValueError(f"Neznámá sekce: {category_name}")
-            category_id = int(category_row["id"])
+            connection.execute("DELETE FROM lf2_girl_tags WHERE girl_id = ?", (int(girl_id),))
+            for name in wanted:
+                row = connection.execute(
+                    "SELECT id FROM lf2_catalog WHERE kind = 'tags' AND name = ? LIMIT 1",
+                    (name,),
+                ).fetchone()
+                if row is None:
+                    continue
+                connection.execute(
+                    "INSERT OR IGNORE INTO lf2_girl_tags(girl_id, tag_id) VALUES (?, ?)",
+                    (int(girl_id), int(row["id"])),
+                )
+            if wanted:
+                connection.execute(
+                    "UPDATE lf2_girls SET is_new = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                    (int(girl_id),),
+                )
+
+    def delete_unlocked(self, girl_ids: Iterable[int]) -> int:
+        ids = list(dict.fromkeys(int(value) for value in girl_ids))
+        if not ids:
+            return 0
+        placeholders = ",".join("?" for _ in ids)
+        with self.connect() as connection:
+            cursor = connection.execute(
+                f"DELETE FROM lf2_girls WHERE id IN ({placeholders}) AND locked = 0",
+                ids,
+            )
+            return int(cursor.rowcount)
+
+    def cleanup_blank_new_rows(self) -> int:
+        with self.connect() as connection:
+            cursor = connection.execute(
+                """
+                DELETE FROM lf2_girls
+                WHERE is_new = 1
+                  AND TRIM(name) = ''
+                  AND TRIM(face) = ''
+                  AND TRIM(sex) = ''
+                  AND TRIM(type_name) = ''
+                  AND TRIM(nudity) = ''
+                  AND TRIM(age_source) = ''
+                  AND TRIM(nationality) = ''
+                  AND TRIM(last_check) = ''
+                  AND TRIM(note) = ''
+                  AND TRIM(status) = ''
+                  AND TRIM(profile_path) = ''
+                  AND favorite = 0
+                  AND NOT EXISTS (SELECT 1 FROM lf2_girl_tags gt WHERE gt.girl_id = lf2_girls.id)
+                  AND NOT EXISTS (SELECT 1 FROM lf2_links l WHERE l.girl_id = lf2_girls.id)
+                  AND COALESCE((SELECT count FROM lf2_occurrences o WHERE o.girl_id = lf2_girls.id), 0) = 0
+                """
+            )
+            return int(cursor.rowcount)
+
+    def catalog(self, kind: str) -> tuple[CatalogEntry, ...]:
+        with self.connect() as connection:
+            rows = connection.execute(
+                "SELECT * FROM lf2_catalog WHERE kind = ? ORDER BY sort_order, id",
+                (str(kind),),
+            ).fetchall()
+        return tuple(
+            CatalogEntry(
+                int(row["id"]), str(row["kind"]), str(row["name"]),
+                str(row["color"]), int(row["sort_order"]),
+            )
+            for row in rows
+        )
+
+    def catalog_names(self, kind: str) -> tuple[str, ...]:
+        return tuple(entry.name for entry in self.catalog(kind))
+
+    def add_catalog_entry(self, kind: str, name: str = "", color: str = "#d7e9ff") -> int:
+        with self.connect() as connection:
             order = int(
                 connection.execute(
-                    "SELECT COALESCE(MAX(sort_order), -1) + 1 FROM records WHERE category_id = ?",
-                    (category_id,),
+                    "SELECT COALESCE(MAX(sort_order), -1) + 1 FROM lf2_catalog WHERE kind = ?",
+                    (str(kind),),
+                ).fetchone()[0]
+            )
+            base = str(name).strip() or f"Nová položka {order + 1}"
+            candidate = base
+            suffix = 2
+            while connection.execute(
+                "SELECT 1 FROM lf2_catalog WHERE kind = ? AND name = ?",
+                (str(kind), candidate),
+            ).fetchone():
+                candidate = f"{base} {suffix}"
+                suffix += 1
+            cursor = connection.execute(
+                "INSERT INTO lf2_catalog(kind, name, color, sort_order) VALUES (?, ?, ?, ?)",
+                (str(kind), candidate, str(color), order),
+            )
+            return int(cursor.lastrowid)
+
+    def update_catalog_entry(self, entry_id: int, *, name: str | None = None, color: str | None = None) -> None:
+        parts: list[str] = []
+        values: list[object] = []
+        if name is not None:
+            parts.append("name = ?")
+            values.append(str(name).strip())
+        if color is not None:
+            parts.append("color = ?")
+            values.append(str(color).strip() or "#d7e9ff")
+        if not parts:
+            return
+        values.append(int(entry_id))
+        with self.connect() as connection:
+            connection.execute(
+                f"UPDATE lf2_catalog SET {', '.join(parts)} WHERE id = ?",
+                values,
+            )
+
+    def delete_catalog_entries(self, ids: Iterable[int]) -> None:
+        values = list(dict.fromkeys(int(value) for value in ids))
+        if not values:
+            return
+        placeholders = ",".join("?" for _ in values)
+        with self.connect() as connection:
+            connection.execute(f"DELETE FROM lf2_catalog WHERE id IN ({placeholders})", values)
+
+    def links(self, girl_id: int) -> tuple[LinkRecord, ...]:
+        with self.connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT l.*, g.name AS girl_name
+                FROM lf2_links l
+                JOIN lf2_girls g ON g.id = l.girl_id
+                WHERE l.girl_id = ?
+                ORDER BY l.sort_order, l.id
+                """,
+                (int(girl_id),),
+            ).fetchall()
+        return tuple(
+            LinkRecord(
+                int(row["id"]), int(row["girl_id"]), str(row["girl_name"] or ""),
+                str(row["source"] or ""), str(row["url"] or ""), int(row["sort_order"]),
+            )
+            for row in rows
+        )
+
+    def all_links(self, girl_id: int | None = None) -> tuple[LinkRecord, ...]:
+        params: tuple[object, ...] = ()
+        where = ""
+        if girl_id is not None:
+            where = "WHERE l.girl_id = ?"
+            params = (int(girl_id),)
+        with self.connect() as connection:
+            rows = connection.execute(
+                f"""
+                SELECT l.*, g.name AS girl_name
+                FROM lf2_links l
+                JOIN lf2_girls g ON g.id = l.girl_id
+                {where}
+                ORDER BY l.id DESC
+                """,
+                params,
+            ).fetchall()
+        return tuple(
+            LinkRecord(
+                int(row["id"]), int(row["girl_id"]), str(row["girl_name"] or ""),
+                str(row["source"] or ""), str(row["url"] or ""), int(row["sort_order"]),
+            )
+            for row in rows
+        )
+
+    def add_link(self, girl_id: int, source: str, url: str) -> int | None:
+        url = str(url or "").strip()
+        if not url:
+            return None
+        source = str(source or "").strip()
+        with self.connect() as connection:
+            order = int(
+                connection.execute(
+                    "SELECT COALESCE(MAX(sort_order), -1) + 1 FROM lf2_links WHERE girl_id = ?",
+                    (int(girl_id),),
                 ).fetchone()[0]
             )
             cursor = connection.execute(
-                "INSERT INTO records(category_id, sort_order) VALUES (?, ?)",
-                (category_id, order),
+                "INSERT INTO lf2_links(girl_id, source, url, sort_order) VALUES (?, ?, ?, ?)",
+                (int(girl_id), source, url, order),
             )
-            record_id = int(cursor.lastrowid)
-        if favorite_after:
-            self.set_favorite(record_id, True)
-        return record_id
+            connection.execute(
+                "UPDATE lf2_girls SET is_new = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                (int(girl_id),),
+            )
+            if source:
+                connection.execute(
+                    """
+                    INSERT OR IGNORE INTO lf2_catalog(kind, name, sort_order)
+                    VALUES ('link_sources', ?, 9999)
+                    """,
+                    (source,),
+                )
+            return int(cursor.lastrowid)
 
-    def soft_delete(self, record_ids: Iterable[int]) -> None:
-        ids = tuple(dict.fromkeys(int(value) for value in record_ids))
-        if not ids:
-            return
-        placeholders = ",".join("?" for _ in ids)
+    def update_link(self, link_id: int, source: str, url: str) -> None:
         with self.connect() as connection:
             connection.execute(
-                f"""
-                UPDATE records
-                SET deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
-                WHERE id IN ({placeholders})
-                """,
-                ids,
+                "UPDATE lf2_links SET source = ?, url = ? WHERE id = ?",
+                (str(source or "").strip(), str(url or "").strip(), int(link_id)),
             )
+
+    def delete_link(self, link_id: int) -> None:
+        with self.connect() as connection:
+            connection.execute("DELETE FROM lf2_links WHERE id = ?", (int(link_id),))
+
+    def source_rank(self) -> dict[str, int]:
+        with self.connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT LOWER(TRIM(source)) AS normalized, COUNT(DISTINCT girl_id) AS used
+                FROM lf2_links
+                WHERE TRIM(source) <> ''
+                GROUP BY LOWER(TRIM(source))
+                ORDER BY used DESC, normalized
+                """
+            ).fetchall()
+        return {str(row["normalized"]): index for index, row in enumerate(rows)}
+
+    def nationality_rank(self) -> tuple[str, ...]:
+        with self.connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT nationality, COUNT(*) AS used
+                FROM lf2_girls
+                WHERE TRIM(nationality) <> ''
+                GROUP BY nationality
+                ORDER BY used DESC, LOWER(nationality)
+                """
+            ).fetchall()
+        return tuple(str(row["nationality"]) for row in rows)
+
+    def name_suggestions(self, query: str = "", favorites: bool = False) -> list[str]:
+        query = str(query or "").strip().casefold()
+        rows = self.list_girls(favorites)
+        ranked: list[tuple[int, int, str]] = []
+        for row in rows:
+            if not row.name.strip():
+                continue
+            names = (row.name, *row.aliases)
+            folded = [value.casefold() for value in names]
+            if not query:
+                quality = 0
+            elif any(value.startswith(query) for value in folded):
+                quality = 0
+            elif any(query in value for value in folded):
+                quality = 1
+            else:
+                continue
+            ranked.append((quality, -int(row.occurrences), row.name))
+        ranked.sort(key=lambda item: (item[0], item[1], item[2].casefold()))
+        result: list[str] = []
+        seen: set[str] = set()
+        for _quality, _occ, name in ranked:
+            folded = name.casefold()
+            if folded not in seen:
+                seen.add(folded)
+                result.append(name)
+        return result
+
+    def overview_counts(self) -> dict[str, int]:
+        with self.connect() as connection:
+            girls = int(connection.execute("SELECT COUNT(*) FROM lf2_girls").fetchone()[0])
+            favorites = int(connection.execute("SELECT COUNT(*) FROM lf2_girls WHERE favorite = 1").fetchone()[0])
+            links = int(connection.execute("SELECT COUNT(*) FROM lf2_links").fetchone()[0])
+        return {"Girls": girls, "Oblíbené": favorites, "Odkazy": links}
