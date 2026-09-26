@@ -655,6 +655,96 @@ Výběr funguje stejně jako vícenásobné modré filtry ve Videa / Super:
 - tabulka tedy zobrazí všechny konkrétní odkazy odpovídající alespoň jednomu z označených názvů / typů,
 - všechny současně aktivní modré prvky musí zůstat vizuálně rozpoznatelně označené.
 
+### Sekce Odkazy – rozložení a chování podle referenčních screenshotů
+
+Tato část doplňuje písemnou specifikaci o chování sekce **Odkazy**, které bylo odvozeno z dodaných referenčních screenshotů. Pokud bude některý detail při následném praktickém testování upřesněn, novější výslovný požadavek má přednost.
+
+#### Horní panel Odkazů
+- vlevo nahoře je název sekce **Odkazy**,
+- vedle něj jsou režimy **Vše / Sítě / Zdroje / Rozcestníky**,
+- režim určuje, které typy odkazů se nabízejí jako modré rychlé filtry,
+- jednotlivé typy odkazů se zobrazují jako modré obdélníkové prvky se jménem typu / platformy a počtem použití,
+- počet u modrého prvku vyjadřuje počet různých hereček, u kterých je daný typ odkazu použitý,
+- prvky se řadí podle počtu použití sestupně, při shodě abecedně,
+- pokud se všechny prvky nevejdou do pevného prostoru horního panelu, používá se stránkování se šipkami a údajem typu `1/2`; panel se kvůli tomu nesmí zvětšovat,
+- výběr jednoho či více modrých filtrů se řídí již definovanou logikou běžný klik / Ctrl / Shift a kombinací OR.
+
+#### Pravá část horního panelu
+Vpravo jsou svisle umístěné akce:
+- **Přidat odkazy** – otevře hromadný dialog pro přidávání konkrétních odkazů,
+- **Seznam položek** – otevře centrální katalog typů odkazů,
+- **Viditelné filtry…** – určuje, které typy jsou v daném horním režimu viditelné jako modré filtry,
+- **Exportovat odkazy** – používá pouze aktuálně zobrazené / vyfiltrované řádky podle samostatného pravidla exportu,
+- **Zobrazit odkazy** – je aktivní při označených konkrétních řádcích a otevře jejich URL ve výchozím prohlížeči.
+
+#### Lišta nad hlavní tabulkou Odkazy
+Zleva obsahuje:
+1. **Přidat** – používá společnou logiku přidávání řádků,
+2. **Odebrat** – odstraní označené odemčené odkazy po potvrzení,
+3. **Hromadné akce** – pracují s označenými konkrétními odkazy,
+4. **Hledání** + malý koš – fulltext aktuální tabulky, koš ruší pouze hledání,
+5. filtr **Obrázek** – umožní zobrazit odkazy s uloženým posledním obrázkem nebo bez něj,
+6. globální **Vyčistit** úplně vpravo – zruší hledání i všechny filtry Odkazů, nikoliv ruční řazení či rozložení tabulky.
+
+Pro první implementaci 2.1 obsahují **Hromadné akce** minimálně:
+- Nastavit `Akt.`,
+- Nastavit `Neakt.`,
+- Vymazat hodnotu **Kontrola**,
+- Vymazat hodnotu **Staženo**.
+
+#### Hlavní tabulka Odkazy
+Po globálních systémových sloupcích zámek + číslo řádku následují:
+1. **Název** – typ / platforma odkazu z centrálního katalogu,
+2. **Herečka** – herečka, ke které konkrétní URL patří; při výběru používá stejnou identitu Girls a může využít našeptávání jmen / aliasů,
+3. **URL** – konkrétní adresa,
+4. **Kontrola** – volný editovatelný údaj,
+5. **Staženo** – volný editovatelný údaj,
+6. **Akt.** – stav odkazu,
+7. **Web** – akce **Otevřít**, která otevře konkrétní URL ve výchozím prohlížeči,
+8. **Poslední text** – editovatelný text,
+9. **Poslední obrázek** – zobrazuje uložený obrázek / cestu nebo akci **Nahrát**; výběr obrázku se provádí explicitně.
+
+Globální pravidla zámků, výběru, číslování, řazení, editace, střídání řádků, Hledání a Vyčistit platí i zde.
+
+#### Centrální katalog typů odkazů – Seznam položek
+Dialog obsahuje sloupce:
+- **Typ** – `Síť`, `Zdroj` nebo `Rozcestník`,
+- **Název**,
+- **Obecný web**,
+- **Použití**.
+
+Hodnota **Použití**:
+- první číslo = počet různých hereček, které mají alespoň jeden odkaz tohoto typu,
+- pokud je celkový počet konkrétních uložených URL vyšší, zobrazí se také v závorce, např. `69 (82)`.
+
+Dialog umožňuje:
+- **Přidat** položku katalogu,
+- **Odstranit** označené položky,
+- **Sloučit názvy…** – převést konkrétní odkazy více označených názvů pod jeden zvolený cílový název,
+- **Otevřít web** – otevřít obecný web aktuální položky,
+- **Uložit / Zrušit** změny běžné editace dialogu.
+
+#### Viditelné filtry
+Dialog **Viditelné filtry…**:
+- zobrazuje checklist typů odpovídajících právě zvolenému režimu Vše / Sítě / Zdroje / Rozcestníky,
+- zaškrtnuté položky se zobrazují jako modré rychlé filtry horního panelu,
+- obsahuje akce **Vybrat vše**, **Zrušit vše**, **OK**, **Zrušit**.
+
+#### Hromadné přidání konkrétních odkazů
+Dialog **Přidat odkazy** vychází z referenční tabulky a má výchozích **10 řádků**. Každý řádek představuje jeden konkrétní odkaz a obsahuje:
+- **Název** – dropdown-only, výchozí `Automaticky`; aplikace se podle URL pokusí rozpoznat typ a uživatel ho může přepsat pouze výběrem z centrálního katalogu,
+- **URL**,
+- **Herečka**,
+- **Kontrola**,
+- **Staženo**,
+- **Poslední obrázek**,
+- **Poslední text**.
+
+Dole jsou akce:
+- **Přidat řádek** – přidá právě jeden nový prázdný řádek,
+- **Odebrat vybrané řádky**,
+- potvrzení přidání / **Zrušit**.
+
 ### Dialog Odkazy u herečky
 
 Tlačítko **Odkazy** v horním panelu otevře samostatné okno / dialog pro správu odkazů konkrétní aktuálně vybrané herečky.
