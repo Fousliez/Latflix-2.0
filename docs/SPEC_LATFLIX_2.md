@@ -1060,6 +1060,18 @@ Dole zůstanou pouze:
 - používá běžný textový editor,
 - bez našeptávače / automatického doplňování.
 
+
+### Girls / Oblíbené – sloupec Stav
+
+Sloupec **Stav** je editovatelný výběrem z nabídky.
+
+Nabídka obsahuje pevně dané hodnoty:
+- **Aktivní**
+- **Neaktivní**
+- **Smazaná**
+
+Po aktivaci editačního režimu se otevře nabídka těchto stavů a zvolená hodnota se zapíše do buňky.
+
 ---
 
 ## Pracovní pravidlo specifikace
