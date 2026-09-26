@@ -20,7 +20,8 @@ from .dialogs import (
 from .models import BaseModel, Col, GirlsModel, LinksModel, SmartProxy, StudiosModel, VideosModel
 from .widgets import (
     AutoCompleteDelegate, ChoiceDelegate, ChipButton, DataTableView, FlowWidget,
-    SearchBox, SplitAddButton, TextDelegate, open_note_for_table, selected_source_ids,
+    MenuFilter, SearchBox, SplitAddButton, TextDelegate, open_note_for_table,
+    selected_source_ids,
 )
 
 BUTTON_H = 30
@@ -479,12 +480,25 @@ class GirlsPage(TablePage):
         self.toolbar_lay.addWidget(self.search)
 
         self.filter_boxes = {}
+
+        nationality_counts = Counter(
+            g.nationality for g in self.repo.girls(False) if g.nationality
+        )
+        nationalities = self.repo.catalog("nationalities")
+        nationalities.sort(
+            key=lambda value: (-nationality_counts.get(value, 0), value.casefold())
+        )
+        nationality = MenuFilter("Národnost")
+        nationality.set_values(nationalities, split_after=10)
+        nationality.valueChanged.connect(self._filters_changed)
+        self.filter_boxes["nationality"] = nationality
+        self.toolbar_lay.addWidget(nationality)
+
         specs = [
-            ("nationality", "Národnost", self.repo.catalog("nationalities")),
             ("type_name", "Typ", self.repo.catalog("types")),
             ("status", "Stav", ["Aktivní", "Neaktivní", "Smazaná"]),
-            ("sex", "Sex", ["Ano", "Ne", "Asi ano", "Asi ne", "Zjistit"]),
-            ("nudity", "Nahota", ["Ano", "Ne", "Asi ano", "Asi ne", "Zjistit"]),
+            ("sex", "Sex", ["Ano", "Ne", "Asi ne", "Asi ano", "Zjistit"]),
+            ("nudity", "Nahota", ["Ano", "Ne", "Asi ne", "Asi ano", "Zjistit"]),
             ("face", "Obličej", ["Ano", "Asi ano", "Asi ne", "Ne", "Zjistit"]),
             ("profile", "Profilovka", ["Ano", "Ne"]),
         ]
