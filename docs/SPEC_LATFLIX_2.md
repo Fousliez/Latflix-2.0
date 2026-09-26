@@ -1124,6 +1124,22 @@ Pro výběrové buňky, např. **Obličej, Sex, Typ, Nahota, Národnost, Stav**:
 - aktuální stav řazení se **neukládá natrvalo** a po novém spuštění / návratu se nemusí obnovovat,
 - řazení je pouze dočasný stav aktuálního zobrazení.
 
+
+### Girls / Oblíbené – průměrný věk ve stavovém řádku
+
+Pouze v sekcích **Girls** a **Oblíbené** se ve spodním stavovém řádku přibližně uprostřed zobrazí údaj o **průměrném věku hereček**.
+
+Chování:
+- hodnota se počítá z aktuálně zobrazené sady hereček po použití sloupcových filtrů,
+- změna filtrů tedy průměrný věk okamžitě přepočítá,
+- fulltextové pole **Hledání** tento údaj neovlivňuje,
+- při použití hledání se tedy průměr počítá stále z dat odpovídajících filtrům, nikoliv jen z řádků dočasně zobrazených hledáním,
+- údaj se nezobrazuje v ostatních sekcích aplikace.
+
+Umístění:
+- přibližně střed spodního stavového řádku,
+- tak, aby nekolidoval s levým počtem záznamů ani pravými ovládacími prvky stavového řádku.
+
 ---
 
 ## Pracovní pravidlo specifikace
