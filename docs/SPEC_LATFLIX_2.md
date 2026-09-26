@@ -837,6 +837,24 @@ Chování klávesy **Enter**:
 
 Jinými způsoby opuštění nebo změny výběru řádku se tento automatický přechod do editačního režimu dalšího řádku nespouští.
 
+
+### Girls / Oblíbené – chování našeptávače a ukončení editace myší
+
+Při editaci řádku, zejména pole **Jméno**, platí:
+
+- pokud uživatel vybere hodnotu z našeptávače / automatického doplnění, hodnota se vloží do buňky,
+- tím se ale **editační režim neukončí**,
+- kurzor zůstane aktivní v daném editačním poli na konci vloženého jména,
+- uživatel může bez dalšího klikání pokračovat v editaci.
+
+Pokud uživatel během editace klikne myší do jiného řádku:
+- aktuálně editovaný řádek se nejprve uloží / potvrdí,
+- jeho editační režim se ukončí,
+- nový řádek se pouze stane aktivním / vybraným,
+- samotné kliknutí myší do jiného řádku **nespouští automaticky editační režim nového řádku**.
+
+Automatické otevření následujícího řádku v editačním režimu zůstává vyhrazené pro potvrzení klávesou **Enter**.
+
 ---
 
 ## Pracovní pravidlo specifikace
