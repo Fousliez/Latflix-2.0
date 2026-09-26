@@ -6,7 +6,7 @@ from pathlib import Path
 from PySide6.QtCore import QModelIndex, Qt, QUrl, Signal
 from PySide6.QtGui import QDesktopServices, QPixmap
 from PySide6.QtWidgets import (
-    QApplication, QComboBox, QDialog, QFileDialog, QFormLayout, QFrame, QGridLayout, QHBoxLayout,
+    QApplication, QColorDialog, QComboBox, QDialog, QFileDialog, QFormLayout, QFrame, QGridLayout, QHBoxLayout,
     QLabel, QMainWindow, QMenu, QMessageBox, QPushButton, QSpinBox, QStackedWidget, QStatusBar,
     QVBoxLayout, QWidget, QInputDialog,
 )
@@ -1293,10 +1293,35 @@ class HelperModel(BaseModel):
         return True
 
 
+class TagModel(BaseModel):
+    columns = (
+        Col("name", "Název", width=260),
+        Col("color", "Barva", width=140),
+    )
+
+    def load_rows(self):
+        class Row:
+            def __init__(self, data):
+                self.id = data["id"]
+                self.name = data["name"]
+                self.color = data["color"]
+                self.locked = False
+
+        return [Row(item) for item in self.repo.catalog_rows("tags")]
+
+    def set_value(self, record, col, value):
+        if col.key == "name":
+            self.repo.update_catalog(record.id, value, record.color)
+        elif col.key == "color":
+            self.repo.update_catalog(record.id, record.name, value)
+        return True
+
+
 class HelperPage(TablePage):
     def __init__(self, repo, title, kind, parent=None):
         self.kind = kind
-        super().__init__(repo, title, HelperModel(repo, kind), parent)
+        model = TagModel(repo) if kind == "tags" else HelperModel(repo, kind)
+        super().__init__(repo, title, model, parent)
 
         layout = QVBoxLayout(self.top)
         label = QLabel(self.title)
@@ -1319,6 +1344,18 @@ class HelperPage(TablePage):
         self.clear.clicked.connect(
             lambda: (search.clear(), self.proxy.clear_filters())
         )
+        if self.kind == "tags":
+            self.table.doubleClicked.connect(self._tag_color_pick)
+
+    def _tag_color_pick(self, index):
+        if self.kind != "tags" or index.column() != 3:
+            return
+        source = self.proxy.mapToSource(index)
+        record = self.model.rows[source.row()]
+        color = QColorDialog.getColor()
+        if color.isValid():
+            self.repo.update_catalog(record.id, record.name, color.name())
+            self.refresh()
 
     def _add(self):
         name, ok = QInputDialog.getText(
@@ -1429,6 +1466,11 @@ class MainWindow(QMainWindow):
         }
         for page in self.pages.values():
             self.stack.addWidget(page)
+            if hasattr(page, "proxy"):
+                page.proxy.rowsInserted.connect(lambda *_: self._refresh_status())
+                page.proxy.rowsRemoved.connect(lambda *_: self._refresh_status())
+                page.proxy.modelReset.connect(lambda *_: self._refresh_status())
+                page.proxy.layoutChanged.connect(lambda *_: self._refresh_status())
 
     def navigate(self, name: str, girl_filter=None):
         if name not in self.pages:
