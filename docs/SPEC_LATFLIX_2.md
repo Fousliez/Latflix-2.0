@@ -924,7 +924,7 @@ V tabulce Girls / Oblíbené se následující sloupce neupravují volným texte
 - **Typ**
 - **Nahota**
 
-Po aktivaci editačního režimu dané buňky dvojklikem se otevře příslušná nabídka hodnot.
+Po dvojkliku do odemčené výběrové buňky se otevře příslušná nabídka hodnot; nejde o klasický textový editační režim.
 
 Zdroj hodnot:
 - **Obličej**: pevné hodnoty `Ano`, `Asi ano`, `Asi ne`, `Ne`, `Zjistit`,
@@ -932,7 +932,7 @@ Zdroj hodnot:
 - **Nahota**: pevné hodnoty `Ano`, `Ne`, `Asi ne`, `Asi ano`, `Zjistit`,
 - **Typ**: dynamické hodnoty načítané z pomocné sekce **Typy**.
 
-Výběr hodnoty z nabídky zapíše hodnotu do buňky. Tyto buňky tedy používají výběrový editor namísto běžného textového pole.
+Výběr hodnoty z nabídky okamžitě zapíše a uloží hodnotu do buňky. Tyto buňky tedy používají výběrový mechanismus namísto běžného textového editačního režimu.
 
 
 ### Girls / Oblíbené – sloupec Věk
@@ -1092,6 +1092,37 @@ Po aktivaci editačního režimu se otevře nabídka těchto stavů a zvolená h
 - nelze jej ručně editovat,
 - hodnota odpovídá celkovému počtu uložených URL u herečky,
 - každý konkrétní odkaz se počítá samostatně, včetně více odkazů stejné platformy.
+
+
+### Girls / Oblíbené – doplnění chování buněk a řazení
+
+#### Výběrové buňky
+Pro výběrové buňky, např. **Obličej, Sex, Typ, Nahota, Národnost, Stav**:
+- nejde o klasický textový editační režim,
+- po otevření nabídky a výběru hodnoty se zvolená hodnota ihned uloží do buňky,
+- tím je akce hotová,
+- klávesa **Enter** u těchto výběrových buněk nemá žádnou speciální funkci,
+- klávesa **Esc** zde ani obecně v tabulce nespouští žádnou speciální akci.
+
+#### Tagy – budoucí nastavení zobrazení
+- způsob zobrazení tagů přímo v buňce se bude řešit později,
+- v nastavení aplikace bude volba, zda se tagy v tabulce zobrazují:
+  - textově,
+  - nebo jako barevné štítky.
+
+#### Posl. kontrola
+- zůstává volný editovatelný text bez pevného formátu,
+- žádné vynucené datum ani validace formátu se nyní nepoužívá.
+
+#### Pozn.
+- běžně se zobrazuje jako jednořádková hodnota v tabulce,
+- dvojklik otevře větší editační pole pro pohodlnější úpravu poznámky.
+
+#### Řazení sloupců kliknutím na záhlaví
+- řazení kliknutím na záhlaví je aktivní u **všech datových sloupců**,
+- opakovaným kliknutím se přepíná mezi vzestupným a sestupným řazením,
+- aktuální stav řazení se **neukládá natrvalo** a po novém spuštění / návratu se nemusí obnovovat,
+- řazení je pouze dočasný stav aktuálního zobrazení.
 
 ---
 
