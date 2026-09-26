@@ -355,8 +355,12 @@ class TablePage(BasePage):
         self.proxy = SmartProxy(self)
         self.proxy.setSourceModel(model)
 
-        self.top = QWidget(self)
+        self.top = QFrame(self)
         self.top.setFixedHeight(TOP_PANEL_H)
+        self.top.setStyleSheet(
+            "QFrame{background:white;border:1px solid #c5c5c5;border-radius:5px;}"
+            "QLabel,QPushButton{background:transparent;}"
+        )
         self.outer.addWidget(self.top)
 
         self.toolbar = QWidget(self)
@@ -365,7 +369,7 @@ class TablePage(BasePage):
         self.toolbar_lay.setSpacing(4)
         self.toolbar.setStyleSheet(
             "QPushButton,QLineEdit,QComboBox,QToolButton{"
-            "min-height:26px;max-height:26px;padding-left:6px;padding-right:6px;}"
+            "min-height:30px;max-height:30px;padding-left:7px;padding-right:7px;}"
         )
         self.outer.addWidget(self.toolbar)
 
@@ -566,6 +570,11 @@ class GirlsPage(TablePage):
         self.show_links_btn = QPushButton("Zobrazit odkazy")
         for button in (self.links_btn, self.detail_btn, self.show_links_btn):
             button.setFixedWidth(122)
+            button.setFixedHeight(29)
+            button.setStyleSheet(
+                "QPushButton{background:#fafafa;border:1px solid #aaa;border-radius:3px;}"
+                "QPushButton:hover{background:#e7f0f8;}"
+            )
         right.addWidget(self.links_btn)
         right.addWidget(self.detail_btn)
         right.addWidget(self.show_links_btn)
@@ -1646,6 +1655,7 @@ class MainWindow(QMainWindow):
         self.resize(1500, 900)
         self.top_panel_visible = True
         self._menu()
+        self._apply_style()
 
         self.sidebar = Sidebar(self)
         self.stack = QStackedWidget(self)
@@ -1691,6 +1701,54 @@ class MainWindow(QMainWindow):
         self.status.addPermanentWidget(self.build_label)
         self._apply_row_scale()
         self.navigate("Přehled")
+
+    def _apply_style(self):
+        self.setStyleSheet(
+            """
+            QMainWindow, QWidget {
+                background: #efefef;
+                color: #202020;
+                font-size: 13px;
+            }
+            QPushButton, QToolButton {
+                padding: 0 8px;
+                border: 1px solid #aaa;
+                border-radius: 3px;
+                background: #fafafa;
+            }
+            QPushButton:hover, QToolButton:hover {
+                background: #e7f0f8;
+            }
+            QPushButton:disabled, QToolButton:disabled {
+                background: #e2e2e2;
+                color: #929292;
+            }
+            QLineEdit, QComboBox, QTextEdit {
+                background: white;
+                border: 1px solid #aaa;
+                border-radius: 2px;
+                padding: 3px 6px;
+            }
+            QTableView {
+                background: white;
+                gridline-color: #d5d5d5;
+                border: 1px solid #aaa;
+                selection-background-color: transparent;
+                selection-color: #202020;
+            }
+            QHeaderView::section {
+                background: #ececec;
+                border: 0;
+                border-right: 1px solid #c8c8c8;
+                border-bottom: 1px solid #aaa;
+                padding: 4px 5px;
+            }
+            QStatusBar {
+                background: #e8e8e8;
+                border-top: 1px solid #bbb;
+            }
+            """
+        )
 
     def _menu(self):
         bar = self.menuBar()
