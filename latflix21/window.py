@@ -1712,6 +1712,7 @@ class MainWindow(QMainWindow):
         self.toggle_top_action.setCheckable(True)
         self.toggle_top_action.setChecked(True)
         self.toggle_top_action.triggered.connect(self._set_top_panel_visible)
+        self.view_menu.aboutToShow.connect(self._rebuild_view_columns_menu)
 
         bar.addMenu("Nastavení")
 
