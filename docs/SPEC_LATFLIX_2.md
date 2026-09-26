@@ -1072,6 +1072,27 @@ Nabídka obsahuje pevně dané hodnoty:
 
 Po aktivaci editačního režimu se otevře nabídka těchto stavů a zvolená hodnota se zapíše do buňky.
 
+
+### Girls / Oblíbené – Národnost, Počet výskytů a Sledování
+
+#### Národnost
+- sloupec **Národnost** je editovatelný výběrem z nabídky,
+- logika je stejná jako u sloupce **Typ**,
+- nabídka se dynamicky načítá ze sekce **Národnosti**,
+- po dvojkliku do odemčené buňky se otevře nabídka dostupných národností,
+- zvolená hodnota se zapíše do buňky.
+
+#### Počet výskytů
+- sloupec **Počet výskytů** je automaticky vypočítávaný,
+- nelze jej ručně editovat,
+- hodnota odpovídá počtu videí / výskytů, ve kterých je daná herečka evidovaná.
+
+#### Sledování
+- sloupec **Sledování** je automaticky vypočítávaný,
+- nelze jej ručně editovat,
+- hodnota odpovídá celkovému počtu uložených URL u herečky,
+- každý konkrétní odkaz se počítá samostatně, včetně více odkazů stejné platformy.
+
 ---
 
 ## Pracovní pravidlo specifikace
