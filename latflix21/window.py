@@ -1627,6 +1627,7 @@ class MainWindow(QMainWindow):
         self.repo = repo
         self.setWindowTitle(APP_NAME)
         self.resize(1500, 900)
+        self.top_panel_visible = True
         self._menu()
 
         self.sidebar = Sidebar(self)
@@ -1676,15 +1677,40 @@ class MainWindow(QMainWindow):
 
     def _menu(self):
         bar = self.menuBar()
-        self.view_menu = None
-        for name in ("Soubor", "Úpravy", "Nástroje", "Zobrazení", "Nastavení", "Nápověda"):
-            menu = bar.addMenu(name)
-            if name == "Zobrazení":
-                self.view_menu = menu
-                show = menu.addAction("Zobrazit levé menu")
-                show.triggered.connect(self.sidebar.expand)
-                self.toggle_top_action = menu.addAction("Skrýt / zobrazit horní panel")
-                self.toggle_top_action.triggered.connect(self._toggle_top_panel)
+
+        file_menu = bar.addMenu("Soubor")
+        file_menu.addAction("Import…")
+        file_menu.addAction("Export…")
+        file_menu.addSeparator()
+        exit_action = file_menu.addAction("Konec")
+        exit_action.setShortcut("Ctrl+Q")
+        exit_action.triggered.connect(self.close)
+
+        edit_menu = bar.addMenu("Úpravy")
+        edit_menu.addAction("Přidat záznam", self._menu_add_record)
+        edit_menu.addAction("Smazat vybrané", self._menu_delete_selected)
+
+        bar.addMenu("Nástroje")
+
+        self.view_menu = bar.addMenu("Zobrazení")
+        show = self.view_menu.addAction("Zobrazit levé menu")
+        show.triggered.connect(lambda: self.sidebar.expand())
+        self.toggle_top_action = self.view_menu.addAction("Horní pracovní panel")
+        self.toggle_top_action.setCheckable(True)
+        self.toggle_top_action.setChecked(True)
+        self.toggle_top_action.triggered.connect(self._set_top_panel_visible)
+
+        bar.addMenu("Nastavení")
+
+        help_menu = bar.addMenu("Nápověda")
+        help_menu.addAction(
+            "O aplikaci",
+            lambda: QMessageBox.information(
+                self,
+                "Latflix 2.1",
+                f"Latflix 2.1\n\nVerze {__version__}",
+            ),
+        )
 
     def _apply_quick_tag(self, tag: str):
         if self.stack.currentWidget() not in (
@@ -1696,10 +1722,33 @@ class MainWindow(QMainWindow):
             page.apply_quick_tag(tag)
             self._refresh_status()
 
-    def _toggle_top_panel(self):
-        page = self.stack.currentWidget()
-        if hasattr(page, "top"):
-            page.top.setVisible(not page.top.isVisible())
+    def _set_top_panel_visible(self, visible: bool):
+        self.top_panel_visible = bool(visible)
+        for page in getattr(self, "pages", {}).values():
+            if hasattr(page, "top"):
+                page.top.setVisible(self.top_panel_visible)
+
+    def _menu_add_record(self):
+        page = self.stack.currentWidget() if hasattr(self, "stack") else None
+        if page is None:
+            return
+        if hasattr(page, "_add_rows"):
+            page._add_rows(1)
+        elif isinstance(page, StudiosPage):
+            page._add(1)
+        elif isinstance(page, LinksPage):
+            page._quick_add(1)
+        elif isinstance(page, HelperPage):
+            page._add()
+
+    def _menu_delete_selected(self):
+        page = self.stack.currentWidget() if hasattr(self, "stack") else None
+        if page is None:
+            return
+        if hasattr(page, "_delete"):
+            page._delete()
+        elif isinstance(page, LinksPage):
+            page._remove()
 
     def _change_row_scale(self, delta):
         self.row_scale_level = max(1, min(5, self.row_scale_level + int(delta)))
@@ -1763,6 +1812,8 @@ class MainWindow(QMainWindow):
         page = self.pages[name]
         page.refresh()
         self.stack.setCurrentWidget(page)
+        if hasattr(page, "top"):
+            page.top.setVisible(self.top_panel_visible)
         self.sidebar.set_active(name)
         if name == "Odkazy" and girl_filter:
             self.pages["Odkazy"].set_girl_filter(girl_filter)
