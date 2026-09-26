@@ -433,6 +433,7 @@ class Repository:
             f"(TRIM({a}.quality)<>'')+(TRIM({a}.available_quality)<>'')+"
             f"(TRIM({a}.size)<>'')+(TRIM({a}.duration)<>'')+"
             f"(TRIM({a}.mixed_gender)<>'')+(TRIM({a}.note)<>'')+"
+            f"(TRIM({a}.rating)<>'')+"
             f"(CASE WHEN EXISTS(SELECT 1 FROM lf21_video_girls vg0 "
             f"WHERE vg0.video_id={a}.id) THEN 1 ELSE 0 END))"
         )
@@ -728,6 +729,15 @@ class Repository:
     def studio_by_name(self, name: str) -> Studio | None:
         q = name.strip().casefold()
         return next((s for s in self.studios() if s.name.casefold() == q), None)
+
+    def valid_video_ids(self, super_only: bool = False) -> set[int]:
+        with self.connect() as c:
+            where = "AND v.in_super=1" if super_only else ""
+            rows = c.execute(
+                f"SELECT v.id FROM lf21_videos v "
+                f"WHERE {self._valid_video_sql('v')} {where}"
+            ).fetchall()
+            return {int(row["id"]) for row in rows}
 
     def videos(self, super_only: bool = False) -> list[Video]:
         with self.connect() as c:
