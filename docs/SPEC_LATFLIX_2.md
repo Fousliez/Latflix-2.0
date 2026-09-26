@@ -1114,9 +1114,18 @@ Sloupec **Tagy** používá výběrový popup podobný dodané referenci.
 
 Chování a vzhled:
 - popup zobrazuje existující tagy jako **barevné štítky**,
-- barva každého štítku se bere z centrální sekce **Tagy**,
-- v tomto popupu se tagy pouze vybírají / odebírají pro konkrétní herečku,
+- seznam nabízených tagů se vždy bere z centrální sekce **Tagy**; nesmí být napevno zapsaný v editoru buňky,
+- barva každého štítku se vždy bere z centrální sekce **Tagy**,
+- barvy tagů se spravují / upravují přímo v tabulce sekce **Tagy**,
+- pro vývojová / testovací data mohou mít předpřipravené tagy dočasně náhodně přiřazené barvy, ale tyto barvy jsou uloženou vlastností tagu a nejsou generované pokaždé při otevření popupu,
+- v tomto popupu se tagy pouze vybírají / odebírají pro konkrétní záznam,
 - správu seznamu tagů a jejich barev řeší samostatná sekce **Tagy**.
+
+Umístění popupu:
+- popup musí být **ukotvený k právě otevřené buňce / řádku Tagy**,
+- standardně se otevře **hned pod příslušným řádkem**, co nejblíže buňce Tagy,
+- nesmí se svévolně zobrazovat uprostřed okna aplikace,
+- pokud pod řádkem není dost místa, může se umístit nad něj nebo jinam v bezprostřední blízkosti tak, aby zůstal celý viditelný.
 
 V popupu nebudou:
 - pole **Nový tag**,
