@@ -339,6 +339,14 @@ class LinksModel(BaseModel):
             return "Nahrát"
         return super().value(record, key)
 
+    def extra_data(self, record: Link, col, index, role):
+        if col.key == "active" and str(record.active).strip().casefold() == "akt.":
+            if role == Qt.BackgroundRole:
+                return QColor("#f4d86b")
+            if role == Qt.ForegroundRole:
+                return QColor("#222222")
+        return None
+
     def set_locked(self, row_id, value):
         self.repo.set_link_locked(row_id, value)
 
