@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import Counter
 from pathlib import Path
 
-from PySide6.QtCore import QModelIndex, QSettings, Qt, QUrl, Signal
+from PySide6.QtCore import QItemSelectionModel, QModelIndex, QSettings, Qt, QUrl, Signal
 from PySide6.QtGui import QDesktopServices, QPixmap
 from PySide6.QtWidgets import (
     QApplication, QColorDialog, QComboBox, QDialog, QFileDialog, QFormLayout, QFrame, QGridLayout, QHBoxLayout,
@@ -465,11 +465,14 @@ class TablePage(BasePage):
             proxy_index = self.proxy.mapFromSource(source_index)
             if not proxy_index.isValid():
                 continue
-            self.table.selectRow(proxy_index.row())
+            selection.select(
+                proxy_index,
+                QItemSelectionModel.Select | QItemSelectionModel.Rows,
+            )
             if current_id is not None and int(record.id) == int(current_id):
                 current_proxy = self.proxy.index(proxy_index.row(), 2)
         if current_proxy.isValid():
-            self.table.setCurrentIndex(current_proxy)
+            selection.setCurrentIndex(current_proxy, QItemSelectionModel.NoUpdate)
 
     def refresh(self):
         selected = selected_source_ids(self.table) if self.table.model() else []
