@@ -396,6 +396,49 @@ Všechna tři tlačítka mají být stejně zarovnaná a působit jako jeden kom
 - přesná podoba a chování hromadného tlačítka budou doplněny zvlášť později,
 - toto hromadné chování se nesmí míchat s tlačítkem Oblíbené v horním panelu.
 
+
+### Dialog Odkazy u herečky
+
+Tlačítko **Odkazy** v horním panelu otevře samostatné okno / dialog pro správu odkazů konkrétní aktuálně vybrané herečky.
+
+#### Uložené odkazy nahoře
+
+V horní části dialogu budou zobrazené již uložené odkazy herečky jako kompaktní položky.
+
+Každá uložená položka bude obsahovat:
+- název / platformu odkazu,
+- vedle něj tlačítko **Editovat**,
+- ještě více vpravo tlačítko **×** pro smazání.
+
+Chování:
+- kliknutí na **název odkazu nesmí otevřít web v prohlížeči**,
+- kliknutí na název pouze zobrazí konkrétní uloženou URL adresu tohoto odkazu,
+- **Editovat** otevře menší editační dialog pro úpravu daného odkazu,
+- **×** otevře potvrzovací dialog typu „Chcete odkaz smazat?“ s volbou **Ano / Ne**,
+- samotné otevření webu se případně bude řešit jiným explicitním ovládacím prvkem, ne kliknutím na název.
+
+#### Přidání nových odkazů
+
+Pod uloženými odkazy bude tabulková / řádková část pro přidávání nových odkazů.
+
+Výchozí stav:
+- zobrazí se **10 prázdných řádků**,
+- každý řádek má vlevo pole **Zdroj / platforma**,
+- vpravo pole **Adresa / URL**.
+
+Pole **Zdroj / platforma**:
+- ve výchozím stavu používá režim **Automaticky**,
+- po zadání URL se aplikace pokusí podle adresy sama rozpoznat platformu / název odkazu, např. Facebook, Redgifs, Pornhub, Linktree apod.,
+- pole bude zároveň rozbalovací a uživatel může automaticky zjištěnou hodnotu ručně změnit,
+- seznam dostupných platforem se nebude definovat napevno v tomto dialogu,
+- bude se načítat z centrálního seznamu / katalogu spravovaného v jiné části aplikace; přesná správa tohoto seznamu bude specifikována později v sekci Odkazy.
+
+Pod řádky bude tlačítko **Přidat řádek**:
+- každé kliknutí přidá přesně **jeden** nový prázdný řádek,
+- nově přidaný řádek se chová stejně jako výchozích deset.
+
+Rozložení a základní vizuální logika mají vycházet z dodané reference současného Latflixu, ale nový dialog má být čistý a bez zbytečného vizuálního balastu.
+
 ---
 
 ## Pracovní pravidlo specifikace
