@@ -876,6 +876,18 @@ Vzhled popupu:
 
 Toto chování odpovídá již hotové funkci v předchozí verzi Latflixu ze dne **28. 8. 2026** a má být zachováno i v Latflixu 2.0.
 
+
+### Globální tabulkové chování – výběr a kopírování textu při editaci
+
+V aktivním textovém editoru buňky tabulky musí být možné:
+
+- myší označit libovolnou část textu,
+- označení musí fungovat standardním způsobem jako v běžném textovém poli,
+- označený text lze zkopírovat pomocí **Ctrl+C**,
+- kopíruje se pouze aktuálně označená část textu.
+
+Toto chování platí obecně pro editovatelné textové buňky v tabulkách napříč aplikací.
+
 ---
 
 ## Pracovní pravidlo specifikace
