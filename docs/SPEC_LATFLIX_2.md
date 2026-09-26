@@ -1054,6 +1054,18 @@ Požadované chování:
 - chování má být plynulé stejně jako již definované předání z textové editace do výběrové buňky,
 - pravidlo platí globálně pro všechny tabulky a všechny výběrové / dropdown buňky, pokud není u konkrétní sekce výslovně stanoveno jinak.
 
+
+### Výběrové buňky – bez viditelné šipky
+
+Výběrové / dropdown buňky v tabulkách nesmí v klidovém ani editačním stavu zobrazovat žádnou standardní rozbalovací šipku / indikátor comboboxu vpravo.
+
+Požadované chování:
+- buňka má vizuálně působit jako běžná tabulková buňka,
+- kliknutí stále otevře výběrovou nabídku podle stávajících pravidel,
+- funkce dropdownu se tím nemění, mění se pouze jeho vzhled,
+- žádný malý trojúhelník, šipka ani pravý comboboxový ovladač nesmí být vidět,
+- pravidlo platí globálně pro všechny výběrové / dropdown buňky ve všech tabulkách, pokud není u konkrétní sekce výslovně stanoveno jinak.
+
 ### Globální tabulkové chování – rychlé kopírování hlavního názvu ze zamčeného řádku
 
 U zamčených řádků bude dvojklik do hlavního textového sloupce sloužit jako rychlé kopírování hodnoty.
