@@ -546,6 +546,24 @@ Důležité architektonické pravidlo:
 - tato lišta se má implementovat jako **sdílená komponenta / sdílená logika**, nikoliv znovu zvlášť pro každou sekci,
 - sekce pouze dodá konfiguraci popisků, viditelnosti, pořadí a konkrétních akcí / filtrů.
 
+
+### Girls / Oblíbené – tlačítko Přidat
+
+První prvek v liště nad tabulkou je dělené tlačítko **Přidat**.
+
+Chování:
+- levá, větší část tlačítka přidá **jeden nový řádek**,
+- pravá, menší část obsahuje šipku a otevře malou nabídku,
+- nabídka obsahuje:
+  - **Přidat 5 řádků**
+  - **Přidat 10 řádků**
+
+Pravidla pro nové řádky:
+- nové řádky se vždy vloží **nahoru do tabulky**,
+- každý nově přidaný řádek bude při vytvoření vždy **odemčený**,
+- hromadné přidání 5 nebo 10 řádků se řídí stejnými pravidly jako přidání jednoho řádku,
+- přidané řádky se nesmějí automaticky přesunout dolů kvůli třídění dřív, než uživatel dokončí jejich zadání; přesné chování při aktivním třídění bude případně ještě upřesněno.
+
 ---
 
 ## Pracovní pravidlo specifikace
