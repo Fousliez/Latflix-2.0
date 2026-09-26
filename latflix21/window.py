@@ -432,8 +432,8 @@ class TablePage(BasePage):
                 )
 
     def _apply_widths(self):
-        self.table.setColumnWidth(0, 34)
-        self.table.setColumnWidth(1, 44)
+        self.table.setColumnWidth(0, 42)
+        self.table.setColumnWidth(1, 42)
         for index, col in enumerate(self.model.columns, start=2):
             self.table.setColumnWidth(index, col.width)
 
@@ -450,7 +450,6 @@ class TablePage(BasePage):
     def refresh(self):
         self.model.reload()
         self.proxy.invalidate()
-        self._apply_widths()
 
     def status_info(self):
         return (f"Počet záznamů: {self.proxy.rowCount()}", "")
