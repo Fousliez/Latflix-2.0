@@ -461,7 +461,10 @@ Pod uloženými odkazy bude tabulková / řádková část pro přidávání nov
 Výchozí stav:
 - zobrazí se **10 prázdných řádků**,
 - každý řádek má vlevo pole **Zdroj / platforma**,
-- vpravo pole **Adresa / URL**.
+- vpravo pole **Adresa / URL**,
+- svislé rozestupy mezi jednotlivými řádky mají být **malé a kompaktní**; mezi řádky má zůstat jen drobná mezera,
+- mezera nesmí být přibližně stejně vysoká jako samotný řádek ani vytvářet zbytečně vzdušné rozložení,
+- současně se řádky nesmí slepit úplně bez odstupu; výsledkem má být čitelné, ale úsporné rozložení.
 
 Pole **Zdroj / platforma**:
 - ve výchozím stavu používá režim **Automaticky**,
