@@ -12,7 +12,7 @@ from PySide6.QtGui import (
 )
 from PySide6.QtWidgets import (
     QApplication, QAbstractItemDelegate, QAbstractItemView, QComboBox, QCompleter,
-    QDialog, QDialogButtonBox, QGridLayout, QHBoxLayout, QHeaderView, QLabel,
+    QDialog, QDialogButtonBox, QFrame, QGridLayout, QHBoxLayout, QHeaderView, QLabel,
     QLineEdit, QListWidget, QListWidgetItem, QMenu, QPushButton, QRubberBand, QScrollArea,
     QSizePolicy, QStyledItemDelegate, QTableView, QTextEdit, QToolTip, QVBoxLayout,
     QWidget,
