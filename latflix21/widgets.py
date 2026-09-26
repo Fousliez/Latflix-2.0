@@ -179,6 +179,11 @@ class DataTableView(QTableView):
         if section == 0:
             self.header_locked = not self.header_locked
             self._apply_header_lock()
+            model = self.model()
+            source_model = model.sourceModel() if isinstance(model, SmartProxy) else model
+            if hasattr(source_model, "header_unlocked"):
+                source_model.header_unlocked = not self.header_locked
+                source_model.headerDataChanged.emit(Qt.Horizontal, 0, 0)
             return
 
     def _context_menu(self, pos):
