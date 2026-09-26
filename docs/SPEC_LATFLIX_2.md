@@ -1333,6 +1333,16 @@ Vzhled standardních našeptávačů:
 
 Tabulky v ostatních datových sekcích budou vycházet ze stejného společného základu jako **Girls / Oblíbené**.
 
+#### Globální pole Hledání
+- pole **Hledání** funguje ve všech tabulkových sekcích stejným způsobem,
+- vždy jde o průběžný **fulltextový filtr aktuální sekce / aktuální tabulky**,
+- prohledává všechny běžné datové buňky všech řádků dané tabulky,
+- řádek zůstane zobrazený, pokud hledaný text obsahuje alespoň jedna jeho prohledávaná buňka,
+- porovnání je **case-insensitive**,
+- Hledání samo o sobě nemá našeptávač ani automatické doplňování,
+- hledání nikdy neprohledává jinou sekci ani globálně celou databázi,
+- případné sekční filtry se s fulltextovým hledáním kombinují podle pravidel dané sekce.
+
 Společná bude zejména:
 - logika výběru řádků,
 - zámky řádků,
