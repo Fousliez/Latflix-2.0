@@ -21,13 +21,13 @@ def make_valid_video(r: Repository, girl_ids, studio_id=None, title="Video"):
 def test_alias_autocomplete_returns_only_matching_name_or_alias(tmp_path):
     r = repo(tmp_path)
     girl_id = r.add_girl("Sona")
-    r.set_aliases(girl_id, ["Tereza", "Sonicka"])
+    r.set_aliases(girl_id, ["Tereza", "SonaX"])
 
     sona = [name for name, _, _ in r.girl_suggestions("sona")]
     tereza = [name for name, _, _ in r.girl_suggestions("tereza")]
 
     assert "Sona" in sona
-    assert "Sonicka" in sona
+    assert "SonaX" in sona
     assert "Tereza" not in sona
     assert tereza == ["Tereza"]
     assert r.find_girl_exact("Tereza")[0] == girl_id
