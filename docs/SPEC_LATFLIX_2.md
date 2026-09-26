@@ -1136,6 +1136,11 @@ Dole zůstanou pouze:
 - **Zrušit**
 - **Uložit**
 
+Další pravidla popupu Tagy:
+- popup **nesmí mít samostatný křížek X pro zavření**; zavírání se řeší přes tlačítka **Zrušit** a **Uložit** nebo přes definované plynulé předání do jiné buňky,
+- popup se z neaktivního stavu otevře **jediným kliknutím** do odemčené buňky Tagy; nesmí být potřeba dvojklik,
+- Tagy se tím řadí mezi interaktivní buňky, které se aktivují na první klik, nikoliv mezi běžné textové buňky otevírané dvojklikem.
+
 ### Girls / Oblíbené – sloupce Sledování, Posl. kontrola a Pozn.
 
 #### Sledování
