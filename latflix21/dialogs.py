@@ -229,6 +229,9 @@ class VideoDetailDialog(QDialog):
         self.mixed.setCurrentText(video.mixed_gender if video else "")
         form.addRow("M+Ž", self.mixed)
 
+        self.rating = QLineEdit(video.rating if video else "")
+        form.addRow("Hodnocení", self.rating)
+
         self.note = QTextEdit(video.note if video else "")
         self.note.setMaximumHeight(90)
         form.addRow("Poznámka", self.note)
@@ -331,6 +334,7 @@ class VideoDetailDialog(QDialog):
             "size": self.size.text(),
             "duration": self.duration.text(),
             "mixed_gender": self.mixed.currentText(),
+            "rating": self.rating.text(),
             "note": self.note.toPlainText(),
         }
         for key, value in values.items():
