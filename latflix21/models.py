@@ -231,7 +231,7 @@ class GirlsModel(BaseModel):
 
 
 STUDIO_COLS = (
-    Col("name", "Název", width=220, primary_text=True),
+    Col("name", "Název", width=220),
     Col("type_name", "Typ", width=170),
     Col("url", "Odkaz", width=320),
     Col("occurrences", "Počet výskytů", "computed", 120, read_only=True),
@@ -394,6 +394,15 @@ class LinksModel(BaseModel):
     def set_locked(self, row_id, value):
         self.repo.set_link_locked(row_id, value)
 
+    def search_blob(self, row):
+        link = self.rows[row]
+        text = super().search_blob(row)
+        if link.girl_id:
+            girl = self.repo.girl(link.girl_id)
+            if girl:
+                text += " " + " ".join((girl.name, *girl.aliases))
+        return text
+
     def set_value(self, record: Link, col, value):
         if col.key == "type_name":
             text = value.strip()
@@ -436,9 +445,9 @@ class CatalogModel(BaseModel):
         self.kind = kind
         self.with_color = with_color
         self.columns = (
-            (Col("name", "Název", width=260, primary_text=True), Col("color", "Barva", width=150))
+            (Col("name", "Název", width=260), Col("color", "Barva", kind="color", width=150))
             if with_color
-            else (Col("name", "Název", width=280, primary_text=True),)
+            else (Col("name", "Název", width=280),)
         )
         super().__init__(repo)
 
@@ -447,6 +456,14 @@ class CatalogModel(BaseModel):
 
     def set_locked(self, row_id, value):
         self.repo.set_catalog_locked(row_id, value)
+
+    def extra_data(self, record: CatalogRow, col, index, role):
+        if self.with_color and col.key == "color" and role == Qt.BackgroundRole:
+            try:
+                return QColor(record.color)
+            except Exception:
+                return None
+        return None
 
     def set_value(self, record: CatalogRow, col, value):
         if col.key == "name":
