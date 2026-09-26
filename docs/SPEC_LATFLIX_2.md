@@ -847,13 +847,13 @@ Při editaci řádku, zejména pole **Jméno**, platí:
 - kurzor zůstane aktivní v daném editačním poli na konci vloženého jména,
 - uživatel může bez dalšího klikání pokračovat v editaci.
 
-Pokud uživatel během editace klikne myší do jiného řádku:
-- aktuálně editovaný řádek se nejprve uloží / potvrdí,
-- jeho editační režim se ukončí,
-- nový řádek se pouze stane aktivním / vybraným,
-- samotné kliknutí myší do jiného řádku **nespouští automaticky editační režim nového řádku**.
+Pokud uživatel během textové editace klikne myší do jiné buňky:
+- aktuálně editovaná hodnota se nejprve uloží / potvrdí,
+- další chování se řídí globálním pravidlem **plynulého předávání editačního režimu mezi buňkami**,
+- pokud je cílová buňka odemčená a editovatelná, její editor / výběrový prvek se aktivuje okamžitě jediným kliknutím,
+- pokud je cílová buňka zamčená nebo needitovatelná, stávající editace se pouze ukončí.
 
-Automatické otevření následujícího řádku v editačním režimu zůstává vyhrazené pro potvrzení klávesou **Enter**.
+Automatický přechod na **následující řádek** zůstává vyhrazený pro potvrzení klávesou **Enter**.
 
 
 ### Girls / Oblíbené – našeptávač v poli Hledání
@@ -1006,7 +1006,7 @@ Toto pravidlo je výjimkou z běžného chování „jedno kliknutí = pouze ozn
 
 ### Globální tabulkové chování – rychlé kopírování hlavního názvu ze zamčeného řádku
 
-U zamčených řádků bude jedno kliknutí do hlavního textového sloupce sloužit jako rychlé kopírování hodnoty.
+U zamčených řádků bude dvojklik do hlavního textového sloupce sloužit jako rychlé kopírování hodnoty.
 
 Platí zejména pro:
 - **Girls / Oblíbené** → sloupec **Jméno**,
