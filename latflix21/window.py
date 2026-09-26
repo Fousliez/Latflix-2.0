@@ -212,6 +212,10 @@ class OverviewPage(BasePage):
             form.addRow("Počet dívek:", QLabel(str(len(favorites))))
             form.addRow("Průměrný věk:", QLabel(average_age(favorites)))
             form.addRow("Nejčastější národnosti:", QLabel(nationalities(favorites)))
+            form.addRow(
+                "Ohodnoceno:",
+                QLabel(str(sum(1 for girl in favorites if girl.rating.strip()))),
+            )
         elif name == "Videa":
             counts = Counter()
             for video in videos:
@@ -225,6 +229,10 @@ class OverviewPage(BasePage):
                     f"{i + 1}. {girl} ({count}×)"
                     for i, (girl, count) in enumerate(top)
                 ) or "—"),
+            )
+            form.addRow(
+                "Ohodnoceno:",
+                QLabel(str(sum(1 for video in videos if video.rating.strip()))),
             )
         elif name == "SUPER":
             studios_count = Counter(v.studio_name for v in super_videos if v.studio_name)
@@ -243,6 +251,10 @@ class OverviewPage(BasePage):
                     f"{i + 1}. {girl} ({count}×)"
                     for i, (girl, count) in enumerate(girls_count.most_common(3))
                 ) or "—"),
+            )
+            form.addRow(
+                "Ohodnoceno:",
+                QLabel(str(sum(1 for video in super_videos if video.rating.strip()))),
             )
         elif name == "Studia":
             used = [studio for studio in studios if studio.occurrences > 0]
