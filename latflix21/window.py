@@ -1526,6 +1526,10 @@ class LinksPage(TablePage):
         self._chip_selected.clear()
         self.external_girl_filter = None
         self.active_filter_label.hide()
+        self.category = "Vše"
+        self.chip_page = 0
+        for tab_name, button in self.tabs.items():
+            button.setChecked(tab_name == "Vše")
         self.proxy.clear_filters()
         self._refresh_chips()
         self._apply_filters()
