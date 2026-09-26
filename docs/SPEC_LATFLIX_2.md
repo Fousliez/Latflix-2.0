@@ -577,6 +577,27 @@ Toto pravidlo platí **napříč celou aplikací** ve všech tabulkových sekcí
 - jakmile uživatel do řádku zadá jakoukoli skutečnou hodnotu, řádek se nepovažuje za zcela prázdný a nesmí být tímto pravidlem smazán,
 - pravidlo je společné pro všechny sekce s tabulkami a nemá se implementovat zvlášť pro každou sekci.
 
+
+### Girls / Oblíbené – nové řádky jsou skutečně prázdné
+
+Upřesnění tlačítka **Přidat**:
+- po vytvoření je nový řádek **zcela prázdný**,
+- žádný sloupec nesmí mít automaticky předvyplněnou hodnotu,
+- jediný automatický stav nového řádku je, že je **odemčený**,
+- toto pravidlo platí stejně pro přidání 1, 5 i 10 řádků.
+
+### Girls / Oblíbené – tlačítko Smazat
+
+Druhé tlačítko v liště nad tabulkou je **Smazat**.
+
+Chování:
+- pokud je označen jeden odemčený řádek, tlačítko vyvolá potvrzovací dialog a po potvrzení řádek smaže,
+- pokud je označeno více odemčených řádků, tlačítko vyvolá potvrzovací dialog a po potvrzení smaže všechny označené řádky,
+- potvrzení je povinné vždy, bez ohledu na počet označených řádků,
+- zamčený řádek **nelze smazat**,
+- pokud výběr obsahuje zamčené řádky, tyto řádky se nesmějí odstranit,
+- přesné znění potvrzovacího dialogu může později uvádět počet řádků, které budou skutečně smazány.
+
 ---
 
 ## Pracovní pravidlo specifikace
