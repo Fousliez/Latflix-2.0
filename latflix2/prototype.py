@@ -185,13 +185,21 @@ class GirlTable(QTableWidget):
         self.setEditTriggers(QAbstractItemView.NoEditTriggers); self.setSortingEnabled(True)
         self.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive); self.horizontalHeader().setSectionsMovable(False)
         self.header_locked=True; self.horizontalHeader().sectionClicked.connect(self.header_click)
-        self.cellDoubleClicked.connect(self.double); self.editor=None; self.erow=self.ecol=-1; self.suggestions=[]
+        self.cellDoubleClicked.connect(self.double); self.horizontalHeader().sortIndicatorChanged.connect(lambda *_:QTimer.singleShot(0,self.restyle)); self.editor=None; self.erow=self.ecol=-1; self.suggestions=[]
     def header_click(self,col):
         if col==0:
             self.header_locked=not self.header_locked
             self.horizontalHeaderItem(0).setText("🔒" if self.header_locked else "🔓")
             self.horizontalHeader().setSectionsMovable(not self.header_locked)
     def locked(self,row): return bool(self.item(row,0).data(Qt.UserRole+1))
+    def restyle(self):
+        for r in range(self.rowCount()):
+            n=self.item(r,1)
+            if n:n.setText(str(r+1))
+            base=QColor("#edf6ff" if r%2==0 else "#effbef")
+            for col in range(2,self.columnCount()):
+                it=self.item(r,col)
+                if it:it.setBackground(base)
     def double(self,row,col):
         if col<2:return
         name=COLS[col-2]
@@ -262,7 +270,15 @@ class LinksDialog(QDialog):
             w=QWidget(self); h=QHBoxLayout(w); h.setContentsMargins(0,0,0,0)
             name=QPushButton(l["site"],w); name.clicked.connect(lambda _,u=l["url"]:QMessageBox.information(self,"Adresa",u))
             delete=QPushButton("×",w); delete.setFixedWidth(30); delete.clicked.connect(lambda _,i=l["id"]:self.remove(i))
-            h.addWidget(name,1); h.addWidget(delete); self.saved.addWidget(w)
+            edit=QPushButton("Editovat",w); edit.clicked.connect(lambda _,l=dict(l):self.edit_link(l))
+            h.addWidget(name,1); h.addWidget(edit); h.addWidget(delete); self.saved.addWidget(w)
+    def edit_link(self,l):
+        d=QDialog(self);d.setWindowTitle("Editovat odkaz");f=QFormLayout(d)
+        site=self.combo();site.setCurrentText(l["site"]);url=QLineEdit(l["url"],d);f.addRow("Zdroj",site);f.addRow("URL",url)
+        bb=QDialogButtonBox(QDialogButtonBox.Save|QDialogButtonBox.Cancel,d);bb.accepted.connect(d.accept);bb.rejected.connect(d.reject);f.addRow(bb)
+        if d.exec()==QDialog.Accepted:
+            with self.store.db() as con:con.execute("UPDATE links SET site=?,url=? WHERE id=?",(s(site.currentText()),s(url.text()),l["id"]))
+            self.refresh()
     def remove(self,lid):
         if QMessageBox.question(self,"Smazat","Chcete odkaz smazat?",QMessageBox.Yes|QMessageBox.No)==QMessageBox.Yes:self.store.del_link(lid);self.refresh()
     def addrow(self):
@@ -395,8 +411,12 @@ class MainWindow(QMainWindow):
                 it=QTableWidgetItem(str(v));it.setData(Qt.UserRole,g["id"])
                 if n=="Věk":it.setData(Qt.UserRole+2,g["age_source"])
                 it.setBackground(QColor("#edf6ff" if r%2==0 else "#effbef"));self.table.setItem(r,c,it)
-        self.table.setSortingEnabled(True);self.table.setColumnWidth(0,42);self.table.setColumnWidth(1,42);self.table.setColumnWidth(2,190)
-        target=next((r for r,g in enumerate(self.visible) if g["id"]==preserve),0 if self.visible else None)
+        self.table.setSortingEnabled(True);self.table.setColumnWidth(0,42);self.table.setColumnWidth(1,42);self.table.setColumnWidth(2,190);self.table.restyle()
+        target=None
+        if preserve:
+            for rr in range(self.table.rowCount()):
+                if self.table.item(rr,0) and self.table.item(rr,0).data(Qt.UserRole)==preserve:target=rr;break
+        if target is None and self.table.rowCount():target=0
         if target is not None:self.table.selectRow(target)
     def selected_rows(self):
         ids=[]
@@ -447,26 +467,36 @@ class MainWindow(QMainWindow):
     def delete(self):
         gs=[g for g in self.selected_rows() if not g["locked"]]
         if gs and QMessageBox.question(self,"Smazat",f"Smazat {len(gs)} řádků?",QMessageBox.Yes|QMessageBox.No)==QMessageBox.Yes:self.store.delete([g["id"] for g in gs]);self.reload()
+    def girl_at(self,r):
+        it=self.table.item(r,0) if 0<=r<self.table.rowCount() else None
+        return self.store.girl(it.data(Qt.UserRole)) if it else None
     def cellclick(self,r,c):
-        if c==0 and r<len(self.visible):
-            g=self.visible[r];self.store.set(g["id"],"locked",0 if g["locked"] else 1);self.reload(g["id"])
+        if c==0:
+            g=self.girl_at(r)
+            if g:self.store.set(g["id"],"locked",0 if g["locked"] else 1);self.reload(g["id"])
     def commit(self,r,c,v):
-        if r>=len(self.visible):return
-        g=self.visible[r];field={"Jméno":"name","Věk":"age_source","Posl. kontrola":"last_check"}.get(COLS[c-2])
+        g=self.girl_at(r)
+        if not g:return
+        field={"Jméno":"name","Věk":"age_source","Posl. kontrola":"last_check"}.get(COLS[c-2])
         if field:self.store.set(g["id"],field,v);g[field]=v;self.current=g["id"];self.show(g)
     def selector(self,r,c):
-        if r>=len(self.visible):return
-        g=self.visible[r];n=COLS[c-2];opts={"Obličej":FACE,"Sex":YES,"Typ":self.store.names("type"),"Nahota":YES,"Národnost":self.store.names("nationality"),"Stav":STATUS}[n]
+        g=self.girl_at(r)
+        if not g:return
+        n=COLS[c-2];opts={"Obličej":FACE,"Sex":YES,"Typ":self.store.names("type"),"Nahota":YES,"Národnost":self.store.names("nationality"),"Stav":STATUS}[n]
         m=QMenu(self)
         for v in opts:m.addAction(v,lambda _,x=v,nn=n,gid=g["id"]:self.selset(gid,nn,x))
         m.exec(self.table.viewport().mapToGlobal(self.table.visualItemRect(self.table.item(r,c)).bottomLeft()))
     def selset(self,gid,n,v):
         self.store.set(gid,{"Obličej":"face","Sex":"sex","Typ":"typ","Nahota":"nahota","Národnost":"nationality","Stav":"status"}[n],v);self.reload(gid)
     def tags(self,r,c):
-        g=self.visible[r];d=TagsDialog(self.store,json.loads(g["tags"] or "[]"),self)
+        g=self.girl_at(r)
+        if not g:return
+        d=TagsDialog(self.store,json.loads(g["tags"] or "[]"),self)
         if d.exec()==QDialog.Accepted:self.store.set(g["id"],"tags",json.dumps(d.values(),ensure_ascii=False));self.reload(g["id"])
     def note(self,r,c):
-        g=self.visible[r];d=QDialog(self);d.setWindowTitle("Poznámka");v=QVBoxLayout(d);e=QTextEdit(d);e.setPlainText(g["note"]);v.addWidget(e);bb=QDialogButtonBox(QDialogButtonBox.Save|QDialogButtonBox.Cancel,d);bb.accepted.connect(d.accept);bb.rejected.connect(d.reject);v.addWidget(bb)
+        g=self.girl_at(r)
+        if not g:return
+        d=QDialog(self);d.setWindowTitle("Poznámka");v=QVBoxLayout(d);e=QTextEdit(d);e.setPlainText(g["note"]);v.addWidget(e);bb=QDialogButtonBox(QDialogButtonBox.Save|QDialogButtonBox.Cancel,d);bb.accepted.connect(d.accept);bb.rejected.connect(d.reject);v.addWidget(bb)
         if d.exec()==QDialog.Accepted:self.store.set(g["id"],"note",e.toPlainText());self.reload(g["id"])
     def copy(self,r,c):QApplication.clipboard().setText(self.table.item(r,c).text());self.statusBar().showMessage("Zkopírováno",1200)
     def bulkfav(self,val):
