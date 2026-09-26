@@ -939,6 +939,8 @@ class VideosPage(TablePage):
         )
         self.search = SearchBox()
         self.studio_filter = QComboBox()
+        self.studio_filter.setMaxVisibleItems(15)
+        self.studio_filter.view().setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.state_filter = QComboBox()
         self.quality_filter = QComboBox()
 
