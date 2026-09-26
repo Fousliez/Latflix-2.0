@@ -896,6 +896,25 @@ class Repository:
         with self.connect() as c:
             c.execute("DELETE FROM lf21_link_types WHERE id=?", (type_id,))
 
+    def merge_link_types(self, target_id: int, source_ids: Iterable[int]) -> None:
+        sources = [
+            int(value)
+            for value in dict.fromkeys(int(x) for x in source_ids)
+            if int(value) != int(target_id)
+        ]
+        if not sources:
+            return
+        placeholders = ",".join("?" * len(sources))
+        with self.connect() as c:
+            c.execute(
+                f"UPDATE lf21_links SET type_id=? WHERE type_id IN ({placeholders})",
+                (int(target_id), *sources),
+            )
+            c.execute(
+                f"DELETE FROM lf21_link_types WHERE id IN ({placeholders})",
+                tuple(sources),
+            )
+
     def links(self) -> list[Link]:
         with self.connect() as c:
             rows = c.execute(
