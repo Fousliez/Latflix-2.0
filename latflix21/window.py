@@ -686,8 +686,7 @@ class GirlsPage(TablePage):
         self.photo.deleteRequested.connect(self._delete_photo)
 
     def _build_toolbar(self):
-        self.add = QPushButton("Přidat")
-        self.add.setFixedHeight(BUTTON_H)
+        self.add = SplitAddButton()
         self.delete = QPushButton("Smazat")
         self.bulk = QPushButton("Hromadné akce")
         self.search = SearchBox()
