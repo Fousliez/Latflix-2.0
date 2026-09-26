@@ -381,6 +381,18 @@ Pro tabulku **Videa / Super** platí následující základní chování datový
 
 Všechny editovatelné textové sloupce se aktivují jedním kliknutím podle globálního pravidla. Výběrové sloupce se rovněž otevírají jedním kliknutím podle globální logiky výběrových buněk.
 
+
+#### Stav = NECHCI
+Pokud je ve sloupci **Stav** zvolena hodnota **NECHCI**:
+
+- buňka **Stav** v daném řádku se zvýrazní **červeně**,
+- stejným červeným zvýrazněním se označí také buňka **čísla řádku** vedle zámku v témže řádku,
+- buňky **Kvalita**, **Dostup. kvalita** a **Velikost** se v tomto řádku **zašednou**,
+- tyto tři buňky se současně stanou **neaktivními / needitovatelnými**,
+- jejich neaktivní vzhled musí být zřetelný a nesmí být zaměnitelný s běžně editovatelnou buňkou,
+- jakmile se Stav změní z **NECHCI** na jinou hodnotu, uvedené tři buňky se znovu aktivují a vrátí se ke svému běžnému vzhledu; červené zvýraznění Stavu a čísla řádku se rovněž odstraní.
+
+
 ### Videa / Super – více účinkujících hereček než viditelných sloupců
 
 Video může mít výrazně více účinkujících hereček, než kolik bude praktické zobrazovat jako samostatné sloupce přímo v tabulce.
@@ -662,6 +674,16 @@ Příklad: pokud má jedna herečka dvě adresy Facebooku, pro globální pořad
 - výška horního panelu zůstává pevná; odkazy nesmějí panel roztahovat,
 - vzhled má odpovídat modrým odkazovým obdélníkům z referenčních screenshotů současného Latflixu.
 
+
+### Videa / Super – tlačítko Detail v horním panelu
+
+Vpravo nahoře v horním panelu sekcí **Videa / Super** bude tlačítko **Detail**.
+
+- tlačítko otevře detail aktuálně označeného videozáznamu,
+- v detailu bude možné editovat údaje konkrétního videa,
+- detail bude zároveň místem pro správu všech účinkujících hereček daného videa,
+- přes Detail lze k videu přidat i více hereček, než kolik je právě viditelných ve sloupcích **Dívka 1 / Dívka 2 / Dívka 3**,
+- všechny takto přidané herečky zůstávají součástí stejného společného seznamu účinkujících a platí pro ně již definované počítání výskytů, filtrování, hledání a dynamické pořadí viditelných hereček v tabulce.
 
 ### Modré prvky v horním panelu Videa / Super
 
