@@ -359,7 +359,7 @@ class TablePage(BasePage):
         self.top.setFixedHeight(TOP_PANEL_H)
         self.top.setStyleSheet(
             "QFrame{background:white;border:1px solid #c5c5c5;border-radius:5px;}"
-            "QLabel,QPushButton{background:transparent;}"
+            "QLabel{background:transparent;}"
         )
         self.outer.addWidget(self.top)
 
