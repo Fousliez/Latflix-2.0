@@ -1142,9 +1142,11 @@ Další pravidla popupu Tagy:
 - při přechodu z jiné právě aktivní editovatelné / výběrové buňky do buňky Tagy se popup Tagy otevře okamžitě tím samým kliknutím,
 - předání je ale **jednosměrné**: jakmile je popup Tagy otevřený, nelze kliknutím přejít do jiné buňky ani spustit jiný editor / dropdown,
 - dokud je popup Tagy otevřený, uživatel musí nejdřív zvolit **Uložit** nebo **Zrušit**,
-- **Uložit** potvrdí právě připravený / předznačený výběr tagů a zavře popup,
+- **Uložit** potvrdí právě připravený výběr tagů a zavře popup,
 - **Zrušit** zahodí změny provedené od otevření popupu a zavře popup,
-- klávesa **Enter** v popupu Tagy funguje jako **Uložit**: potvrdí právě připravený / předznačený výběr a popup zavře,
+- při otevření popupu je jako výchozí / předznačená akce **Uložit**,
+- klávesami **šipka vlevo / vpravo** lze předznačení přepínat mezi **Uložit** a **Zrušit**,
+- klávesa **Enter** provede právě předznačenou akci; při výchozím stavu tedy **Uložit**,
 - Tagy se tím řadí mezi interaktivní buňky, které se aktivují na první klik, ale jejich otevřený popup je modální vůči zbytku tabulky do potvrzení nebo zrušení.
 
 ### Girls / Oblíbené – sloupce Sledování, Posl. kontrola a Pozn.
