@@ -25,6 +25,7 @@ class GirlTableModel(QAbstractTableModel):
         self.category = "Girls"
         self.records: list[GirlRecord] = []
         self.title_overrides: dict[str, str] = {}
+        self.header_locked = True
 
     def set_records(self, records: tuple[GirlRecord, ...] | list[GirlRecord], category: str) -> None:
         self.beginResetModel()
@@ -128,7 +129,7 @@ class GirlTableModel(QAbstractTableModel):
         if orientation == Qt.Vertical:
             return None
         if section == 0:
-            return "🔒"
+            return "🔒" if self.header_locked else "🔓"
         if section == 1:
             return "#"
         spec = self.column_spec(section)
