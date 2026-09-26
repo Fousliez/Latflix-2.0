@@ -995,6 +995,21 @@ class Repository:
         with self.connect() as c:
             c.execute("DELETE FROM lf21_link_types WHERE id=?", (int(type_id),))
 
+    def merge_link_types(self, target_id: int, source_ids: Sequence[int]) -> None:
+        sources = [int(x) for x in source_ids if int(x) != int(target_id)]
+        if not sources:
+            return
+        placeholders = ",".join("?" for _ in sources)
+        with self.connect() as c:
+            c.execute(
+                f"UPDATE lf21_links SET type_id=? WHERE type_id IN ({placeholders})",
+                (int(target_id), *sources),
+            )
+            c.execute(
+                f"DELETE FROM lf21_link_types WHERE id IN ({placeholders})",
+                sources,
+            )
+
     # ---------- links ----------
 
     def links(self) -> list[Link]:
@@ -1033,6 +1048,9 @@ class Repository:
 
     def link(self, link_id: int) -> Link | None:
         return next((link for link in self.links() if link.id == int(link_id)), None)
+
+    def links_for_girl(self, girl_id: int) -> list[Link]:
+        return [link for link in self.links() if link.girl_id == int(girl_id)]
 
     def detect_link_type(self, url: str) -> int | None:
         low = url.casefold()
