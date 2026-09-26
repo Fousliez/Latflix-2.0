@@ -598,9 +598,15 @@ Obsah modrých prvků:
 - položky, které se do tří řádků nevejdou, zůstanou v horním panelu **skryté**.
 
 #### Kliknutí na modrý prvek = filtr tabulky
-- kliknutí na modrý prvek okamžitě vyfiltruje **aktuální tabulku** pouze na řádky odpovídající dané položce,
+- běžné kliknutí na modrý prvek okamžitě vyfiltruje **aktuální tabulku** pouze na řádky odpovídající dané položce,
+- pokud už byl aktivní jiný modrý prvek a uživatel bez modifikátoru klikne na nový, původní výběr / filtr se zruší a nahradí jej nový,
 - při režimu **Studia** se po kliknutí zobrazí pouze videořádky, které mají ve sloupci **Studio** zvolené studio,
 - při režimu **Herečky** se po kliknutí zobrazí pouze videořádky, ve kterých je daná herečka uvedená jako účinkující; toto platí i pokud bude video podporovat více sloupců / pozic pro účinkující herečky,
+- při použití **Ctrl nebo Shift** lze současně označit více modrých prvků,
+- při více označených prvcích se výsledky kombinují logikou **NEBO (OR)**: zobrazí se všechny videořádky odpovídající alespoň jedné z označených položek,
+- příklad: označená studia **Vixen** a **StasyQ** zobrazí videa studia Vixen **i** videa studia StasyQ,
+- stejná vícenásobná filtrační logika platí pro režim **Herečky**,
+- všechny současně vybrané modré prvky musí zůstat vizuálně rozpoznatelně označené,
 - ve **Videa** se filtr aplikuje na tabulku Videa,
 - v **Super** se filtr aplikuje pouze na aktuální podmnožinu Super, nikoliv na všechny záznamy Videa.
 
