@@ -796,6 +796,34 @@ Pro Latflix 2.0 platí výslovně:
 
 Screenshoty zde slouží pouze jako vizuální reference vzhledu, nikoliv jako závazná reference jejich pozice.
 
+
+### Girls / Oblíbené – pořadí a názvy sloupců tabulky
+
+Výchozí pořadí datových sloupců v sekcích **Girls / Oblíbené** bude:
+
+1. **Jméno**
+2. **Obličej**
+3. **Sex**
+4. **Typ**
+5. **Nahota**
+6. **Věk**
+7. **Národnost**
+8. **Tagy**
+9. **Sledování**
+10. **Posl. kontrola**
+11. **Počet výskytů**
+12. **Pozn.**
+13. **Stav**
+
+Toto pořadí se týká datových sloupců; systémové sloupce pro zámek a číslo řádku zůstávají vlevo podle globálních pravidel tabulky.
+
+Po odemknutí záhlaví:
+- sloupce lze přesouvat tažením,
+- sloupce lze přejmenovat,
+- změny pořadí a názvů se mají pamatovat podle obecných pravidel konfigurace tabulky.
+
+Výchozí názvy a pořadí uvedené výše slouží jako počáteční stav nové instalace / resetu rozložení.
+
 ---
 
 ## Pracovní pravidlo specifikace
