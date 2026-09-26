@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import Callable
 
-from PySide6.QtCore import QEvent, QModelIndex, QTimer, Qt, Signal, QStringListModel
+from PySide6.QtCore import QEvent, QModelIndex, QPoint, QSettings, QTimer, Qt, Signal, QStringListModel
 from PySide6.QtWidgets import (
     QAbstractItemView, QComboBox, QCompleter, QDialog, QDialogButtonBox, QHBoxLayout,
-    QLineEdit, QMenu, QPushButton, QStyledItemDelegate, QTableView, QTextEdit,
-    QVBoxLayout, QWidget,
+    QInputDialog, QLineEdit, QMenu, QMessageBox, QPushButton, QStyledItemDelegate,
+    QTableView, QTextEdit, QToolTip, QVBoxLayout, QWidget, QHeaderView,
 )
 
 from .models import SmartProxy
@@ -127,26 +127,143 @@ class DataTableView(QTableView):
     noteRequested = Signal(QModelIndex)
     webRequested = Signal(QModelIndex)
     tagRequested = Signal(QModelIndex)
+    headerLayoutChanged = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, section_name: str = "", parent=None):
         super().__init__(parent)
+        self.section_name = section_name or "table"
+        self.header_locked = True
+        self._settings = QSettings("Latflix", "Latflix 2.1")
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.setAlternatingRowColors(True)
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.verticalHeader().setVisible(False)
-        self.horizontalHeader().setSectionsMovable(True)
         self.horizontalHeader().setSortIndicatorShown(False)
         self.setWordWrap(False)
+        self.setMouseTracking(True)
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self._context_menu)
+        self.horizontalHeader().sectionClicked.connect(self._header_clicked)
+        self.horizontalHeader().sectionMoved.connect(lambda *_: self._save_layout())
+        self.horizontalHeader().sectionResized.connect(lambda *_: self._save_layout())
         self.setStyleSheet(
             "QTableView{alternate-background-color:#f3f3f3;background:white;"
             "gridline-color:#d9d9d9;outline:0;}"
-            "QTableView::item:selected{background:#b8d7f5;color:#111;outline:0;}"
+            "QTableView::item:selected{background:transparent;color:#111;outline:0;}"
             "QHeaderView::section{background:#f5f5f5;border:0;"
             "border-right:1px solid #d6d6d6;border-bottom:1px solid #c8c8c8;padding:4px;}"
         )
         self.clicked.connect(self._single_click)
         self.doubleClicked.connect(self._double_click)
+        self.horizontalHeader().setContextMenuPolicy(Qt.CustomContextMenu)
+        self.horizontalHeader().customContextMenuRequested.connect(self.headerContextMenu)
+        self._apply_header_lock()
+
+    def setModel(self, model):
+        super().setModel(model)
+        QTimer.singleShot(0, self.restore_layout)
+
+    def _settings_prefix(self):
+        return f"tables/{self.section_name}"
+
+    def _apply_header_lock(self):
+        header = self.horizontalHeader()
+        header.setSectionsMovable(not self.header_locked)
+        header.setSectionResizeMode(
+            QHeaderView.Fixed if self.header_locked else QHeaderView.Interactive
+        )
+
+    def _header_clicked(self, section):
+        if section == 0:
+            self.header_locked = not self.header_locked
+            self._apply_header_lock()
+            return
+
+    def _context_menu(self, pos):
+        index = self.indexAt(pos)
+        if not index.isValid():
+            return
+        # Context menu for data cells is intentionally empty for now.
+        # Header menu is handled by headerContextMenu().
+        return
+
+    def headerContextMenu(self, pos: QPoint):
+        if self.header_locked:
+            return
+        header = self.horizontalHeader()
+        logical = header.logicalIndexAt(pos)
+        if logical < 2:
+            return
+        menu = QMenu(self)
+        rename = menu.addAction("Přejmenovat sloupec")
+        hide = menu.addAction("Skrýt sloupec")
+        action = menu.exec(header.mapToGlobal(pos))
+        if action == rename:
+            model = self.model()
+            source_model = model.sourceModel() if isinstance(model, SmartProxy) else model
+            current = str(source_model.headerData(logical, Qt.Horizontal, Qt.DisplayRole) or "")
+            text, ok = QInputDialog.getText(self, "Přejmenovat sloupec", "Název:", text=current)
+            if ok and text.strip():
+                key = source_model.col(logical).key
+                self._settings.setValue(f"{self._settings_prefix()}/title/{key}", text.strip())
+                if hasattr(source_model, "title_overrides"):
+                    source_model.title_overrides[key] = text.strip()
+                    source_model.headerDataChanged.emit(Qt.Horizontal, logical, logical)
+        elif action == hide:
+            self.setColumnHidden(logical, True)
+            self._save_layout()
+
+    def restore_hidden_columns_menu(self, parent_menu):
+        model = self.model()
+        source_model = model.sourceModel() if isinstance(model, SmartProxy) else model
+        submenu = parent_menu.addMenu(f"Sloupce – {self.section_name}")
+        for logical in range(2, source_model.columnCount()):
+            title = str(source_model.headerData(logical, Qt.Horizontal, Qt.DisplayRole) or "")
+            action = submenu.addAction(title)
+            action.setCheckable(True)
+            action.setChecked(not self.isColumnHidden(logical))
+            action.toggled.connect(
+                lambda visible, col=logical: (
+                    self.setColumnHidden(col, not visible),
+                    self._save_layout(),
+                )
+            )
+
+    def _save_layout(self):
+        if self.model() is None:
+            return
+        header = self.horizontalHeader()
+        prefix = self._settings_prefix()
+        self._settings.setValue(f"{prefix}/state", header.saveState())
+        hidden = [
+            str(i)
+            for i in range(self.model().columnCount())
+            if self.isColumnHidden(i)
+        ]
+        self._settings.setValue(f"{prefix}/hidden", ",".join(hidden))
+        self.headerLayoutChanged.emit()
+
+    def restore_layout(self):
+        if self.model() is None:
+            return
+        prefix = self._settings_prefix()
+        state = self._settings.value(f"{prefix}/state")
+        if state:
+            self.horizontalHeader().restoreState(state)
+        hidden_raw = str(self._settings.value(f"{prefix}/hidden", "") or "")
+        hidden = {int(x) for x in hidden_raw.split(",") if x.isdigit()}
+        for column in range(self.model().columnCount()):
+            self.setColumnHidden(column, column in hidden)
+        source_model = self.model().sourceModel() if isinstance(self.model(), SmartProxy) else self.model()
+        if hasattr(source_model, "title_overrides"):
+            for logical in range(2, source_model.columnCount()):
+                key = source_model.col(logical).key
+                title = self._settings.value(f"{prefix}/title/{key}")
+                if title:
+                    source_model.title_overrides[key] = str(title)
+        source_model.headerDataChanged.emit(Qt.Horizontal, 0, source_model.columnCount() - 1)
+        self._apply_header_lock()
 
     def source_col(self, index):
         model = self.model()
@@ -176,8 +293,16 @@ class DataTableView(QTableView):
 
     def _double_click(self, index):
         model, source, col = self.source_col(index)
-        if col and col.kind == "note" and (model.flags(source) & Qt.ItemIsEditable):
+        if not col:
+            return
+        if col.kind == "note" and (model.flags(source) & Qt.ItemIsEditable):
             self.noteRequested.emit(index)
+            return
+        if getattr(col, "primary", False) and model.locked(source.row()):
+            text = str(model.data(source, Qt.DisplayRole) or "")
+            if text:
+                QApplication.clipboard().setText(text)
+                QToolTip.showText(self.viewport().mapToGlobal(self.visualRect(index).center()), "Zkopírováno", self)
 
 
 class SplitAddButton(QWidget):
