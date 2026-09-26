@@ -2,15 +2,165 @@ from __future__ import annotations
 
 from typing import Callable
 
-from PySide6.QtCore import QEvent, QModelIndex, QPoint, QSettings, QTimer, Qt, Signal, QStringListModel
-from PySide6.QtGui import QColor, QPainter, QPen
+from PySide6.QtCore import QEvent, QModelIndex, QPoint, QRect, QSettings, QTimer, Qt, Signal, QStringListModel
+from PySide6.QtGui import QColor, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import (
-    QAbstractItemView, QComboBox, QCompleter, QDialog, QDialogButtonBox, QHBoxLayout,
+    QAbstractItemView, QApplication, QComboBox, QCompleter, QDialog, QDialogButtonBox, QHBoxLayout,
     QInputDialog, QLineEdit, QMenu, QMessageBox, QPushButton, QStyledItemDelegate,
     QTableView, QTextEdit, QToolButton, QToolTip, QVBoxLayout, QWidget, QHeaderView,
 )
 
 from .models import SmartProxy
+
+
+class PhotoLabel(QWidget):
+    clicked = Signal()
+    doubleClicked = Signal()
+    contextRequested = Signal(QPoint)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._pixmap = QPixmap()
+        self._text = "Bez foto"
+        self._single_click_pending = False
+        self.setCursor(Qt.PointingHandCursor)
+
+    def setPixmap(self, pixmap: QPixmap):
+        self._pixmap = QPixmap(pixmap)
+        self.update()
+
+    def setText(self, text: str):
+        self._text = str(text)
+        self.update()
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self._single_click_pending = True
+            delay = QApplication.doubleClickInterval() + 30
+            QTimer.singleShot(delay, self._emit_single_if_pending)
+        elif event.button() == Qt.RightButton:
+            self.contextRequested.emit(event.position().toPoint())
+        super().mousePressEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self._single_click_pending = False
+            self.doubleClicked.emit()
+            event.accept()
+            return
+        super().mouseDoubleClickEvent(event)
+
+    def _emit_single_if_pending(self):
+        if self._single_click_pending:
+            self._single_click_pending = False
+            self.clicked.emit()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.fillRect(self.rect(), QColor("#fafafa"))
+        painter.setPen(QPen(QColor("#b8b8b8")))
+        painter.drawRect(self.rect().adjusted(0, 0, -1, -1))
+        if not self._pixmap.isNull():
+            scaled = self._pixmap.scaled(
+                self.size(), Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation
+            )
+            x = (scaled.width() - self.width()) // 2
+            y = (scaled.height() - self.height()) // 2
+            painter.drawPixmap(self.rect(), scaled, QRect(x, y, self.width(), self.height()))
+        elif self._text:
+            painter.setPen(QColor("#666"))
+            painter.drawText(self.rect(), Qt.AlignCenter, self._text)
+        painter.end()
+
+
+class ScreenSnipDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowFlags(
+            Qt.FramelessWindowHint
+            | Qt.WindowStaysOnTopHint
+            | Qt.Tool
+        )
+        self.setCursor(Qt.CrossCursor)
+        self._start = QPoint()
+        self._current = QPoint()
+        self._dragging = False
+        self._selection = QRect()
+        self._snapshot = QPixmap()
+
+        screens = QApplication.screens()
+        if not screens:
+            return
+        virtual = screens[0].geometry()
+        for screen in screens[1:]:
+            virtual = virtual.united(screen.geometry())
+        self._virtual = virtual
+
+        self._snapshot = QPixmap(virtual.size())
+        self._snapshot.fill(Qt.black)
+        painter = QPainter(self._snapshot)
+        for screen in screens:
+            geometry = screen.geometry()
+            shot = screen.grabWindow(0)
+            target = QRect(
+                geometry.x() - virtual.x(),
+                geometry.y() - virtual.y(),
+                geometry.width(),
+                geometry.height(),
+            )
+            painter.drawPixmap(target, shot)
+        painter.end()
+        self.setGeometry(virtual)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.drawPixmap(self.rect(), self._snapshot)
+        painter.fillRect(self.rect(), QColor(0, 0, 0, 70))
+        if not self._selection.isNull():
+            painter.drawPixmap(self._selection, self._snapshot, self._selection)
+            pen = QPen(QColor("#ffffff"))
+            pen.setWidth(2)
+            painter.setPen(pen)
+            painter.drawRect(self._selection.adjusted(0, 0, -1, -1))
+        painter.end()
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self._start = event.position().toPoint()
+            self._current = self._start
+            self._dragging = True
+            self._selection = QRect(self._start, self._current).normalized()
+            self.update()
+            return
+        if event.button() == Qt.RightButton:
+            self.reject()
+            return
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if self._dragging:
+            self._current = event.position().toPoint()
+            self._selection = QRect(self._start, self._current).normalized()
+            self.update()
+            return
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.LeftButton and self._dragging:
+            self._dragging = False
+            self._current = event.position().toPoint()
+            self._selection = QRect(self._start, self._current).normalized()
+            if self._selection.width() >= 4 and self._selection.height() >= 4:
+                self.accept()
+            else:
+                self.reject()
+            return
+        super().mouseReleaseEvent(event)
+
+    def selected_pixmap(self) -> QPixmap:
+        if self.result() != QDialog.Accepted or self._selection.isNull():
+            return QPixmap()
+        return self._snapshot.copy(self._selection)
 
 
 class TextDelegate(QStyledItemDelegate):
