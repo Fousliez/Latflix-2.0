@@ -1213,6 +1213,23 @@ Jednotlivé sekce se budou lišit především:
 
 Cílem je jedna sdílená tabulková komponenta / logika s konfigurací podle sekce, nikoliv samostatná implementace tabulky pro každou sekci.
 
+
+### Girls vs. Oblíbené – rozdíl tlačítek nad tabulkou
+
+V sekci **Girls** zůstávají tlačítka **Přidat** a **Smazat** v liště nad tabulkou aktivní podle běžné logiky sekce.
+
+V sekci **Oblíbené** budou tlačítka:
+- **Přidat**
+- **Smazat**
+
+trvale **zašedlá a neaktivní**.
+
+Důvod:
+- sekce Oblíbené je pouze podmnožina záznamů z Girls,
+- nové herečky se přidávají v Girls,
+- mazání samotného záznamu se provádí v Girls,
+- změna členství v Oblíbených se řeší akcemi pro přidání / odebrání z oblíbených, nikoliv tlačítkem Smazat.
+
 ---
 
 ## Pracovní pravidlo specifikace
