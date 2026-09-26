@@ -939,18 +939,20 @@ V aktivním editačním režimu textové buňky musí být na Linuxu zachováno 
 
 ### Globální tabulkové chování – aktivace editačního režimu myší
 
-Pro sloupec **Jméno** v sekcích Girls / Oblíbené a obecně pro všechny sloupce, které budou označené jako **editovatelné**, platí:
+Pro sloupec **Jméno** v sekcích Girls / Oblíbené a obecně pro všechny běžné textové sloupce označené jako **editovatelné** platí:
 
-- **jedno kliknutí** do řádku / buňky pouze označí řádek podle běžných pravidel výběru,
-- jedno kliknutí samo o sobě nesmí zapnout textový editační režim buňky,
-- **dvojklik** do editovatelné buňky zapne editační režim této buňky,
-- po aktivaci dvojklikem fungují běžné textové operace včetně výběru části textu, Ctrl+C / Ctrl+V a na Linuxu vložení primárního výběru prostředním tlačítkem,
-- toto pravidlo platí jednotně pro všechny sloupce, které budou ve specifikaci nebo konfiguraci označené jako editovatelné.
+- v **odemčeném řádku** otevře **jedno kliknutí** do editovatelné buňky její editační režim,
+- stejné kliknutí současně nastaví / označí příslušný řádek podle globálních pravidel výběru,
+- pro běžné spuštění editačního režimu se **dvojklik nepoužívá**,
+- po aktivaci jedním kliknutím fungují běžné textové operace včetně výběru části textu, Ctrl+C / Ctrl+V a na Linuxu vložení primárního výběru prostředním tlačítkem,
+- toto pravidlo platí globálně pro editovatelné textové buňky, pokud konkrétní typ buňky nemá výslovně definované jiné chování,
+- v **zamčeném řádku** jedno kliknutí pouze označí řádek a editační režim se neotevře.
 
-Výjimka z aktivace dvojklikem:
-- nově přidaný řádek se otevře v editačním režimu automaticky podle již definovaného pravidla,
-- následující řádek se může otevřít v editačním režimu automaticky po potvrzení předchozího řádku klávesou Enter,
-- sloupec **Posl. kontrola** v sekcích Girls / Oblíbené je výslovná výjimka: v odemčeném řádku se jeho textový editační režim otevře už **jedním kliknutím**.
+Automatický vstup do editace zůstává zachován také:
+- u nově přidaného řádku podle již definovaného pravidla,
+- u následujícího řádku po potvrzení předchozí textové editace klávesou Enter podle již definovaného pravidla.
+
+Dvojklik může mít pouze výslovně definovanou **jinou speciální akci**; není obecným způsobem vstupu do editačního režimu.
 
 
 ### Girls / Oblíbené – editace výběrem z nabídky
@@ -963,7 +965,7 @@ V tabulce Girls / Oblíbené se následující sloupce neupravují volným texte
 - **Nahota**
 
 U odemčeného řádku se příslušná nabídka otevře už **jedním kliknutím** do výběrové buňky; nejde o klasický textový editační režim.
-Toto chování se odlišuje od běžně editovatelných textových buněk, které se při neaktivním editačním režimu otevírají až **dvojklikem**.
+Stejně jako běžné editovatelné textové buňky tedy reaguje na první klik, ale místo textového editoru otevře výběrovou nabídku.
 
 Zdroj hodnot:
 - **Obličej**: pevné hodnoty `Ano`, `Asi ano`, `Asi ne`, `Ne`, `Zjistit`,
@@ -1001,7 +1003,7 @@ Sloupec **Věk** rozlišuje mezi zdrojovou hodnotou a zobrazovanou hodnotou.
 - běžný pohled tabulky tedy vždy ukazuje věk.
 
 #### V editačním režimu
-Po dvojkliku do buňky:
+Po **jednom kliknutí** do odemčené buňky:
 - pokud byla původně zadána hodnota věku, editor zobrazí tuto původní hodnotu, např. `20`,
 - pokud byl původně zadán rok narození, editor zobrazí právě tento rok, např. `1992`,
 - uživatel tedy vždy edituje původní zdrojovou hodnotu, ne pouze právě vypočítaný zobrazovaný věk.
@@ -1104,7 +1106,7 @@ Chování:
 - editační režim se u zamčeného řádku neotevírá,
 - po zkopírování se krátce zobrazí malé nenápadné potvrzení **„Zkopírováno“**,
 - vizuální styl a chování tohoto potvrzení mají odpovídat současnému Latflixu, kde tato funkce již existuje a uživateli vyhovuje,
-- u odemčeného řádku se dvojklik nadále používá pro vstup do editačního režimu u editovatelných buněk.
+- u odemčeného řádku se běžný editační režim editovatelných buněk otevírá **jedním kliknutím**; dvojklik zde není potřebný.
 
 Tato logika se má implementovat sdíleně tak, aby ji bylo možné použít i u dalších hlavních textových sloupců, pokud budou později označeny pro stejné chování.
 
@@ -1171,13 +1173,14 @@ Další pravidla popupu Tagy:
 #### Posl. kontrola
 - sloupec **Posl. kontrola** je editovatelný,
 - používá běžný textový editor,
-- v odemčeném řádku se editační režim otevře už **jedním kliknutím**,
-- jde o výslovnou výjimku z obecného pravidla, podle kterého se běžné textové buňky z neaktivního stavu otevírají dvojklikem,
+- v odemčeném řádku se editační režim otevře **jedním kliknutím** podle globálního pravidla textových editovatelných buněk,
 - bez našeptávače / automatického doplňování.
 
 #### Pozn.
 - sloupec **Pozn.** je editovatelný,
-- používá běžný textový editor,
+- **jedno kliknutí** do odemčené buňky otevře běžný jednořádkový textový editační režim přímo v tabulce,
+- **dvojklik** otevře větší editor poznámky,
+- větší editor se vždy otevře s již existující / aktuálně uloženou poznámkou předvyplněnou; nesmí otevřít prázdný obsah místo původního textu,
 - bez našeptávače / automatického doplňování.
 
 
@@ -1199,7 +1202,8 @@ Po aktivaci editačního režimu se otevře nabídka těchto stavů a zvolená h
 - sloupec **Národnost** je editovatelný výběrem z nabídky,
 - logika je stejná jako u sloupce **Typ**,
 - nabídka se dynamicky načítá ze sekce **Národnosti**,
-- po dvojkliku do odemčené buňky se otevře nabídka dostupných národností,
+- nabídka dostupných národností se v odemčeném řádku otevře vždy **jedním kliknutím** do buňky,
+- dvojklik není pro otevření nabídky potřeba,
 - zvolená hodnota se zapíše do buňky.
 
 #### Počet výskytů
@@ -1242,7 +1246,9 @@ Pro výběrové buňky, např. **Obličej, Sex, Typ, Nahota, Národnost, Stav**:
 
 #### Pozn.
 - běžně se zobrazuje jako jednořádková hodnota v tabulce,
-- dvojklik otevře větší editační pole pro pohodlnější úpravu poznámky.
+- **jedno kliknutí** otevře klasický jednořádkový editační režim přímo v buňce,
+- **dvojklik** otevře větší editační pole pro pohodlnější úpravu poznámky,
+- větší editor musí být předvyplněn původní / aktuálně uloženou poznámkou.
 
 #### Řazení sloupců kliknutím na záhlaví
 - řazení kliknutím na záhlaví je aktivní u **všech datových sloupců**,
