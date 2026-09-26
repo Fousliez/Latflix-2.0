@@ -490,11 +490,9 @@ Dialog má obsahovat stejné základní typy údajů jako na referenčním scree
 - Sex,
 - Nahota,
 - Věk,
-- Počet výskytů,
 - Národnost,
 - Hodnocení,
 - Tagy,
-- Sledování,
 - Poslední kontrola,
 - Obrázek,
 - Poznámka,
@@ -504,10 +502,14 @@ Dialog má obsahovat stejné základní typy údajů jako na referenčním scree
 - Stav,
 - Datum narození.
 
+V detailu herečky se **nezobrazují** položky **Sledování** ani **Počet výskytů**; tyto údaje zůstávají dostupné v hlavní tabulce / horním panelu podle ostatních pravidel.
+
 Požadavky:
 - vzhled a rozložení mají vycházet z dodaného screenshotu,
 - spodní část bude mít akce **Zrušit** a **Uložit**,
-- aliasy nesmí být omezené pevně na tři položky; dialog musí umožnit přidávat další aliasy dynamicky,
+- aliasy budou zobrazené jako **samostatná textová pole vedle sebe v oddělených sloupcích**,
+- v jednom řádku mohou být až **4 aliasová pole vedle sebe**,
+- aliasy nadále nesmí být omezené pevně na tři položky; pokud je potřeba více než 4 aliasů, další se přidávají dynamicky v dalším řádku opět po samostatných polích,
 - přesné názvy polí se mohou později sjednotit s datovým modelem nové verze, ale funkční rozsah má odpovídat referenci.
 
 #### Zobrazit odkazy
