@@ -62,6 +62,9 @@ class GirlDetailDialog(QDialog):
         self.sex = self._combo(["", "Ano", "Ne", "Asi ano", "Asi ne", "Zjistit"], girl.sex if girl else "")
         form.addRow("Sex:", self.sex)
 
+        self.face = self._combo(["", "Ano", "Asi ano", "Asi ne", "Ne", "Zjistit"], girl.face if girl else "")
+        form.addRow("Obličej:", self.face)
+
         self.nudity = self._combo(["", "Ano", "Ne", "Asi ano", "Asi ne", "Zjistit"], girl.nudity if girl else "")
         form.addRow("Nahota:", self.nudity)
 
@@ -155,6 +158,7 @@ class GirlDetailDialog(QDialog):
             "name": self.name.text(),
             "type_name": self.type_name.currentText(),
             "sex": self.sex.currentText(),
+            "face": self.face.currentText(),
             "nudity": self.nudity.currentText(),
             "age_source": self.age.text(),
             "birth_date": self.birth_date.text(),
