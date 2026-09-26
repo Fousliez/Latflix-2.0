@@ -352,44 +352,78 @@ class TagsDialog(QDialog):
         girl = repo.girl(girl_id)
         selected = set(girl.tags if girl else ())
 
-        layout = QVBoxLayout(self)
-        self.list = QListWidget()
-        self.list.setSelectionMode(QAbstractItemView.NoSelection)
-        layout.addWidget(self.list, 1)
+        outer = QVBoxLayout(self)
+        self.grid_host = QWidget(self)
+        self.grid = QGridLayout(self.grid_host)
+        self.grid.setContentsMargins(4, 4, 4, 4)
+        self.grid.setHorizontalSpacing(6)
+        self.grid.setVerticalSpacing(6)
+        outer.addWidget(self.grid_host, 1)
 
         usage = Counter(tag for g in repo.girls(False) for tag in g.tags)
+        tag_rows = {row["name"]: row for row in repo.catalog_rows("tags")}
         tags = sorted(
             repo.catalog("tags"),
             key=lambda tag: (-usage.get(tag, 0), tag.casefold()),
         )
-        for tag in tags:
-            label = f"{tag} ({usage.get(tag, 0)})" if usage.get(tag, 0) else tag
-            item = QListWidgetItem(label)
-            item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-            item.setCheckState(Qt.Checked if tag in selected else Qt.Unchecked)
-            item.setData(Qt.UserRole, tag)
-            self.list.addItem(item)
+
+        self.buttons = []
+        columns = 4
+        for index, tag in enumerate(tags):
+            row = tag_rows.get(tag, {})
+            color = str(row.get("color") or "#d7e9ff")
+            button = QPushButton(tag)
+            button.setCheckable(True)
+            button.setChecked(tag in selected)
+            button.setStyleSheet(
+                "QPushButton{padding:5px 9px;border:1px solid #9a9a9a;"
+                f"background:{color};border-radius:3px;}}"
+                "QPushButton:checked{border:2px solid #1e5f9e;font-weight:700;}"
+            )
+            button.setProperty("tag_name", tag)
+            self.buttons.append(button)
+            self.grid.addWidget(button, index // columns, index % columns)
 
         row = QHBoxLayout()
         row.addStretch()
-        cancel = QPushButton("Zrušit")
-        save = QPushButton("Uložit")
-        save.setDefault(True)
-        row.addWidget(cancel)
-        row.addWidget(save)
-        layout.addLayout(row)
-        cancel.clicked.connect(self.reject)
-        save.clicked.connect(self.save)
+        self.cancel = QPushButton("Zrušit")
+        self.save_btn = QPushButton("Uložit")
+        self.save_btn.setDefault(True)
+        row.addWidget(self.cancel)
+        row.addWidget(self.save_btn)
+        outer.addLayout(row)
+        self.cancel.clicked.connect(self.reject)
+        self.save_btn.clicked.connect(self.save)
 
-        self.resize(420, min(520, max(180, 70 + 32 * len(tags))))
+        rows = max(1, (len(tags) + columns - 1) // columns)
+        self.resize(520, min(560, 85 + rows * 40))
         if anchor is not None:
             self.move(anchor)
 
+    def keyPressEvent(self, event):
+        if event.key() in (Qt.Key_Left, Qt.Key_Right):
+            if self.save_btn.isDefault():
+                self.save_btn.setDefault(False)
+                self.cancel.setDefault(True)
+            else:
+                self.cancel.setDefault(False)
+                self.save_btn.setDefault(True)
+            event.accept()
+            return
+        if event.key() in (Qt.Key_Return, Qt.Key_Enter):
+            if self.cancel.isDefault():
+                self.reject()
+            else:
+                self.save()
+            event.accept()
+            return
+        super().keyPressEvent(event)
+
     def save(self):
         values = [
-            self.list.item(i).data(Qt.UserRole)
-            for i in range(self.list.count())
-            if self.list.item(i).checkState() == Qt.Checked
+            str(button.property("tag_name"))
+            for button in self.buttons
+            if button.isChecked()
         ]
         self.repo.set_tags(self.girl_id, values)
         self.accept()
