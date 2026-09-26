@@ -270,16 +270,18 @@ Pravidla:
 
 
 
-### Otevřený bod – vzhled vícenásobného výběru řádků
+### Vzhled vícenásobného výběru řádků
 
-Současné vykreslení vícenásobně vybraných řádků není přijatelné: každý vybraný řádek má vlastní obrys, takže při výběru několika sousedních řádků vznikají mezi řádky zdvojené / nahuštěné linky a celek působí roztříštěně.
+Při výběru více sousedních řádků nesmí mezi vybranými řádky vznikat žádné drobné mezery ani optické oddělení.
 
-Tento bod zatím **nenahrazuje definitivní pravidlo výběru řádků**. Uživatel dodá jako vizuální referenci Latflix 5.36 a až podle ní se určí přesný vzhled.
+Požadovaný princip:
+- výběr může zůstat vizuálně podobný současnému zvýraznění / obrysu,
+- sousední vybrané řádky však musí působit jako jeden souvislý celek,
+- mezi nimi nesmí být viditelné malé bílé mezery ani dvojité horizontální linky,
+- základní střídání bílá / světle šedá zůstává zachováno podle aktuálního pořadí řádků,
+- sloupec zámku se nadále do vizuálního zvýraznění řádku nezahrnuje.
 
-Důležité:
-- z Latflixu 5.36 se může převzít pouze vizuální princip výběru,
-- starý kód se nemá automaticky kopírovat ani považovat za architektonický vzor,
-- pokud je staré řešení technicky nečisté nebo složité, nový Latflix má stejného vzhledu dosáhnout čistším způsobem.
+Latflix 5.36 může sloužit jako vizuální reference. Převzít lze vzhledový princip, ne automaticky starou implementaci. Pokud je starý kód technicky nečistý nebo komplikovaný, nový Latflix má stejného výsledku dosáhnout čistším způsobem.
 
 ### Vztah tabulek Girls a Oblíbené
 
