@@ -949,7 +949,8 @@ Pro sloupec **Jméno** v sekcích Girls / Oblíbené a obecně pro všechny slou
 
 Výjimka z aktivace dvojklikem:
 - nově přidaný řádek se otevře v editačním režimu automaticky podle již definovaného pravidla,
-- následující řádek se může otevřít v editačním režimu automaticky po potvrzení předchozího řádku klávesou Enter.
+- následující řádek se může otevřít v editačním režimu automaticky po potvrzení předchozího řádku klávesou Enter,
+- sloupec **Posl. kontrola** v sekcích Girls / Oblíbené je výslovná výjimka: v odemčeném řádku se jeho textový editační režim otevře už **jedním kliknutím**.
 
 
 ### Girls / Oblíbené – editace výběrem z nabídky
@@ -1170,6 +1171,8 @@ Další pravidla popupu Tagy:
 #### Posl. kontrola
 - sloupec **Posl. kontrola** je editovatelný,
 - používá běžný textový editor,
+- v odemčeném řádku se editační režim otevře už **jedním kliknutím**,
+- jde o výslovnou výjimku z obecného pravidla, podle kterého se běžné textové buňky z neaktivního stavu otevírají dvojklikem,
 - bez našeptávače / automatického doplňování.
 
 #### Pozn.
