@@ -951,6 +951,28 @@ Při zadání roku narození:
 
 Sloupec zůstává editovatelný podle obecných pravidel tabulky.
 
+
+### Girls / Oblíbené – zobrazení a editace hodnoty ve sloupci Věk
+
+Sloupec **Věk** rozlišuje mezi zdrojovou hodnotou a zobrazovanou hodnotou.
+
+#### Mimo editační režim
+- pokud byla zadána přímo hodnota věku `1–100`, zobrazuje se tato hodnota,
+- pokud byl zadán rok narození, např. `1992`, `2004` nebo `1986`, zobrazuje se **vypočítaný věk**, nikoliv rok narození,
+- běžný pohled tabulky tedy vždy ukazuje věk.
+
+#### V editačním režimu
+Po dvojkliku do buňky:
+- pokud byla původně zadána hodnota věku, editor zobrazí tuto původní hodnotu, např. `20`,
+- pokud byl původně zadán rok narození, editor zobrazí právě tento rok, např. `1992`,
+- uživatel tedy vždy edituje původní zdrojovou hodnotu, ne pouze právě vypočítaný zobrazovaný věk.
+
+Příklad:
+- zdrojová hodnota `20` → mimo editaci se zobrazí `20`, v editaci `20`,
+- zdrojová hodnota `1992` → mimo editaci se zobrazí aktuálně vypočítaný věk, v editaci `1992`.
+
+Toto chování je nutné zachovat tak, aby bylo možné kdykoliv rozlišit ručně zadaný věk od roku narození.
+
 ---
 
 ## Pracovní pravidlo specifikace
