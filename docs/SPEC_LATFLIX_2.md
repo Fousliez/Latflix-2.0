@@ -520,6 +520,32 @@ Příklad: pokud má jedna herečka dvě adresy Facebooku, pro globální pořad
 - výška horního panelu zůstává pevná; odkazy nesmějí panel roztahovat,
 - vzhled má odpovídat modrým odkazovým obdélníkům z referenčních screenshotů současného Latflixu.
 
+
+### Společná lišta tlačítek a filtrů nad tabulkou
+
+Nad hlavní tabulkou bude v datových sekcích společná ovládací lišta podle dodané reference.
+
+Základní pravidlo:
+- stejný **typ prvků, vzhled, rozměrová logika, zarovnání a základní chování** bude používán ve všech sekcích s tabulkou,
+- sekce **Přehled** tuto lištu mít nebude,
+- jednotlivé sekce mohou mít jiný počet tlačítek, jiné popisky, jiné konkrétní akce a jinou sadu filtrů,
+- tyto rozdíly se budou definovat zvlášť pro každou sekci,
+- společná vizuální a interakční logika ale zůstává jednotná napříč aplikací.
+
+Pro sekci **Girls / Oblíbené** má lišta vizuálně vycházet z dodané reference a počítá se zde s prvky typu:
+- Přidat,
+- Smazat,
+- Hromadné akce,
+- vyhledávací pole,
+- doplňkové malé akční tlačítko / ikona,
+- rozbalovací filtry jako Národnost, Typ, Stav, Hodnocení, Sex, Nahota.
+
+Konkrétní chování jednotlivých prvků Girls / Oblíbené bude doplněno v následujících bodech specifikace.
+
+Důležité architektonické pravidlo:
+- tato lišta se má implementovat jako **sdílená komponenta / sdílená logika**, nikoliv znovu zvlášť pro každou sekci,
+- sekce pouze dodá konfiguraci popisků, viditelnosti, pořadí a konkrétních akcí / filtrů.
+
 ---
 
 ## Pracovní pravidlo specifikace
