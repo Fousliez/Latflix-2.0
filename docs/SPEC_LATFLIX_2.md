@@ -635,6 +635,19 @@ Všechna tři tlačítka mají být stejně zarovnaná a působit jako jeden kom
 
 V horním panelu sekce **Odkazy** jsou modré prvky představující jednotlivé názvy / typy odkazů, např. Instagram, X / Twitter, Threads apod.
 
+### Exportovat odkazy – pouze aktuálně zobrazená data
+
+Tlačítko **Exportovat odkazy** v sekci Odkazy pracuje pouze s právě **aktuálně zobrazenými / vyfiltrovanými řádky hlavní tabulky Odkazy**.
+
+- exportní dialog nesmí nabízet typy odkazů, které po aktuálním hledání a filtrech nemají v tabulce žádný zobrazený řádek,
+- seznam v exportním dialogu obsahuje jednotlivé názvy / typy odkazů, které se skutečně v aktuálním výsledku vyskytují,
+- u každého názvu je uveden počet právě zobrazených konkrétních odkazů tohoto typu,
+- položky jsou řazeny podle tohoto počtu **sestupně**, při shodě abecedně,
+- každá položka má vlastní zaškrtávací volbu; lze tedy exportovat libovolnou podmnožinu právě zobrazených typů,
+- po potvrzení exportu se do TXT uloží pouze URL odpovídající zaškrtnutým položkám a současně pouze řádkům, které patřily do aktuálně zobrazeného / vyfiltrovaného výsledku,
+- každá URL je v exportovaném TXT na samostatném řádku.
+
+
 Výběr funguje stejně jako vícenásobné modré filtry ve Videa / Super:
 - běžný klik na jeden modrý prvek aktivuje pouze tento filtr a zruší předchozí samostatný výběr,
 - při držení **Ctrl** nebo **Shift** lze označit více modrých prvků současně,
