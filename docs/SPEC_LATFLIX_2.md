@@ -1180,6 +1180,39 @@ Pro tlačítka v liště nad tabulkou platí:
 - účelem je na první pohled ukázat, ve které sekci se uživatel právě nachází,
 - ostatní rozměry, typografie a základní styl tlačítka zůstávají stejné.
 
+
+### Globální tabulkový základ napříč sekcemi
+
+Tabulky v ostatních datových sekcích budou vycházet ze stejného společného základu jako **Girls / Oblíbené**.
+
+Společná bude zejména:
+- logika výběru řádků,
+- zámky řádků,
+- číslování,
+- řazení,
+- střídání barev,
+- aktivace editovatelných buněk,
+- výběrové buňky,
+- předávání aktivního editačního toku,
+- chování Enter / Esc podle typu buňky,
+- kopírování hlavního textového pole u zamčených řádků tam, kde bude určeno,
+- našeptávače tam, kde je daný sloupec používá,
+- filtry,
+- fulltextové hledání,
+- společná ovládací lišta nad tabulkou,
+- společná vizuální a interakční logika.
+
+Jednotlivé sekce se budou lišit především:
+- názvy sloupců,
+- pořadím sloupců,
+- typem sloupce / editoru,
+- povolenými hodnotami,
+- zdrojem hodnot pro výběrové seznamy,
+- konkrétními filtry,
+- případnými sekčně specifickými akcemi.
+
+Cílem je jedna sdílená tabulková komponenta / logika s konfigurací podle sekce, nikoliv samostatná implementace tabulky pro každou sekci.
+
 ---
 
 ## Pracovní pravidlo specifikace
