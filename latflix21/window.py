@@ -7,10 +7,11 @@ from PySide6.QtCore import QModelIndex, QSettings, Qt, QUrl, Signal
 from PySide6.QtGui import QDesktopServices, QPixmap
 from PySide6.QtWidgets import (
     QApplication, QColorDialog, QComboBox, QDialog, QFileDialog, QFormLayout, QFrame, QGridLayout, QHBoxLayout,
-    QLabel, QMainWindow, QMenu, QMessageBox, QPushButton, QSpinBox, QStackedWidget, QStatusBar,
+    QLabel, QMainWindow, QMenu, QMessageBox, QPushButton, QStackedWidget, QStatusBar,
     QVBoxLayout, QWidget, QInputDialog,
 )
 
+from . import __version__
 from .config import APP_NAME, data_root
 from .db import Repository
 from .dialogs import (
@@ -30,16 +31,22 @@ TOP_PANEL_H = 136
 
 class Sidebar(QWidget):
     sectionRequested = Signal(str)
+    quickTagRequested = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setFixedWidth(148)
+        self.expanded_width = 156
+        self.collapsed_width = 30
+        self.is_collapsed = False
+        self.setFixedWidth(self.expanded_width)
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(4, 4, 4, 4)
         layout.setSpacing(4)
 
         self.collapse = QPushButton("◀")
-        self.collapse.setFixedHeight(28)
+        self.collapse.setFixedHeight(27)
+        self.collapse.clicked.connect(self.toggle_collapsed)
         layout.addWidget(self.collapse)
 
         self.setStyleSheet(
@@ -51,7 +58,7 @@ class Sidebar(QWidget):
         for name in ("Přehled", "Girls", "Oblíbené", "Odkazy", "Videa", "Super", "Studia"):
             button = QPushButton(name)
             button.setCheckable(True)
-            button.setFixedHeight(33)
+            button.setFixedHeight(29)
             button.clicked.connect(
                 lambda checked=False, section=name: self.sectionRequested.emit(section)
             )
@@ -63,16 +70,42 @@ class Sidebar(QWidget):
         for name in ("Stavy", "Kvality", "Tagy", "Typy", "Národnosti"):
             button = QPushButton(name)
             button.setCheckable(True)
-            button.setFixedHeight(31)
+            button.setFixedHeight(29)
             button.clicked.connect(
                 lambda checked=False, section=name: self.sectionRequested.emit(section)
             )
             layout.addWidget(button)
             self.buttons[name] = button
 
+        self.quick_label = QLabel("Rychlé filtry")
+        self.quick_label.setStyleSheet("font-weight:700;color:#555;padding-top:4px;")
+        layout.addWidget(self.quick_label)
+
+        self.quick_buttons = []
+        for tag in ("Latex", "Ruined"):
+            button = QPushButton(tag)
+            button.setFixedHeight(27)
+            button.clicked.connect(
+                lambda checked=False, value=tag: self.quickTagRequested.emit(value)
+            )
+            layout.addWidget(button)
+            self.quick_buttons.append(button)
+
     def set_active(self, name):
         for section, button in self.buttons.items():
             button.setChecked(section == name)
+
+    def toggle_collapsed(self):
+        self.is_collapsed = not self.is_collapsed
+        for widget in [*self.buttons.values(), self.quick_label, *self.quick_buttons]:
+            widget.setVisible(not self.is_collapsed)
+        self.setFixedWidth(self.collapsed_width if self.is_collapsed else self.expanded_width)
+        self.collapse.setText("▶" if self.is_collapsed else "◀")
+
+    def expand(self):
+        self.setVisible(True)
+        if self.is_collapsed:
+            self.toggle_collapsed()
 
 
 class BasePage(QWidget):
@@ -430,6 +463,7 @@ class TablePage(BasePage):
 class GirlsPage(TablePage):
     def __init__(self, repo, favorites=False, parent=None):
         self.favorites = favorites
+        self.quick_tag_filter = ""
         title = "Oblíbené" if favorites else "Girls"
         super().__init__(repo, title, GirlsModel(repo, favorites), parent)
         self._build_top()
@@ -581,12 +615,21 @@ class GirlsPage(TablePage):
             )
 
         profile = self.filter_boxes["profile"]
-        if profile.currentIndex() == 0:
-            self.proxy.predicate = None
-        elif profile.currentText() == "Ano":
-            self.proxy.predicate = lambda girl: bool(girl.profile_path)
-        else:
-            self.proxy.predicate = lambda girl: not bool(girl.profile_path)
+        profile_mode = "" if profile.currentIndex() == 0 else profile.currentText()
+        quick_tag = self.quick_tag_filter
+
+        def extra_predicate(girl):
+            if profile_mode == "Ano" and not bool(girl.profile_path):
+                return False
+            if profile_mode == "Ne" and bool(girl.profile_path):
+                return False
+            if quick_tag and quick_tag not in girl.tags:
+                return False
+            return True
+
+        self.proxy.predicate = (
+            extra_predicate if profile_mode or quick_tag else None
+        )
         self.proxy.invalidateFilter()
 
     def _add_rows(self, count):
@@ -771,7 +814,12 @@ class GirlsPage(TablePage):
             if link.girl_id == girl_id and link.type_name == type_name:
                 QDesktopServices.openUrl(QUrl(link.url))
 
+    def apply_quick_tag(self, tag: str):
+        self.quick_tag_filter = str(tag or "")
+        self._filters_changed()
+
     def _clear_all(self):
+        self.quick_tag_filter = ""
         self.search.clear()
         for combo in self.filter_boxes.values():
             combo.setCurrentIndex(0)
@@ -781,6 +829,8 @@ class GirlsPage(TablePage):
         from .models import age_display
 
         def matches_without_search(girl):
+            if self.quick_tag_filter and self.quick_tag_filter not in girl.tags:
+                return False
             for key, combo in self.filter_boxes.items():
                 if combo.currentIndex() == 0:
                     continue
@@ -1550,7 +1600,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(host)
 
         self.sidebar.sectionRequested.connect(self.navigate)
-        self.sidebar.collapse.clicked.connect(lambda: self.sidebar.setVisible(False))
+        self.sidebar.quickTagRequested.connect(self._apply_quick_tag)
 
         self._build_pages()
 
@@ -1561,12 +1611,26 @@ class MainWindow(QMainWindow):
         self.status_middle = QLabel("")
         self.status.addWidget(self.status_left, 1)
         self.status.addWidget(self.status_middle, 1)
-        self.row_scale = QSpinBox()
-        self.row_scale.setRange(1, 5)
-        self.row_scale.setValue(int(self.settings.value("ui/row_scale", 1)))
-        self.row_scale.setPrefix("Velikost řádků: ")
-        self.row_scale.valueChanged.connect(self._row_scale_changed)
-        self.status.addPermanentWidget(self.row_scale)
+        self.row_scale_level = max(
+            1, min(5, int(self.settings.value("ui/row_scale", 1)))
+        )
+        self.status.addPermanentWidget(QLabel("Velikost řádků:"))
+        minus = QPushButton("−")
+        plus = QPushButton("+")
+        minus.setFixedSize(28, 24)
+        plus.setFixedSize(28, 24)
+        self.row_scale_label = QLabel("")
+        self.row_scale_label.setMinimumWidth(28)
+        self.row_scale_label.setAlignment(Qt.AlignCenter)
+        minus.clicked.connect(lambda: self._change_row_scale(-1))
+        plus.clicked.connect(lambda: self._change_row_scale(1))
+        self.status.addPermanentWidget(minus)
+        self.status.addPermanentWidget(self.row_scale_label)
+        self.status.addPermanentWidget(plus)
+        self.build_label = QLabel(f"Latflix 2.1  v{__version__}")
+        self.build_label.setStyleSheet("color:#777;padding-left:8px;")
+        self.status.addPermanentWidget(self.build_label)
+        self._apply_row_scale()
         self.navigate("Přehled")
 
     def _menu(self):
@@ -1577,19 +1641,35 @@ class MainWindow(QMainWindow):
             if name == "Zobrazení":
                 self.view_menu = menu
                 show = menu.addAction("Zobrazit levé menu")
-                show.triggered.connect(lambda: self.sidebar.setVisible(True))
+                show.triggered.connect(self.sidebar.expand)
                 self.toggle_top_action = menu.addAction("Skrýt / zobrazit horní panel")
                 self.toggle_top_action.triggered.connect(self._toggle_top_panel)
+
+    def _apply_quick_tag(self, tag: str):
+        if self.stack.currentWidget() not in (
+            self.pages.get("Girls"), self.pages.get("Oblíbené")
+        ):
+            self.navigate("Girls")
+        page = self.stack.currentWidget()
+        if hasattr(page, "apply_quick_tag"):
+            page.apply_quick_tag(tag)
+            self._refresh_status()
 
     def _toggle_top_panel(self):
         page = self.stack.currentWidget()
         if hasattr(page, "top"):
             page.top.setVisible(not page.top.isVisible())
 
-    def _row_scale_changed(self, value):
-        self.settings.setValue("ui/row_scale", int(value))
+    def _change_row_scale(self, delta):
+        self.row_scale_level = max(1, min(5, self.row_scale_level + int(delta)))
+        self.settings.setValue("ui/row_scale", self.row_scale_level)
+        self._apply_row_scale()
+
+    def _apply_row_scale(self):
+        if hasattr(self, "row_scale_label"):
+            self.row_scale_label.setText(f"{self.row_scale_level}/5")
         for page in getattr(self, "pages", {}).values():
-            page.set_row_scale(value)
+            page.set_row_scale(self.row_scale_level)
 
     def _refresh_status(self):
         page = self.stack.currentWidget()
@@ -1645,7 +1725,7 @@ class MainWindow(QMainWindow):
         self.sidebar.set_active(name)
         if name == "Odkazy" and girl_filter:
             self.pages["Odkazy"].set_girl_filter(girl_filter)
-        page.set_row_scale(self.row_scale.value())
+        page.set_row_scale(self.row_scale_level)
         self._refresh_status()
         self._rebuild_view_columns_menu()
 
