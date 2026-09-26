@@ -784,6 +784,18 @@ Tento filtr tedy pracuje přímo s datem / příznakem existence profilové foto
 
 Filtry **Obličej** a **Profilovka** se mohou kombinovat s fulltextovým hledáním a ostatními aktivními filtry.
 
+
+### Girls / Oblíbené – priorita umístění filtrů Obličej a Profilovka
+
+Referenční screenshoty mohou zobrazovat prvky **Obličej** a **Profilovka** na jiném místě.
+
+Pro Latflix 2.0 platí výslovně:
+- filtr **Obličej** bude v liště nad tabulkou **vpravo od filtru Nahota**,
+- filtr **Profilovka** bude hned **vpravo od filtru Obličej**,
+- toto umístění má přednost před polohou těchto prvků na starých screenshotových referencích.
+
+Screenshoty zde slouží pouze jako vizuální reference vzhledu, nikoliv jako závazná reference jejich pozice.
+
 ---
 
 ## Pracovní pravidlo specifikace
