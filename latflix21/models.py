@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Any, Callable
 
-from PySide6.QtCore import QAbstractTableModel, QModelIndex, QSortFilterProxyModel, Qt
+from PySide6.QtCore import QAbstractTableModel, QModelIndex, QSortFilterProxyModel, Qt, Signal
 from PySide6.QtGui import QColor
 
 from .db import Girl, Link, Repository, Studio, Video
@@ -35,6 +35,7 @@ def age_display(value: str) -> str:
 
 
 class BaseModel(QAbstractTableModel):
+    recordChanged = Signal(int)
     columns: tuple[Col, ...] = ()
 
     def __init__(self, repo: Repository):
@@ -130,12 +131,14 @@ class BaseModel(QAbstractTableModel):
         if col.kind == "lock":
             self.set_locked(record.id, not self.locked(index.row()))
             self.reload()
+            self.recordChanged.emit(int(record.id))
             return True
         if not (self.flags(index) & Qt.ItemIsEditable):
             return False
         ok = self.set_value(record, col, str(value or ""))
         if ok:
             self.reload()
+            self.recordChanged.emit(int(record.id))
         return ok
 
     def set_locked(self, row_id: int, value: bool):
