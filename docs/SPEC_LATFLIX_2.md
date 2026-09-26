@@ -1042,6 +1042,18 @@ Další příklad:
 Toto pravidlo je výjimkou z běžného chování „jedno kliknutí = pouze označení řádku“. Toto běžné pravidlo platí tehdy, když před kliknutím **není aktivní žádný editační režim**.
 
 
+
+### Plynulé předání mezi výběrovými buňkami
+
+Pokud je právě otevřená nabídka výběrové / dropdown buňky a uživatel **jednou klikne do jiné výběrové buňky**, nesmí být potřeba druhý klik.
+
+Požadované chování:
+- první klik na jinou výběrovou buňku ukončí / zavře předchozí otevřenou nabídku,
+- **tím samým klikem** se okamžitě otevře nabídka nové cílové výběrové buňky,
+- nesmí vzniknout mezikrok, kdy první klik pouze zavře starou nabídku a druhý teprve otevře novou,
+- chování má být plynulé stejně jako již definované předání z textové editace do výběrové buňky,
+- pravidlo platí globálně pro všechny tabulky a všechny výběrové / dropdown buňky, pokud není u konkrétní sekce výslovně stanoveno jinak.
+
 ### Globální tabulkové chování – rychlé kopírování hlavního názvu ze zamčeného řádku
 
 U zamčených řádků bude dvojklik do hlavního textového sloupce sloužit jako rychlé kopírování hodnoty.
