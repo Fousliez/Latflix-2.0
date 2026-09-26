@@ -587,13 +587,22 @@ Obsah modrých prvků:
 - při aktivní volbě **Herečky** obsahují modré prvky jména hereček,
 - nejde tedy o názvy sociálních sítí / platforem jako v Girls / Oblíbené.
 
-#### Studia – pořadí a počet zobrazených prvků
-- studia se řadí podle svého **Počtu výskytů sestupně**,
+#### Studia / Herečky – pořadí a počet zobrazených prvků
+- oba režimy používají stejnou logiku; liší se pouze zobrazovaným typem entity,
+- při volbě **Studia** se položky řadí podle **Počtu výskytů studia sestupně**,
+- při volbě **Herečky** se položky řadí podle **Počtu výskytů herečky sestupně**,
 - do Počtu výskytů se pro toto řazení započítávají pouze **platné / plnohodnotné videozáznamy** podle již definovaného společného pravidla pro výskyty,
-- pokud mají dvě nebo více studií stejný Počet výskytů, rozhoduje **abecední pořadí názvu studia vzestupně**,
+- pokud mají dvě nebo více položek stejný Počet výskytů, rozhoduje **abecední pořadí názvu / jména vzestupně**,
 - prvky se skládají zleva doprava a po zaplnění šířky pokračují na dalším řádku,
 - ve Videa / Super se pro tuto horní sadu zobrazují maximálně **3 řádky** modrých prvků,
-- studia, která se do tří řádků nevejdou, zůstanou v horním panelu **skrytá**.
+- položky, které se do tří řádků nevejdou, zůstanou v horním panelu **skryté**.
+
+#### Kliknutí na modrý prvek = filtr tabulky
+- kliknutí na modrý prvek okamžitě vyfiltruje **aktuální tabulku** pouze na řádky odpovídající dané položce,
+- při režimu **Studia** se po kliknutí zobrazí pouze videořádky, které mají ve sloupci **Studio** zvolené studio,
+- při režimu **Herečky** se po kliknutí zobrazí pouze videořádky, ve kterých je daná herečka uvedená jako účinkující; toto platí i pokud bude video podporovat více sloupců / pozic pro účinkující herečky,
+- ve **Videa** se filtr aplikuje na tabulku Videa,
+- v **Super** se filtr aplikuje pouze na aktuální podmnožinu Super, nikoliv na všechny záznamy Videa.
 
 Vzhled a velikost:
 - používá se stejný typ modrého obdélníkového prvku jako v Girls / Oblíbené,
