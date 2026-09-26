@@ -304,7 +304,7 @@ class DataTableView(QTableView):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self._context_menu)
         self.horizontalHeader().sectionClicked.connect(self._header_clicked)
-        self.horizontalHeader().sectionMoved.connect(lambda *_: self._save_layout())
+        self.horizontalHeader().sectionMoved.connect(self._section_moved)
         self.horizontalHeader().sectionResized.connect(lambda *_: self._save_layout())
         self.setStyleSheet(
             "QTableView{alternate-background-color:#f3f3f3;background:white;"
@@ -332,6 +332,21 @@ class DataTableView(QTableView):
         header.setSectionResizeMode(
             QHeaderView.Fixed if self.header_locked else QHeaderView.Interactive
         )
+        if header.count() >= 2:
+            header.setSectionResizeMode(0, QHeaderView.Fixed)
+            header.setSectionResizeMode(1, QHeaderView.Fixed)
+
+    def _section_moved(self, logical, old_visual, new_visual):
+        header = self.horizontalHeader()
+        if logical < 2 or new_visual < 2:
+            header.blockSignals(True)
+            try:
+                current = header.visualIndex(logical)
+                target = 0 if logical == 0 else 1 if logical == 1 else max(2, old_visual)
+                header.moveSection(current, target)
+            finally:
+                header.blockSignals(False)
+        self._save_layout()
 
     def _header_clicked(self, section):
         if section == 0:
@@ -457,6 +472,8 @@ class DataTableView(QTableView):
         ]
         if not visible_columns:
             return
+        header = self.horizontalHeader()
+        visible_columns.sort(key=header.visualIndex)
         left_col = visible_columns[0]
         right_col = visible_columns[-1]
         painter = QPainter(self.viewport())
