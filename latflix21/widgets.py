@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Callable
 
 from PySide6.QtCore import QEvent, QModelIndex, QPoint, QSettings, QTimer, Qt, Signal, QStringListModel
+from PySide6.QtGui import QColor, QPainter, QPen
 from PySide6.QtWidgets import (
     QAbstractItemView, QComboBox, QCompleter, QDialog, QDialogButtonBox, QHBoxLayout,
     QInputDialog, QLineEdit, QMenu, QMessageBox, QPushButton, QStyledItemDelegate,
@@ -264,6 +265,50 @@ class DataTableView(QTableView):
                     source_model.title_overrides[key] = str(title)
         source_model.headerDataChanged.emit(Qt.Horizontal, 0, source_model.columnCount() - 1)
         self._apply_header_lock()
+
+    def mousePressEvent(self, event):
+        if not self.indexAt(event.position().toPoint()).isValid():
+            self.clearSelection()
+        super().mousePressEvent(event)
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        if not self.selectionModel() or not self.model():
+            return
+        rows = sorted({index.row() for index in self.selectionModel().selectedRows()})
+        if not rows:
+            return
+        groups = []
+        start = previous = rows[0]
+        for row in rows[1:]:
+            if row == previous + 1:
+                previous = row
+                continue
+            groups.append((start, previous))
+            start = previous = row
+        groups.append((start, previous))
+
+        visible_columns = [
+            c for c in range(1, self.model().columnCount())
+            if not self.isColumnHidden(c)
+        ]
+        if not visible_columns:
+            return
+        left_col = visible_columns[0]
+        right_col = visible_columns[-1]
+        painter = QPainter(self.viewport())
+        pen = QPen(QColor("#4f80b4"))
+        pen.setWidth(2)
+        painter.setPen(pen)
+        painter.setBrush(Qt.NoBrush)
+        for first_row, last_row in groups:
+            left_top = self.visualRect(self.model().index(first_row, left_col))
+            right_bottom = self.visualRect(self.model().index(last_row, right_col))
+            if not left_top.isValid() or not right_bottom.isValid():
+                continue
+            rect = left_top.united(right_bottom).adjusted(1, 1, -1, -1)
+            painter.drawRect(rect)
+        painter.end()
 
     def source_col(self, index):
         model = self.model()
