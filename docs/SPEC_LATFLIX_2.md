@@ -1013,11 +1013,12 @@ Platí zejména pro:
 - **Videa / Super** → sloupec **Název videa**.
 
 Chování:
-- pokud je řádek zamčený a uživatel jednou klikne do příslušné buňky, její text se okamžitě zkopíruje do systémové schránky,
-- editační režim se neotevírá,
+- pokud je řádek zamčený, **jedno kliknutí** pouze označí řádek podle běžných pravidel výběru,
+- pokud je řádek zamčený a uživatel **dvakrát klikne** do příslušné hlavní textové buňky, její text se okamžitě zkopíruje do systémové schránky,
+- editační režim se u zamčeného řádku neotevírá,
 - po zkopírování se krátce zobrazí malé nenápadné potvrzení **„Zkopírováno“**,
 - vizuální styl a chování tohoto potvrzení mají odpovídat současnému Latflixu, kde tato funkce již existuje a uživateli vyhovuje,
-- jedno kliknutí na odemčený řádek se nadále řídí běžnými pravidly výběru/editace a samo o sobě tuto kopírovací akci nespouští.
+- u odemčeného řádku se dvojklik nadále používá pro vstup do editačního režimu u editovatelných buněk.
 
 Tato logika se má implementovat sdíleně tak, aby ji bylo možné použít i u dalších hlavních textových sloupců, pokud budou později označeny pro stejné chování.
 
