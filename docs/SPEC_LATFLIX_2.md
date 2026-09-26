@@ -734,6 +734,23 @@ Po otevření **Další**:
 
 Zdroj hodnot zůstává sekce **Národnosti**; četnost se ale počítá podle skutečného použití hodnot u záznamů v sekci Girls / Oblíbené.
 
+
+### Girls / Oblíbené – tlačítko Vyčistit
+
+Na úplně pravé straně lišty nad tabulkou bude ve stejné výšce jako ostatní prvky samostatné tlačítko **Vyčistit**.
+
+Chování:
+- tlačítko **Vyčistit** vymaže obsah pole Hledání,
+- zároveň zruší **všechny aktivní filtry** v této sekci,
+- po použití se tabulka vrátí do běžného nevyfiltrovaného stavu sekce,
+- tlačítko je od ostatních ovládacích prvků vizuálně oddělené tím, že je zarovnané úplně doprava.
+
+Rozdíl oproti malé ikoně koše vedle pole Hledání:
+- **koš vedle Hledání** smaže pouze text v poli Hledání a zruší pouze fulltextový filtr,
+- **Vyčistit** smaže hledání a zároveň zruší i všechny aktivní sloupcové filtry.
+
+Vizuální umístění má odpovídat dodané referenci: tlačítko **Vyčistit** je na pravém okraji stejného řádku ovládací lišty.
+
 ---
 
 ## Pracovní pravidlo specifikace
