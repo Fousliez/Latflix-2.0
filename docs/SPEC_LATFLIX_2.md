@@ -674,6 +674,7 @@ Chování:
 - řádek se zobrazí, pokud hledaný text obsahuje alespoň jedna jeho buňka,
 - porovnání je **case-insensitive**; velká a malá písmena se nerozlišují,
 - hledání má filtrovat průběžně podle obsahu pole,
+- pole **Hledání nemá našeptávač ani automatické doplňování**; slouží pouze jako průběžný fulltextový filtr,
 - ostatní sekce nejsou hledáním ovlivněné.
 
 Vpravo od pole Hledání bude malé tlačítko s ikonou **koše**:
@@ -890,27 +891,6 @@ Pokud uživatel během textové editace klikne myší do jiné buňky:
 - pokud je cílová buňka zamčená nebo needitovatelná, stávající editace se pouze ukončí.
 
 Automatický přechod na **následující řádek** zůstává vyhrazený pro potvrzení klávesou **Enter**.
-
-
-### Girls / Oblíbené – našeptávač v poli Hledání
-
-Pole **Hledání** v sekcích **Girls** a **Oblíbené** bude mít našeptávač jmen hereček.
-
-Řazení a výběr položek:
-- základní pořadí vychází z **počtu výskytů herečky ve videích**, od nejčastějších,
-- po začátku psaní se zobrazují pouze odpovídající herečky,
-- shoda od začátku hlavního jména nebo aliasu má přednost před shodou uprostřed textu,
-- uvnitř stejné skupiny shod rozhoduje:
-  1. vyšší počet výskytů,
-  2. následně abecední pořadí,
-- v sekci **Oblíbené** se v našeptávači zobrazují pouze herečky, které jsou v Oblíbených.
-
-Vzhled popupu:
-- větší písmo než běžný drobný systémový našeptávač,
-- vyšší řádky pro pohodlné klikání,
-- řádek pod kurzorem myši se výrazně zvýrazní modře, aby bylo před kliknutím jasné, která položka bude vybrána.
-
-Toto chování odpovídá již hotové funkci v předchozí verzi Latflixu ze dne **28. 8. 2026** a má být zachováno i v Latflixu 2.0.
 
 
 ### Globální tabulkové chování – výběr a kopírování textu při editaci
@@ -1323,6 +1303,31 @@ Sekce **Studia** používá stejný funkční typ automatického sloupce **Poče
 - sloupec je pouze informativní a automaticky vypočítávaný; ručně se needituje,
 - **Super** je pouze podmnožina Videa a nezakládá další samostatné výskyty,
 - stejný videozáznam zobrazený ve Videa i v Super se tedy započítá pouze jednou.
+
+### Našeptávače – rozsah použití a společná logika
+
+Našeptávače se nepoužívají v datových sloupcích sekcí **Girls / Oblíbené** ani ve fulltextovém poli **Hledání**.
+
+Datové našeptávače jsou určeny zejména pro sekce **Videa / Super**, kde se vybírají již existující entity:
+- sloupec **Herečka** a případné další sloupce pro další účinkující herečky načítají návrhy z **Girls**,
+- sloupec **Studio** načítá návrhy ze sekce **Studia**,
+- **Super** používá stejnou logiku jako Videa, protože je jeho podmnožinou.
+
+Společná logika těchto našeptávačů:
+- před začátkem psaní se návrhy řadí podle **Počtu výskytů sestupně**, při shodě abecedně,
+- po začátku psaní se hledá **case-insensitive kdekoliv v názvu**,
+- nejdřív se zobrazí hodnoty, které dotazem **začínají**,
+- potom hodnoty, které dotaz obsahují **uvnitř názvu**,
+- uvnitř každé z těchto dvou skupin rozhoduje nejdřív **Počet výskytů sestupně** a při shodě **abecední pořadí**,
+- u hereček se pro tuto četnost používá jejich **Počet výskytů** z Girls,
+- u studií se používá jejich **Počet výskytů** ze Studií.
+
+Vzhled standardních našeptávačů:
+- čistý popup,
+- větší písmo,
+- vyšší řádky,
+- dostatečná šířka pro zobrazované hodnoty,
+- položka pod kurzorem myši i položka vybraná klávesnicí se výrazně označí modrým pozadím a bílým textem.
 
 ### Globální tabulkový základ napříč sekcemi
 
