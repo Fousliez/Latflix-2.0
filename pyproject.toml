@@ -1,7 +1,7 @@
 [project]
 name = "latflix-2"
-version = "0.4.0a1"
-description = "Fast clean rewrite of Latflix"
+version = "2.1.0a1"
+description = "Latflix 2.1 clean desktop rewrite"
 requires-python = ">=3.10"
 dependencies = [
   "PySide6>=6.7,<7",
