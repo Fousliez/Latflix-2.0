@@ -577,13 +577,25 @@ Příklad: pokud má jedna herečka dvě adresy Facebooku, pro globální pořad
 
 Horní panel sekcí **Videa / Super** bude používat stejný základní vizuální styl **modrých obdélníkových prvků / rámečků** jako horní panel Girls / Oblíbené.
 
-Platí zatím pouze vzhled:
-- stejný typ modrého obdélníkového prvku,
-- stejné základní vizuální proporce, odsazení a práce s textem,
-- stejné skládání do dostupného prostoru horního panelu tak, aby panel zůstal na pevné výšce,
-- přesný obsah, význam, klikací chování, pořadí a případné seskupování těchto prvků ve Videa / Super budou definovány samostatně později.
+Rozložení horní části panelu:
+- vlevo nahoře bude zobrazen **název aktuální sekce**, tedy např. **Videa** nebo **Super**,
+- bezprostředně vpravo od názvu sekce bude kompaktní přepínač **Studia / Herečky**,
+- přepínač určuje, jaký typ modrých prvků se právě zobrazuje v panelu.
 
-Toto pravidlo zatím **nepřenáší datovou logiku odkazů z Girls / Oblíbené** do Videa / Super; sdílí se pouze vizuální komponenta.
+Obsah modrých prvků:
+- při aktivní volbě **Studia** obsahují modré prvky názvy studií,
+- při aktivní volbě **Herečky** obsahují modré prvky jména hereček,
+- nejde tedy o názvy sociálních sítí / platforem jako v Girls / Oblíbené,
+- přesná datová logika, pořadí a klikací chování studií a hereček budou ještě upřesněny zvlášť.
+
+Vzhled a velikost:
+- používá se stejný typ modrého obdélníkového prvku jako v Girls / Oblíbené,
+- **výška prvků zůstává jednotná a panel se kvůli nim nesmí zvětšovat na výšku**,
+- **šířka jednotlivého modrého prvku není pevná** a může se zvětšit podle délky názvu studia nebo herečky tak, aby se text zobrazil celý,
+- prvky se skládají do dostupného prostoru horního panelu bez zbytečného ořezávání názvů,
+- horní panel zůstává na své globálně pevné výšce.
+
+Toto pravidlo nepřenáší datovou logiku odkazů z Girls / Oblíbené do Videa / Super; sdílí se pouze vizuální styl modrých prvků a základní způsob jejich skládání.
 
 
 ### Společná lišta tlačítek a filtrů nad tabulkou
