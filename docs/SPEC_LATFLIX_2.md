@@ -875,14 +875,13 @@ Implementační poznámka:
 - nesmí se zpracovat znovu při KeyRelease ani jinou druhou cestou,
 - nesmí tak dojít k přeskočení ob řádek.
 
-### Girls / Oblíbené – chování našeptávače a ukončení editace myší
+### Girls / Oblíbené – editace textových buněk a ukončení editace myší
 
-Při editaci řádku, zejména pole **Jméno**, platí:
+Ve sloupci **Jméno** v sekcích **Girls / Oblíbené** se **našeptávač / automatické doplňování nepoužívá**.
 
-- pokud uživatel vybere hodnotu z našeptávače / automatického doplnění, hodnota se vloží do buňky,
-- tím se ale **editační režim neukončí**,
-- kurzor zůstane aktivní v daném editačním poli na konci vloženého jména,
-- uživatel může bez dalšího klikání pokračovat v editaci.
+Důvod:
+- v Girls se zde zapisuje samotný záznam herečky, takže nabízení již existujících hereček by při zakládání nového záznamu nedávalo smysl,
+- pole Jméno proto funguje jako běžný volný textový editor podle globálních pravidel tabulky.
 
 Pokud uživatel během textové editace klikne myší do jiné buňky:
 - aktuálně editovaná hodnota se nejprve uloží / potvrdí,
