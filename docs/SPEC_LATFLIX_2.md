@@ -165,7 +165,6 @@ Zobrazuje:
 - **Počet tagů**
 - **Použitých tagů** – počet tagů použitých alespoň u jednoho záznamu
 - **Nejpoužívanější tag** – tag s nejvyšším počtem použití, včetně počtu v závorce
-- **Kategorií tagů** – aktuální počet kategorií tagů
 
 Při shodném počtu použití pro nejpoužívanější tag rozhoduje abecední pořadí.
 
