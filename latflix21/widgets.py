@@ -203,12 +203,15 @@ class TextDelegate(QStyledItemDelegate):
 
 
 class ChoiceDelegate(QStyledItemDelegate):
-    def __init__(self, choices: Callable[[QModelIndex], list[str]], parent=None):
-        super().__init__(parent)
+    def __init__(self, choices: Callable[[QModelIndex], list[str]], view, parent=None):
+        super().__init__(parent or view)
         self.choices = choices
+        self.view = view
+        self.active_combo = None
 
     def createEditor(self, parent, option, index):
         combo = QComboBox(parent)
+        self.active_combo = combo
         combo.setEditable(False)
         combo.setFrame(False)
         combo.setStyleSheet(
@@ -219,6 +222,11 @@ class ChoiceDelegate(QStyledItemDelegate):
         combo.activated.connect(
             lambda *_: (self.commitData.emit(combo), self.closeEditor.emit(combo))
         )
+        app = QApplication.instance()
+        if app is not None:
+            app.removeEventFilter(self)
+            app.installEventFilter(self)
+            combo.destroyed.connect(lambda *_: app.removeEventFilter(self))
         QTimer.singleShot(0, combo.showPopup)
         return combo
 
@@ -229,6 +237,42 @@ class ChoiceDelegate(QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         model.setData(index, editor.currentText(), Qt.EditRole)
+
+    def eventFilter(self, watched, event):
+        combo = self.active_combo
+        if (
+            combo is not None
+            and event.type() == QEvent.MouseButtonPress
+            and combo.isVisible()
+        ):
+            global_pos = event.globalPosition().toPoint()
+            target = QApplication.widgetAt(global_pos)
+            popup = combo.view()
+            if (
+                target is combo
+                or target is popup
+                or (target is not None and popup.isAncestorOf(target))
+            ):
+                return False
+
+            viewport = self.view.viewport()
+            local = viewport.mapFromGlobal(global_pos)
+            if viewport.rect().contains(local):
+                index = self.view.indexAt(local)
+                if index.isValid():
+                    combo.hidePopup()
+                    self.closeEditor.emit(combo)
+                    self.active_combo = None
+
+                    def activate(idx=QModelIndex(index)):
+                        if not idx.isValid():
+                            return
+                        self.view.setCurrentIndex(idx)
+                        self.view._single_click(idx)
+
+                    QTimer.singleShot(0, activate)
+                    return True
+        return super().eventFilter(watched, event)
 
 
 class AutoCompleteDelegate(QStyledItemDelegate):
