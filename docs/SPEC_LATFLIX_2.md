@@ -439,6 +439,49 @@ Pod řádky bude tlačítko **Přidat řádek**:
 
 Rozložení a základní vizuální logika mají vycházet z dodané reference současného Latflixu, ale nový dialog má být čistý a bez zbytečného vizuálního balastu.
 
+
+### Upřesnění tlačítek Detail a Zobrazit odkazy
+
+#### Detail
+
+Tlačítko **Detail** otevře editační dialog herečky podle dodané reference současného Latflixu.
+
+Dialog má obsahovat stejné základní typy údajů jako na referenčním screenu, zejména:
+- Jméno,
+- Alias / aliasy,
+- Typ,
+- Sex,
+- Nahota,
+- Věk,
+- Počet výskytů,
+- Národnost,
+- Hodnocení,
+- Tagy,
+- Sledování,
+- Poslední kontrola,
+- Obrázek,
+- Poznámka,
+- Datum přidání,
+- Oblíbené,
+- Poslední obrázek,
+- Stav,
+- Datum narození.
+
+Požadavky:
+- vzhled a rozložení mají vycházet z dodaného screenshotu,
+- spodní část bude mít akce **Zrušit** a **Uložit**,
+- aliasy nesmí být omezené pevně na tři položky; dialog musí umožnit přidávat další aliasy dynamicky,
+- přesné názvy polí se mohou později sjednotit s datovým modelem nové verze, ale funkční rozsah má odpovídat referenci.
+
+#### Zobrazit odkazy
+
+Tlačítko **Zobrazit odkazy**:
+- přepne aplikaci do sekce **Odkazy**,
+- automaticky aktivuje filtr pro aktuálně vybranou herečku,
+- výsledkem je zobrazení pouze odkazů patřících této herečce,
+- preferovaný interní způsob je filtr podle stabilního ID herečky; jméno může být použito jen jako viditelný popisek filtru,
+- po přechodu musí být zřejmé, pro kterou herečku jsou odkazy právě zobrazené.
+
 ---
 
 ## Pracovní pravidlo specifikace
