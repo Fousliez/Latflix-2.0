@@ -1472,6 +1472,19 @@ Nové společné vizuální pravidlo pro Latflix 2.0:
 - společná výška se má držet jednotně napříč sekcemi, které tuto lištu používají.
 
 
+### Globální tlačítko Vyčistit v liště nad tabulkou
+
+Ve **všech sekcích kromě Přehledu** bude úplně vpravo ve stejné řadě ovládací lišty nad tabulkou tlačítko **Vyčistit**.
+
+Chování:
+- kliknutí na **Vyčistit** zruší obsah pole **Hledání**,
+- současně zruší **všechny ostatní aktivní filtry aktuální sekce**,
+- týká se to jak rozbalovacích filtrů, tak dalších sekčně specifických filtrů a výběrových filtrů, které ovlivňují zobrazené řádky,
+- výsledkem bude návrat aktuální tabulky do nevyfiltrovaného stavu dané sekce,
+- tlačítko **Vyčistit** neruší ruční řazení sloupců, pořadí sloupců, jejich šířky ani jiná nastavení vzhledu tabulky; jeho účelem je pouze zrušit hledání a filtry,
+- malé tlačítko s ikonou **koše** vedle Hledání zůstává odlišné: maže pouze Hledání a ostatní filtry zachovává,
+- tlačítko je zarovnané úplně doprava bez ohledu na počet ostatních prvků v liště.
+
 ### Lišta nad tabulkou – šířka tlačítek a text
 
 Pro tlačítka v liště nad tabulkou platí:
@@ -1489,6 +1502,26 @@ Pro tlačítka v liště nad tabulkou platí:
 - účelem je na první pohled ukázat, ve které sekci se uživatel právě nachází,
 - ostatní rozměry, typografie a základní styl tlačítka zůstávají stejné.
 
+
+### Studia – sloupce a lišta nad tabulkou
+
+Datové sloupce sekce **Studia** budou:
+
+- **Název** – editovatelný textový sloupec, **bez našeptávače**.
+- **Typ** – editovatelný textový sloupec, **bez našeptávače**.
+- **Odkaz** – editovatelný textový sloupec, **bez našeptávače**.
+- **Počet výskytů** – automaticky vypočítávaný a pouze pro čtení podle samostatně definované logiky níže.
+
+Před těmito datovými sloupci zůstávají globální systémové sloupce **zámek + číslo řádku**.
+
+Lišta nad tabulkou v sekci Studia bude zatím obsahovat v tomto pořadí:
+
+1. **Přidat** – vzhledově i funkčně stejně jako v Girls.
+2. **Smazat** – vzhledově i funkčně stejně jako v Girls.
+3. **Hledání** – globální fulltextové hledání aktuální tabulky.
+4. malé tlačítko s ikonou **koše** bezprostředně vpravo od Hledání – smaže pouze obsah Hledání a zruší pouze fulltextový filtr; ostatní filtry / nastavení ponechá beze změny.
+
+Žádné další sekčně specifické tlačítko ani filtr se ve Studiích zatím nepřidává; globální tlačítko **Vyčistit** vpravo na konci lišty platí i zde podle společného pravidla.
 
 ### Studia – Počet výskytů
 
