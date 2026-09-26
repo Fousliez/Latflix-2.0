@@ -42,6 +42,7 @@ class BaseModel(QAbstractTableModel):
         self.repo = repo
         self.rows = []
         self.title_overrides: dict[str, str] = {}
+        self.header_unlocked = False
         self.reload()
 
     def reload(self) -> None:
@@ -77,7 +78,7 @@ class BaseModel(QAbstractTableModel):
         if orientation == Qt.Horizontal:
             col = self.col(section)
             if col.kind == "lock":
-                return "🔒"
+                return "🔓" if self.header_unlocked else "🔒"
             return self.title_overrides.get(col.key, col.title)
         return str(section + 1)
 
