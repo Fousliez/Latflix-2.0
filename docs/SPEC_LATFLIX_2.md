@@ -585,8 +585,15 @@ Rozložení horní části panelu:
 Obsah modrých prvků:
 - při aktivní volbě **Studia** obsahují modré prvky názvy studií,
 - při aktivní volbě **Herečky** obsahují modré prvky jména hereček,
-- nejde tedy o názvy sociálních sítí / platforem jako v Girls / Oblíbené,
-- přesná datová logika, pořadí a klikací chování studií a hereček budou ještě upřesněny zvlášť.
+- nejde tedy o názvy sociálních sítí / platforem jako v Girls / Oblíbené.
+
+#### Studia – pořadí a počet zobrazených prvků
+- studia se řadí podle svého **Počtu výskytů sestupně**,
+- do Počtu výskytů se pro toto řazení započítávají pouze **platné / plnohodnotné videozáznamy** podle již definovaného společného pravidla pro výskyty,
+- pokud mají dvě nebo více studií stejný Počet výskytů, rozhoduje **abecední pořadí názvu studia vzestupně**,
+- prvky se skládají zleva doprava a po zaplnění šířky pokračují na dalším řádku,
+- ve Videa / Super se pro tuto horní sadu zobrazují maximálně **3 řádky** modrých prvků,
+- studia, která se do tří řádků nevejdou, zůstanou v horním panelu **skrytá**.
 
 Vzhled a velikost:
 - používá se stejný typ modrého obdélníkového prvku jako v Girls / Oblíbené,
