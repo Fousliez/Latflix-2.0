@@ -135,9 +135,9 @@ class MainWindow(QMainWindow):
         self.pages.addWidget(self.links_page)
 
         self.catalog_pages = {
-            "Typy": CatalogPage(repository, "types", False, self.pages),
-            "Národnosti": CatalogPage(repository, "nationalities", False, self.pages),
-            "Tagy": CatalogPage(repository, "tags", True, self.pages),
+            "Typy": CatalogPage(self.repository, "types", False, self.pages),
+            "Národnosti": CatalogPage(self.repository, "nationalities", False, self.pages),
+            "Tagy": CatalogPage(self.repository, "tags", True, self.pages),
         }
         for page in self.catalog_pages.values():
             page.changed.connect(self.catalog_changed)
