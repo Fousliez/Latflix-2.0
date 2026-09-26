@@ -522,6 +522,32 @@ class GirlsPage(TablePage):
             self.add.setEnabled(False)
             self.delete.setEnabled(False)
 
+    def _refresh_filter_sources(self):
+        nationality = self.filter_boxes.get("nationality")
+        if isinstance(nationality, MenuFilter):
+            selected = "" if nationality.currentIndex() == 0 else nationality.currentText()
+            counts = Counter(
+                g.nationality for g in self.repo.girls(False) if g.nationality
+            )
+            values = self.repo.catalog("nationalities")
+            values.sort(key=lambda value: (-counts.get(value, 0), value.casefold()))
+            nationality.set_values(values, split_after=10)
+            if selected in values:
+                nationality.set_value(selected)
+            else:
+                nationality.setCurrentIndex(0)
+
+        type_box = self.filter_boxes.get("type_name")
+        if isinstance(type_box, QComboBox):
+            selected = type_box.currentText() if type_box.currentIndex() else ""
+            type_box.blockSignals(True)
+            type_box.clear()
+            type_box.addItems(["Typ"] + self.repo.catalog("types"))
+            if selected:
+                found = type_box.findText(selected)
+                type_box.setCurrentIndex(found if found >= 0 else 0)
+            type_box.blockSignals(False)
+
     def _filters_changed(self, *_):
         for key, combo in self.filter_boxes.items():
             if key == "profile":
@@ -750,6 +776,9 @@ class GirlsPage(TablePage):
 
     def refresh(self):
         super().refresh()
+        if hasattr(self, "filter_boxes"):
+            self._refresh_filter_sources()
+            self._filters_changed()
         self._update_top()
 
 
