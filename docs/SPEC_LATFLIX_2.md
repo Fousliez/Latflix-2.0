@@ -440,7 +440,11 @@ Tlačítko **Odkazy** v horním panelu otevře samostatné okno / dialog pro spr
 
 #### Uložené odkazy nahoře
 
-V horní části dialogu budou zobrazené již uložené odkazy herečky jako kompaktní položky.
+V horní části dialogu bude vždy jasně vyhrazená a vizuálně rozpoznatelná sekce pro **uložené odkazy** aktuální herečky.
+
+- tato horní část musí být patrná i tehdy, když herečka zatím nemá uložený žádný odkaz; dialog nesmí začínat rovnou řádky pro přidávání nových odkazů bez zřejmého místa pro již uložené,
+- pokud žádné odkazy nejsou, může sekce zobrazit nenápadný prázdný stav / informaci, že zatím nejsou uložené žádné odkazy,
+- pokud odkazy existují, zobrazí se zde jako kompaktní položky podle následujících pravidel.
 
 Každá uložená položka bude obsahovat:
 - název / platformu odkazu,
