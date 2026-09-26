@@ -1140,6 +1140,26 @@ Umístění:
 - přibližně střed spodního stavového řádku,
 - tak, aby nekolidoval s levým počtem záznamů ani pravými ovládacími prvky stavového řádku.
 
+
+### Vizuální upřesnění tabulek a lišty nad tabulkou
+
+Nové společné vizuální pravidlo pro Latflix 2.0:
+
+#### Střídání barev řádků
+- střídání barev řádků bude **bílá / světle šedá**,
+- dříve uvažovaná kombinace světle modré / světle zelené se ruší,
+- střídání se nadále řídí aktuálním pořadím zobrazených řádků.
+
+#### Šipky v záhlaví a na tlačítkách
+- po kliknutí na název sloupce se v záhlaví **nesmí zobrazovat šipka řazení**,
+- řazení kliknutím na záhlaví zůstává funkční oběma směry, pouze bez viditelného indikátoru šipkou,
+- běžná tlačítka v liště nad tabulkou rovněž nemají zobrazovat šipku / rozbalovací indikátor,
+- výjimkou je pouze dělené tlačítko **Přidat**, kde je šipka samostatnou pravou částí tlačítka podle již definovaného chování.
+
+#### Výška prvků v liště nad tabulkou
+- všechna tlačítka v liště nad tabulkou mají být stejně vysoká jako pole **Hledání**,
+- společná výška se má držet jednotně napříč sekcemi, které tuto lištu používají.
+
 ---
 
 ## Pracovní pravidlo specifikace
