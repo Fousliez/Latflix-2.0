@@ -10,7 +10,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from PySide6.QtCore import Qt, QTimer, Signal
-from PySide6.QtGui import QColor, QKeyEvent, QMouseEvent, QPixmap
+from PySide6.QtGui import QColor, QIcon, QKeyEvent, QMouseEvent, QPixmap
 from PySide6.QtWidgets import (
     QApplication, QAbstractItemView, QComboBox, QCompleter, QDialog,
     QDialogButtonBox, QFileDialog, QFormLayout, QFrame, QHBoxLayout,
@@ -142,6 +142,28 @@ class Store:
         with self.db() as c:
             rows=c.execute("SELECT site,count(DISTINCT girl_id)c FROM links WHERE trim(site)<>'' GROUP BY lower(site) ORDER BY c DESC,lower(site)").fetchall()
         return {s(r["site"]).casefold():i for i,r in enumerate(rows)}
+
+class PhotoButton(QPushButton):
+    choose = Signal()
+    delete_requested = Signal()
+    crop_requested = Signal()
+    def __init__(self,*a,**kw):
+        super().__init__(*a,**kw)
+        self._timer=QTimer(self); self._timer.setSingleShot(True); self._timer.timeout.connect(self.choose.emit)
+        self._double=False
+    def mousePressEvent(self,e):
+        if e.button()==Qt.RightButton:
+            self._timer.stop(); self.delete_requested.emit(); e.accept(); return
+        super().mousePressEvent(e)
+    def mouseDoubleClickEvent(self,e):
+        if e.button()==Qt.LeftButton:
+            self._double=True; self._timer.stop(); self.crop_requested.emit(); e.accept(); return
+        super().mouseDoubleClickEvent(e)
+    def mouseReleaseEvent(self,e):
+        super().mouseReleaseEvent(e)
+        if e.button()==Qt.LeftButton:
+            if self._double: self._double=False
+            else: self._timer.start(QApplication.doubleClickInterval()+20)
 
 class EditLine(QLineEdit):
     enter=Signal()
@@ -307,7 +329,7 @@ class MainWindow(QMainWindow):
         root.addWidget(side);self.stack=QStackedWidget(rootw);root.addWidget(self.stack,1)
         page=QWidget(self.stack);pv=QVBoxLayout(page);pv.setContentsMargins(0,0,0,0);pv.setSpacing(5)
         self.detail=QFrame(page);self.detail.setFixedHeight(136);dh=QHBoxLayout(self.detail)
-        self.photo=QPushButton("FOTKA",self.detail);self.photo.setFixedSize(76,118);self.photo.clicked.connect(self.photo_choose);dh.addWidget(self.photo)
+        self.photo=PhotoButton("FOTKA",self.detail);self.photo.setFixedSize(76,118);self.photo.choose.connect(self.photo_choose);self.photo.delete_requested.connect(self.photo_delete);self.photo.crop_requested.connect(lambda:self.statusBar().showMessage("Výřez obrazovky: mechanismus se doladí po testu prototypu.",2500));dh.addWidget(self.photo)
         mid=QWidget(self.detail);mv=QVBoxLayout(mid);head=QHBoxLayout();self.dname=QLabel("Vyber herečku",mid);self.dname.setObjectName("dname");self.fav=QPushButton("☆ Oblíbené",mid);self.fav.setCheckable(True);self.fav.clicked.connect(self.toggle_fav);head.addWidget(self.dname);head.addWidget(self.fav);head.addStretch(1);mv.addLayout(head)
         meta=QHBoxLayout();self.dage=QLabel("Věk: —",mid);self.docc=QLabel("Počet výskytů: 0",mid);meta.addWidget(self.dage);meta.addWidget(self.docc);meta.addStretch(1);mv.addLayout(meta)
         self.chips=QHBoxLayout();mv.addLayout(self.chips);mv.addStretch(1);dh.addWidget(mid,1)
@@ -392,8 +414,8 @@ class MainWindow(QMainWindow):
         g=self.store.girl(g["id"]);self.dname.setText(g["name"] or "(bez jména)");self.dage.setText("Věk: "+(age(g["age_source"]) or "—"));self.docc.setText(f"Počet výskytů: {g['occurrences']}");self.fav.setChecked(bool(g["favorite"]));self.fav.setText("★ V oblíbených" if g["favorite"] else "☆ Oblíbené")
         p=s(g["profile"])
         if p and Path(p).exists():
-            pm=QPixmap(p);self.photo.setIcon(pm);self.photo.setText("")
-        else:self.photo.setIcon(QPixmap());self.photo.setText("FOTKA")
+            pm=QPixmap(p);self.photo.setIcon(QIcon(pm));self.photo.setIconSize(self.photo.size());self.photo.setText("")
+        else:self.photo.setIcon(QIcon());self.photo.setText("FOTKA")
         groups=defaultdict(list)
         for l in self.store.links(g["id"]):groups[l["site"] or "Odkaz"].append(l["url"])
         rank=self.store.link_rank()
@@ -486,6 +508,10 @@ class MainWindow(QMainWindow):
         if not self.current:return
         p,_=QFileDialog.getOpenFileName(self,"Vybrat profilovku",str(Path.home()/"Plocha"),"Obrázky (*.png *.jpg *.jpeg *.webp *.bmp)")
         if p:self.store.set(self.current,"profile",p);self.reload(self.current)
+    def photo_delete(self):
+        if not self.current:return
+        if QMessageBox.question(self,"Smazat profilovku","Chcete profilovku smazat?",QMessageBox.Yes|QMessageBox.No)==QMessageBox.Yes:
+            self.store.set(self.current,"profile","");self.reload(self.current)
     def status(self):
         self.count.setText(f"Záznamů: {len(self.visible)} / {len(self.rows)}")
         arr=[]
