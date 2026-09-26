@@ -533,6 +533,28 @@ class Repository:
         )
         return f"({field_count}>=4 AND {key_count}>=2)"
 
+    def video_is_valid(self, video: Video) -> bool:
+        fields = (
+            bool(video.title.strip()),
+            video.studio_id is not None,
+            bool(video.release_date.strip()),
+            bool(video.state.strip()),
+            bool(video.quality.strip()),
+            bool(video.available_quality.strip()),
+            bool(video.size.strip()),
+            bool(video.duration.strip()),
+            bool(video.mixed_gender.strip()),
+            bool(video.note.strip()),
+            bool(video.rating.strip()),
+            bool(video.participants),
+        )
+        keys = (
+            bool(video.title.strip()),
+            video.studio_id is not None,
+            bool(video.participants),
+        )
+        return sum(fields) >= 4 and sum(keys) >= 2
+
     # ---------- girls ----------
 
     def girls(self, favorites: bool = False) -> list[Girl]:
@@ -1144,7 +1166,7 @@ class Repository:
             cur = c.execute(
                 """
                 DELETE FROM lf21_girls
-                WHERE is_new=1 AND locked=0 AND favorite=0
+                WHERE is_new=1 AND favorite=0
                   AND TRIM(name)='' AND TRIM(face)='' AND TRIM(sex)='' AND TRIM(type_name)=''
                   AND TRIM(nudity)='' AND TRIM(age_source)='' AND TRIM(nationality)=''
                   AND TRIM(last_check)='' AND TRIM(note)='' AND TRIM(status)=''
@@ -1165,7 +1187,7 @@ class Repository:
             cur = c.execute(
                 """
                 DELETE FROM lf21_videos
-                WHERE is_new=1 AND locked=0 AND in_super=0 AND studio_id IS NULL
+                WHERE is_new=1 AND in_super=0 AND studio_id IS NULL
                   AND TRIM(title)='' AND TRIM(release_date)='' AND TRIM(state)=''
                   AND TRIM(quality)='' AND TRIM(available_quality)='' AND TRIM(size)=''
                   AND TRIM(duration)='' AND TRIM(mixed_gender)='' AND TRIM(note)=''
@@ -1177,14 +1199,14 @@ class Repository:
             cur = c.execute(
                 """
                 DELETE FROM lf21_links
-                WHERE is_new=1 AND locked=0 AND type_id IS NULL AND girl_id IS NULL
+                WHERE is_new=1 AND type_id IS NULL AND girl_id IS NULL
                   AND TRIM(url)='' AND TRIM(check_value)='' AND TRIM(downloaded)=''
                   AND TRIM(active)='' AND TRIM(last_text)='' AND TRIM(last_image)=''
                 """
             )
             deleted["links"] = int(cur.rowcount)
             cur = c.execute(
-                "DELETE FROM lf21_catalog WHERE is_new=1 AND locked=0 AND TRIM(name)=''"
+                "DELETE FROM lf21_catalog WHERE is_new=1 AND TRIM(name)=''"
             )
             deleted["catalog"] = int(cur.rowcount)
         return deleted
