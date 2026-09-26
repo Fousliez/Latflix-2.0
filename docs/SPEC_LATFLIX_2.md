@@ -934,6 +934,23 @@ Zdroj hodnot:
 
 Výběr hodnoty z nabídky zapíše hodnotu do buňky. Tyto buňky tedy používají výběrový editor namísto běžného textového pole.
 
+
+### Girls / Oblíbené – sloupec Věk
+
+Sloupec **Věk** bude podporovat dva způsoby zadání podle hodnoty:
+
+- pokud uživatel zadá číslo **1–100**, bere se jako přímo zadaný věk a zobrazí se beze změny,
+- pokud uživatel zadá číslo **větší než 100**, bere se jako **rok narození** (např. 1992, 2004, 1986) a aplikace z něj vypočítá zobrazovaný věk.
+
+Při zadání roku narození:
+- zobrazovaný věk se vypočítá podle aktuálního kalendářního roku,
+- například v roce 2026: `1992 → 34`, `2004 → 22`, `1986 → 40`,
+- protože je zadán pouze rok a nikoli přesné datum narození, jde o věk odvozený z roku narození,
+- původní rok narození se má interně zachovat jako zdrojová hodnota, aby se vypočítaný věk mohl v dalších letech automaticky aktualizovat,
+- uživatel tedy nemusí věk ručně každý rok opravovat.
+
+Sloupec zůstává editovatelný podle obecných pravidel tabulky.
+
 ---
 
 ## Pracovní pravidlo specifikace
