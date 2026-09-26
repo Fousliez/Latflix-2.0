@@ -564,6 +564,19 @@ Pravidla pro nové řádky:
 - hromadné přidání 5 nebo 10 řádků se řídí stejnými pravidly jako přidání jednoho řádku,
 - přidané řádky se nesmějí automaticky přesunout dolů kvůli třídění dřív, než uživatel dokončí jejich zadání; přesné chování při aktivním třídění bude případně ještě upřesněno.
 
+
+### Automatické odstranění zcela prázdných nových řádků – globální pravidlo
+
+Toto pravidlo platí **napříč celou aplikací** ve všech tabulkových sekcích:
+
+- pokud je nově přidaný řádek **zcela prázdný** a uživatel:
+  - opustí aktuální sekci, nebo
+  - zavře aplikaci,
+  bude tento prázdný řádek automaticky odstraněn,
+- odstranění se týká pouze řádku, který neobsahuje žádnou uživatelskou hodnotu ani jiná skutečná data,
+- jakmile uživatel do řádku zadá jakoukoli skutečnou hodnotu, řádek se nepovažuje za zcela prázdný a nesmí být tímto pravidlem smazán,
+- pravidlo je společné pro všechny sekce s tabulkami a nemá se implementovat zvlášť pro každou sekci.
+
 ---
 
 ## Pracovní pravidlo specifikace
