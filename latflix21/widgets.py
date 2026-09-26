@@ -8,7 +8,7 @@ from PySide6.QtCore import (
     QStringListModel,
 )
 from PySide6.QtGui import (
-    QColor, QGuiApplication, QKeyEvent, QMouseEvent, QPainter, QPen, QPixmap,
+    QColor, QCursor, QKeyEvent, QMouseEvent, QPainter, QPen, QPixmap,
 )
 from PySide6.QtWidgets import (
     QApplication, QAbstractItemDelegate, QAbstractItemView, QComboBox, QCompleter,
@@ -428,7 +428,7 @@ class DataTableView(QTableView):
         if locked and col.primary_text:
             text = str(source.data(Qt.DisplayRole) or "")
             QApplication.clipboard().setText(text)
-            QToolTip.showText(QGuiApplication.cursor().pos(), "Zkopírováno", self)
+            QToolTip.showText(QCursor.pos(), "Zkopírováno", self)
             return
         if col.kind == "note" and not locked:
             # Normally handled by NoteLineEdit; this covers cases where no editor got focus.
