@@ -336,6 +336,14 @@ Platí:
 - tyto další herečky nejsou druhořadé ani pouze poznámkové; datově jsou plnohodnotnými účinkujícími stejného videozáznamu,
 - všechny účinkující herečky jednoho videa, bez ohledu na to, zda jsou zobrazené přímo ve sloupci tabulky nebo přidané pouze přes Detail, se berou jako jeden společný seznam účinkujících.
 
+#### Pořadí hereček zobrazovaných v tabulce
+- pokud má video přiřazeno více hereček, jejich pořadí ve viditelných sloupcích **Herečka** se neurčuje pořadím, v jakém byly ručně zadány,
+- při každém vykreslení / znovunačtení tabulky se herečky daného videa seřadí podle jejich aktuálního **Počtu výskytů v aplikaci sestupně**,
+- herečka s vyšším Počtem výskytů se zobrazí dříve, tedy ve více levém / přednějším sloupci Herečka,
+- při shodném Počtu výskytů rozhoduje **abecední pořadí hlavního jména vzestupně**,
+- toto pořadí se odvozuje dynamicky i po restartu aplikace nebo jiném novém vykreslení tabulky; pokud se globální četnost hereček změní, může se změnit i jejich zobrazované pořadí u konkrétního videa,
+- pokud je u videa více hereček, než kolik je viditelných sloupců Herečka, v tabulce se zobrazí ty nejvýše umístěné podle tohoto pravidla; ostatní zůstávají plnohodnotně přiřazené v Detailu videa a ve všech výpočtech, filtrech a hledání.
+
 Dopad na **Počet výskytů**:
 - pokud je video platným / plnohodnotným videozáznamem podle již definovaného pravidla, započítá se výskyt každé jeho účinkující herečce,
 - platí to i pro herečky přidané pouze přes Detail videa,
