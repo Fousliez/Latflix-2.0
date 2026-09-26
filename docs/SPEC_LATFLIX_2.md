@@ -707,6 +707,27 @@ Pravidla dynamických nabídek:
 - přidání, přejmenování nebo odstranění hodnoty v pomocné sekci se musí projevit i v nabídce navázaného filtru,
 - tyto katalogy se mají používat centrálně i pro další místa v aplikaci, kde se vybírá Národnost, Typ nebo Stav, aby nevznikaly různé nesynchronizované seznamy.
 
+
+### Girls / Oblíbené – pořadí položek ve filtru Národnost
+
+Po otevření filtru **Národnost** se nabídka rozdělí na dvě části podle četnosti použití národností u hereček.
+
+Hlavní část nabídky:
+- zobrazí **10 nejčastěji použitých národností**,
+- pořadí je sestupně podle počtu hereček, které mají danou národnost,
+- nejčastější národnost je první.
+
+Pod touto hlavní desítkou bude vizuální oddělení:
+- tenký gradient / jemný oddělovací prvek,
+- pod ním položka / tlačítko **Další**.
+
+Po otevření **Další**:
+- zobrazí se všechny zbývající národnosti,
+- i ty budou seřazené sestupně podle četnosti,
+- začínají tedy od 11. místa globálního pořadí.
+
+Zdroj hodnot zůstává sekce **Národnosti**; četnost se ale počítá podle skutečného použití hodnot u záznamů v sekci Girls / Oblíbené.
+
 ---
 
 ## Pracovní pravidlo specifikace
