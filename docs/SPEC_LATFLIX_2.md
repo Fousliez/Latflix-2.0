@@ -1003,6 +1003,24 @@ Další příklad:
 
 Toto pravidlo je výjimkou z běžného chování „jedno kliknutí = pouze označení řádku“. Toto běžné pravidlo platí tehdy, když před kliknutím **není aktivní žádný editační režim**.
 
+
+### Globální tabulkové chování – rychlé kopírování hlavního názvu ze zamčeného řádku
+
+U zamčených řádků bude jedno kliknutí do hlavního textového sloupce sloužit jako rychlé kopírování hodnoty.
+
+Platí zejména pro:
+- **Girls / Oblíbené** → sloupec **Jméno**,
+- **Videa / Super** → sloupec **Název videa**.
+
+Chování:
+- pokud je řádek zamčený a uživatel jednou klikne do příslušné buňky, její text se okamžitě zkopíruje do systémové schránky,
+- editační režim se neotevírá,
+- po zkopírování se krátce zobrazí malé nenápadné potvrzení **„Zkopírováno“**,
+- vizuální styl a chování tohoto potvrzení mají odpovídat současnému Latflixu, kde tato funkce již existuje a uživateli vyhovuje,
+- jedno kliknutí na odemčený řádek se nadále řídí běžnými pravidly výběru/editace a samo o sobě tuto kopírovací akci nespouští.
+
+Tato logika se má implementovat sdíleně tak, aby ji bylo možné použít i u dalších hlavních textových sloupců, pokud budou později označeny pro stejné chování.
+
 ---
 
 ## Pracovní pravidlo specifikace
