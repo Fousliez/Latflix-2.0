@@ -5,7 +5,7 @@ from pathlib import Path
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QAbstractItemView, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog,
+    QAbstractItemView, QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog,
     QFormLayout, QGridLayout, QHBoxLayout, QHeaderView, QInputDialog, QLabel, QLineEdit, QListWidget,
     QListWidgetItem, QMessageBox, QPushButton, QScrollArea, QTableWidget, QTableWidgetItem,
     QTextEdit, QVBoxLayout, QWidget,
@@ -349,7 +349,8 @@ class VideoDetailDialog(QDialog):
 
 class TagsDialog(QDialog):
     def __init__(self, repo: Repository, girl_id: int, parent=None, anchor=None):
-        super().__init__(parent, Qt.Popup)
+        super().__init__(parent, Qt.Dialog | Qt.FramelessWindowHint)
+        self.setWindowModality(Qt.WindowModal)
         self.repo = repo
         self.girl_id = girl_id
         self.setWindowTitle("Tagy")
@@ -402,7 +403,14 @@ class TagsDialog(QDialog):
         rows = max(1, (len(tags) + columns - 1) // columns)
         self.resize(520, min(560, 85 + rows * 40))
         if anchor is not None:
-            self.move(anchor)
+            screen = QApplication.screenAt(anchor)
+            available = screen.availableGeometry() if screen else QApplication.primaryScreen().availableGeometry()
+            x = max(available.left(), min(anchor.x(), available.right() - self.width()))
+            y = anchor.y()
+            if y + self.height() > available.bottom():
+                y = anchor.y() - self.height() - 28
+            y = max(available.top(), min(y, available.bottom() - self.height()))
+            self.move(x, y)
 
     def keyPressEvent(self, event):
         if event.key() in (Qt.Key_Left, Qt.Key_Right):
