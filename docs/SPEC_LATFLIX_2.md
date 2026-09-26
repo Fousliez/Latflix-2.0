@@ -855,6 +855,27 @@ Pokud uživatel během editace klikne myší do jiného řádku:
 
 Automatické otevření následujícího řádku v editačním režimu zůstává vyhrazené pro potvrzení klávesou **Enter**.
 
+
+### Girls / Oblíbené – našeptávač v poli Hledání
+
+Pole **Hledání** v sekcích **Girls** a **Oblíbené** bude mít našeptávač jmen hereček.
+
+Řazení a výběr položek:
+- základní pořadí vychází z **počtu výskytů herečky ve videích**, od nejčastějších,
+- po začátku psaní se zobrazují pouze odpovídající herečky,
+- shoda od začátku hlavního jména nebo aliasu má přednost před shodou uprostřed textu,
+- uvnitř stejné skupiny shod rozhoduje:
+  1. vyšší počet výskytů,
+  2. následně abecední pořadí,
+- v sekci **Oblíbené** se v našeptávači zobrazují pouze herečky, které jsou v Oblíbených.
+
+Vzhled popupu:
+- větší písmo než běžný drobný systémový našeptávač,
+- vyšší řádky pro pohodlné klikání,
+- řádek pod kurzorem myši se výrazně zvýrazní modře, aby bylo před kliknutím jasné, která položka bude vybrána.
+
+Toto chování odpovídá již hotové funkci v předchozí verzi Latflixu ze dne **28. 8. 2026** a má být zachováno i v Latflixu 2.0.
+
 ---
 
 ## Pracovní pravidlo specifikace
