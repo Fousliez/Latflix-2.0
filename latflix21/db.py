@@ -58,6 +58,7 @@ class Video:
     duration: str = ""
     mixed_gender: str = ""
     note: str = ""
+    rating: str = ""
     locked: bool = False
     in_super: bool = False
     participants: tuple[tuple[int, str, int], ...] = ()
@@ -186,6 +187,7 @@ class Repository:
                     duration TEXT NOT NULL DEFAULT '',
                     mixed_gender TEXT NOT NULL DEFAULT '',
                     note TEXT NOT NULL DEFAULT '',
+                    rating TEXT NOT NULL DEFAULT '',
                     locked INTEGER NOT NULL DEFAULT 0,
                     in_super INTEGER NOT NULL DEFAULT 0,
                     created_seq INTEGER NOT NULL DEFAULT 0,
@@ -246,6 +248,12 @@ class Repository:
             ):
                 if column not in existing:
                     c.execute(f"ALTER TABLE lf21_girls ADD COLUMN {column} {definition}")
+
+            video_columns = {
+                row["name"] for row in c.execute("PRAGMA table_info(lf21_videos)").fetchall()
+            }
+            if "rating" not in video_columns:
+                c.execute("ALTER TABLE lf21_videos ADD COLUMN rating TEXT NOT NULL DEFAULT ''")
             self._seed(c)
 
     @staticmethod
@@ -632,7 +640,7 @@ class Repository:
                 WHERE TRIM(title)='' AND studio_id IS NULL AND TRIM(release_date)=''
                   AND TRIM(state)='' AND TRIM(quality)='' AND TRIM(available_quality)=''
                   AND TRIM(size)='' AND TRIM(duration)='' AND TRIM(mixed_gender)=''
-                  AND TRIM(note)='' AND in_super=0
+                  AND TRIM(note)='' AND TRIM(rating)='' AND in_super=0
                   AND NOT EXISTS(SELECT 1 FROM lf21_video_girls vg WHERE vg.video_id=lf21_videos.id)
                 """
             )
@@ -751,7 +759,7 @@ class Repository:
                         int(r["id"]), r["title"], r["studio_id"], r["studio_name"],
                         r["release_date"], r["state"], r["quality"],
                         r["available_quality"], r["size"], r["duration"],
-                        r["mixed_gender"], r["note"], bool(r["locked"]),
+                        r["mixed_gender"], r["note"], r["rating"], bool(r["locked"]),
                         bool(r["in_super"]), tuple(participants), int(r["created_seq"]),
                     )
                 )
@@ -768,7 +776,7 @@ class Repository:
     def update_video(self, video_id: int, field: str, value) -> None:
         allowed = {
             "title", "release_date", "state", "quality", "available_quality",
-            "size", "duration", "mixed_gender", "note",
+            "size", "duration", "mixed_gender", "note", "rating",
         }
         if field not in allowed:
             raise KeyError(field)
