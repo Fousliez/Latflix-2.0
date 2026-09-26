@@ -7,7 +7,7 @@ from PySide6.QtGui import QColor, QPainter, QPen
 from PySide6.QtWidgets import (
     QAbstractItemView, QComboBox, QCompleter, QDialog, QDialogButtonBox, QHBoxLayout,
     QInputDialog, QLineEdit, QMenu, QMessageBox, QPushButton, QStyledItemDelegate,
-    QTableView, QTextEdit, QToolTip, QVBoxLayout, QWidget, QHeaderView,
+    QTableView, QTextEdit, QToolButton, QToolTip, QVBoxLayout, QWidget, QHeaderView,
 )
 
 from .models import SmartProxy
@@ -372,6 +372,55 @@ class SplitAddButton(QWidget):
         self.arrow.clicked.connect(
             lambda: menu.exec(self.arrow.mapToGlobal(self.arrow.rect().bottomLeft()))
         )
+
+
+class MenuFilter(QToolButton):
+    valueChanged = Signal(str)
+
+    def __init__(self, title: str, parent=None):
+        super().__init__(parent)
+        self.title = title
+        self._value = ""
+        self.setText(title)
+        self.setPopupMode(QToolButton.InstantPopup)
+        self.setToolButtonStyle(Qt.ToolButtonTextOnly)
+        self.setStyleSheet("QToolButton::menu-indicator{image:none;width:0;}")
+        self._menu = QMenu(self)
+        self.setMenu(self._menu)
+
+    def set_values(self, values: list[str], split_after: int | None = None):
+        self._menu.clear()
+        clear = self._menu.addAction(self.title)
+        clear.triggered.connect(lambda: self.set_value(""))
+        ordered = list(values)
+        if split_after and len(ordered) > split_after:
+            for value in ordered[:split_after]:
+                action = self._menu.addAction(value)
+                action.triggered.connect(lambda checked=False, v=value: self.set_value(v))
+            self._menu.addSeparator()
+            more = self._menu.addMenu("Další")
+            for value in ordered[split_after:]:
+                action = more.addAction(value)
+                action.triggered.connect(lambda checked=False, v=value: self.set_value(v))
+        else:
+            for value in ordered:
+                action = self._menu.addAction(value)
+                action.triggered.connect(lambda checked=False, v=value: self.set_value(v))
+
+    def set_value(self, value: str):
+        self._value = str(value or "")
+        self.setText(self._value or self.title)
+        self.valueChanged.emit(self._value)
+
+    def currentText(self):
+        return self._value or self.title
+
+    def currentIndex(self):
+        return 0 if not self._value else 1
+
+    def setCurrentIndex(self, index: int):
+        if int(index) == 0:
+            self.set_value("")
 
 
 class SearchBox(QWidget):
