@@ -23,6 +23,9 @@ class Girl:
     locked: bool = False
     favorite: bool = False
     profile_path: str = ""
+    rating: str = ""
+    birth_date: str = ""
+    last_image: str = ""
     aliases: tuple[str, ...] = ()
     tags: tuple[str, ...] = ()
     tracking: int = 0
@@ -136,6 +139,9 @@ class Repository:
                     locked INTEGER NOT NULL DEFAULT 0,
                     favorite INTEGER NOT NULL DEFAULT 0,
                     profile_path TEXT NOT NULL DEFAULT '',
+                    rating TEXT NOT NULL DEFAULT '',
+                    birth_date TEXT NOT NULL DEFAULT '',
+                    last_image TEXT NOT NULL DEFAULT '',
                     aliases_json TEXT NOT NULL DEFAULT '[]',
                     created_seq INTEGER NOT NULL DEFAULT 0,
                     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -229,6 +235,17 @@ class Repository:
                 CREATE INDEX IF NOT EXISTS idx_lf21_links_girl ON lf21_links(girl_id);
                 """
             )
+            # Forward-compatible upgrades for databases created by an earlier 2.1 build.
+            existing = {
+                row["name"] for row in c.execute("PRAGMA table_info(lf21_girls)").fetchall()
+            }
+            for column, definition in (
+                ("rating", "TEXT NOT NULL DEFAULT ''"),
+                ("birth_date", "TEXT NOT NULL DEFAULT ''"),
+                ("last_image", "TEXT NOT NULL DEFAULT ''"),
+            ):
+                if column not in existing:
+                    c.execute(f"ALTER TABLE lf21_girls ADD COLUMN {column} {definition}")
             self._seed(c)
 
     @staticmethod
@@ -460,6 +477,9 @@ class Repository:
                         locked=bool(r["locked"]),
                         favorite=bool(r["favorite"]),
                         profile_path=r["profile_path"],
+                        rating=r["rating"],
+                        birth_date=r["birth_date"],
+                        last_image=r["last_image"],
                         aliases=self._json_tuple(r["aliases_json"]),
                         tags=tags,
                         tracking=int(r["tracking"]),
@@ -521,6 +541,7 @@ class Repository:
         allowed = {
             "name", "face", "sex", "type_name", "nudity", "age_source",
             "nationality", "last_check", "note", "status", "profile_path",
+            "rating", "birth_date", "last_image",
         }
         if field not in allowed:
             raise KeyError(field)
@@ -581,7 +602,8 @@ class Repository:
             )
             return int(cur.rowcount)
 
-    def cleanup_blank_girls(self) -> None:
+    def cleanup_blank_rows(self) -> None:
+        """Remove only genuinely empty prepared rows across all editable tables."""
         with self.connect() as c:
             c.execute(
                 """
@@ -589,11 +611,35 @@ class Repository:
                 WHERE TRIM(name)='' AND TRIM(face)='' AND TRIM(sex)=''
                   AND TRIM(type_name)='' AND TRIM(nudity)='' AND TRIM(age_source)=''
                   AND TRIM(nationality)='' AND TRIM(last_check)='' AND TRIM(note)=''
-                  AND TRIM(status)='' AND favorite=0
+                  AND TRIM(status)='' AND TRIM(profile_path)='' AND TRIM(rating)=''
+                  AND TRIM(birth_date)='' AND TRIM(last_image)='' AND favorite=0
+                  AND aliases_json='[]'
+                  AND NOT EXISTS(SELECT 1 FROM lf21_girl_tags gt WHERE gt.girl_id=lf21_girls.id)
                   AND NOT EXISTS(SELECT 1 FROM lf21_links l WHERE l.girl_id=lf21_girls.id)
                   AND NOT EXISTS(SELECT 1 FROM lf21_video_girls vg WHERE vg.girl_id=lf21_girls.id)
                 """
             )
+            c.execute(
+                """
+                DELETE FROM lf21_studios
+                WHERE TRIM(name)='' AND TRIM(type_name)='' AND TRIM(url)=''
+                  AND NOT EXISTS(SELECT 1 FROM lf21_videos v WHERE v.studio_id=lf21_studios.id)
+                """
+            )
+            c.execute(
+                """
+                DELETE FROM lf21_videos
+                WHERE TRIM(title)='' AND studio_id IS NULL AND TRIM(release_date)=''
+                  AND TRIM(state)='' AND TRIM(quality)='' AND TRIM(available_quality)=''
+                  AND TRIM(size)='' AND TRIM(duration)='' AND TRIM(mixed_gender)=''
+                  AND TRIM(note)='' AND in_super=0
+                  AND NOT EXISTS(SELECT 1 FROM lf21_video_girls vg WHERE vg.video_id=lf21_videos.id)
+                """
+            )
+
+    # Backward-compatible name used by the first 2.1 draft.
+    def cleanup_blank_girls(self) -> None:
+        self.cleanup_blank_rows()
 
     def studios(self) -> list[Studio]:
         with self.connect() as c:
