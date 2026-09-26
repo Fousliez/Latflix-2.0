@@ -1066,6 +1066,16 @@ Požadované chování:
 - žádný malý trojúhelník, šipka ani pravý comboboxový ovladač nesmí být vidět,
 - pravidlo platí globálně pro všechny výběrové / dropdown buňky ve všech tabulkách, pokud není u konkrétní sekce výslovně stanoveno jinak.
 
+
+### Směr otevření výběrové nabídky
+
+Výběrová / dropdown nabídka se má standardně otevírat **od buňky směrem dolů**.
+
+Požadované chování:
+- pokud je pod buňkou dostatek místa pro zobrazení nabídky, nabídka se otevře pod ní směrem dolů,
+- teprve pokud pod buňkou dostatek místa není, může se otevřít jiným směrem podle dostupného prostoru,
+- pravidlo platí globálně pro všechny výběrové / dropdown buňky ve všech tabulkách, pokud není u konkrétní sekce výslovně stanoveno jinak.
+
 ### Globální tabulkové chování – rychlé kopírování hlavního názvu ze zamčeného řádku
 
 U zamčených řádků bude dvojklik do hlavního textového sloupce sloužit jako rychlé kopírování hodnoty.
