@@ -1121,11 +1121,14 @@ Chování a vzhled:
 - v tomto popupu se tagy pouze vybírají / odebírají pro konkrétní záznam,
 - správu seznamu tagů a jejich barev řeší samostatná sekce **Tagy**.
 
-Umístění popupu:
+Umístění a velikost popupu:
 - popup musí být **ukotvený k právě otevřené buňce / řádku Tagy**,
 - standardně se otevře **hned pod příslušným řádkem**, co nejblíže buňce Tagy,
 - nesmí se svévolně zobrazovat uprostřed okna aplikace,
-- pokud pod řádkem není dost místa, může se umístit nad něj nebo jinam v bezprostřední blízkosti tak, aby zůstal celý viditelný.
+- pokud pod řádkem není dost místa, může se umístit nad něj nebo jinam v bezprostřední blízkosti tak, aby zůstal celý viditelný,
+- velikost popupu **není pevně daná**,
+- popup se může podle počtu dostupných tagů zvětšovat tak, aby využil prostor rozumně a nebyl zbytečně stísněný,
+- jeho konečná velikost se vždy musí přizpůsobit dostupnému prostoru obrazovky / okna a nesmí bezdůvodně přesahovat mimo viditelnou oblast.
 
 V popupu nebudou:
 - pole **Nový tag**,
