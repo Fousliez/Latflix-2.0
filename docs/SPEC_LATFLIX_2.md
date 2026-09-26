@@ -465,8 +465,9 @@ Výchozí stav:
 
 Pole **Zdroj / platforma**:
 - ve výchozím stavu používá režim **Automaticky**,
+- nejde o volně editovatelné textové pole; je to **pouze rozbalovací výběrové pole**,
 - po zadání URL se aplikace pokusí podle adresy sama rozpoznat platformu / název odkazu, např. Facebook, Redgifs, Pornhub, Linktree apod.,
-- pole bude zároveň rozbalovací a uživatel může automaticky zjištěnou hodnotu ručně změnit,
+- uživatel může automaticky zjištěnou hodnotu změnit pouze výběrem jiné položky z rozbalovací nabídky,
 - seznam dostupných platforem se nebude definovat napevno v tomto dialogu,
 - bude se načítat z centrálního seznamu / katalogu spravovaného v jiné části aplikace; přesná správa tohoto seznamu bude specifikována později v sekci Odkazy.
 
