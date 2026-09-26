@@ -268,6 +268,19 @@ Pravidla:
 - při výběru více řádků bude možné provádět hromadné akce,
 - konkrétní seznam hromadných akcí se bude definovat později zvlášť pro jednotlivé sekce/tabulky.
 
+
+
+### Otevřený bod – vzhled vícenásobného výběru řádků
+
+Současné vykreslení vícenásobně vybraných řádků není přijatelné: každý vybraný řádek má vlastní obrys, takže při výběru několika sousedních řádků vznikají mezi řádky zdvojené / nahuštěné linky a celek působí roztříštěně.
+
+Tento bod zatím **nenahrazuje definitivní pravidlo výběru řádků**. Uživatel dodá jako vizuální referenci Latflix 5.36 a až podle ní se určí přesný vzhled.
+
+Důležité:
+- z Latflixu 5.36 se může převzít pouze vizuální princip výběru,
+- starý kód se nemá automaticky kopírovat ani považovat za architektonický vzor,
+- pokud je staré řešení technicky nečisté nebo složité, nový Latflix má stejného vzhledu dosáhnout čistším způsobem.
+
 ### Vztah tabulek Girls a Oblíbené
 
 - tabulka v sekci **Girls** a tabulka v sekci **Oblíbené** budou z hlediska tabulkového systému úplně totožné,
