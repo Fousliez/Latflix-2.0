@@ -326,6 +326,24 @@ Požadované chování:
 - rozdíl mezi sekcemi je pouze v datech: sekce **Super** zobrazuje pouze vybranou podmnožinu dat ze sekce **Videa**.
 
 
+### Videa / Super – základní sloupce a typy buněk
+
+Pro tabulku **Videa / Super** platí následující základní chování datových sloupců:
+
+- **Název** – běžný editovatelný textový sloupec, **bez našeptávače**.
+- **Studio** – editovatelný textový sloupec s **našeptávačem studií** ze sekce Studia.
+- **Datum vydání** – běžný editovatelný textový sloupec, **bez našeptávače**.
+- **Dívka 1**, **Dívka 2**, **Dívka 3** – editovatelné textové sloupce s **našeptávačem hereček** z Girls; datově představují první viditelné pozice společného seznamu účinkujících hereček.
+- **Stav** – výběrový sloupec; nabídka se dynamicky načítá z centrální sekce **Stavy**.
+- **Kvalita** – výběrový sloupec; nabídka se dynamicky načítá z centrální sekce **Kvality**.
+- **Dostup. kvalita** – výběrový sloupec; nabídka se dynamicky načítá ze stejné centrální sekce **Kvality**.
+- **Velikost** – běžný editovatelný textový sloupec, **bez našeptávače**.
+- **Délka** – běžný editovatelný textový sloupec, **bez našeptávače**.
+- **M+Ž** – výběrový sloupec s pevnými hodnotami **Ano / Ne**.
+- **Poznámka** – editovatelný textový sloupec, **bez našeptávače**; používá globální chování poznámkových sloupců.
+
+Všechny editovatelné textové sloupce se aktivují jedním kliknutím podle globálního pravidla. Výběrové sloupce se rovněž otevírají jedním kliknutím podle globální logiky výběrových buněk.
+
 ### Videa / Super – více účinkujících hereček než viditelných sloupců
 
 Video může mít výrazně více účinkujících hereček, než kolik bude praktické zobrazovat jako samostatné sloupce přímo v tabulce.
@@ -1178,6 +1196,17 @@ Platí:
 - buňka nadále používá základní barvu svého řádku podle globálního střídání bílá / světle šedá,
 - případný stav výběru celého řádku se řídí pouze globálními pravidly řádkového výběru; dropdown si nevytváří vlastní barevné zvýraznění,
 - pravidlo platí globálně pro všechny výběrové / dropdown buňky ve všech tabulkách, pokud není u konkrétní sekce výslovně stanoveno jinak.
+
+### Globální chování poznámkových sloupců
+
+Každý sloupec typu **Poznámka / Pozn.** v celé aplikaci používá stejnou logiku:
+
+- jde o editovatelný textový sloupec **bez našeptávače**,
+- **jedno kliknutí** do odemčené buňky otevře běžný jednořádkový editační režim přímo v tabulce,
+- **dvojklik** otevře větší samostatný editor pro pohodlnější práci s delším textem,
+- větší editor se vždy otevře s **původní / aktuálně uloženou poznámkou předvyplněnou**,
+- uložení ve větším editoru aktualizuje stejnou hodnotu Poznámky, nejde o druhou oddělenou poznámku,
+- toto pravidlo platí globálně pro všechny tabulkové sekce, pokud uživatel později výslovně neurčí konkrétní výjimku.
 
 ### Globální tabulkové chování – rychlé kopírování hlavního názvu ze zamčeného řádku
 
