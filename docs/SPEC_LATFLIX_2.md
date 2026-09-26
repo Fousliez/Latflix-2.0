@@ -482,6 +482,44 @@ Tlačítko **Zobrazit odkazy**:
 - preferovaný interní způsob je filtr podle stabilního ID herečky; jméno může být použito jen jako viditelný popisek filtru,
 - po přechodu musí být zřejmé, pro kterou herečku jsou odkazy právě zobrazené.
 
+
+### Modré odkazy v horním panelu Girls / Oblíbené
+
+Zbývající prostor horního panelu mezi informacemi herečky a pravým sloupcem akčních tlačítek bude využit pro rychlé odkazy aktuálně vybrané herečky.
+
+Každý typ uloženého odkazu herečky bude zobrazen jako samostatný **modrý obdélníkový prvek / štítek**:
+- uvnitř bude název platformy / odkazu, např. `Facebook`, `Redgifs`, `Pornhub`,
+- šířka prvku nebude pevná; přizpůsobí se tak, aby se celý text vešel bez zbytečného ořezávání,
+- prvky budou klikací,
+- kliknutí otevře skutečnou uloženou URL adresu daného odkazu ve výchozím prohlížeči.
+
+#### Více odkazů stejného typu u jedné herečky
+
+Pokud má jedna herečka více uložených URL stejné platformy:
+- v horním panelu se platforma zobrazí pouze jednou,
+- počet uložených URL se uvede v závorce, např. `Facebook (2)`,
+- duplicity stejného typu u jedné herečky se tedy nesmí zobrazovat jako několik samostatných modrých prvků.
+
+Poznámka: přesné chování po kliknutí na prvek s více URL stejné platformy bude specifikováno samostatně; počet se však vždy zobrazí v závorce.
+
+#### Pořadí modrých prvků
+
+Pořadí není abecední ani ručně pevně dané. Odkazy se řadí podle jejich celkového zastoupení v aplikaci:
+- první bude platforma používaná u největšího počtu záznamů / hereček,
+- následuje druhá nejčastější atd.,
+- při výpočtu globálního pořadí se více URL stejné platformy u jedné herečky počítá pouze jako **jeden výskyt**,
+- duplicity u jedné herečky tedy zvyšují pouze číslo v závorce u jejího štítku, ale nesmějí uměle zvyšovat globální popularitu dané platformy.
+
+Příklad: pokud má jedna herečka dvě adresy Facebooku, pro globální pořadí se Facebook u této herečky započítá jednou, ale její štítek bude `Facebook (2)`.
+
+#### Rozložení
+
+- prvky se skládají zleva doprava podle uvedeného pořadí,
+- po zaplnění dostupné šířky pokračují na druhém řádku,
+- v horním panelu se zobrazí maximálně **dva řádky** těchto modrých odkazových prvků,
+- výška horního panelu zůstává pevná; odkazy nesmějí panel roztahovat,
+- vzhled má odpovídat modrým odkazovým obdélníkům z referenčních screenshotů současného Latflixu.
+
 ---
 
 ## Pracovní pravidlo specifikace
