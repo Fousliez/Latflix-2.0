@@ -11,7 +11,7 @@
 - společná tabulková logika pro sekce
 - Girls / Oblíbené a Videa / Super jsou párové pohledy nad stejnými záznamy
 - samostatné tabulky `lf21_*`, takže starší prototypová data zůstávají nedotčená
-- při prvním spuštění se použitelné údaje z `lf2_*` jednorázově převedou do `lf21_*`
+- starší data se **nikdy nemigrují automaticky při startu**; převod z `lf2_*` do `lf21_*` se spouští pouze výslovně přes nabídku Importovat data z Latflix 2.0
 
 ## Spuštění
 
