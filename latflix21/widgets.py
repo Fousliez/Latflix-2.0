@@ -183,6 +183,8 @@ class TextDelegate(QStyledItemDelegate):
         model.setData(index, editor.text(), Qt.EditRole)
 
     def eventFilter(self, editor, event):
+        if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Escape:
+            return True
         if event.type() == QEvent.KeyPress and event.key() in (Qt.Key_Return, Qt.Key_Enter):
             row = int(editor.property("row"))
             col = int(editor.property("col"))
@@ -240,6 +242,12 @@ class ChoiceDelegate(QStyledItemDelegate):
 
     def eventFilter(self, watched, event):
         combo = self.active_combo
+        if (
+            combo is not None
+            and event.type() == QEvent.KeyPress
+            and event.key() == Qt.Key_Escape
+        ):
+            return True
         if (
             combo is not None
             and event.type() == QEvent.MouseButtonPress
@@ -332,7 +340,13 @@ class AutoCompleteDelegate(QStyledItemDelegate):
 
         QTimer.singleShot(0, move)
 
+    def eventFilter(self, editor, event):
+        if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Escape:
+            return True
+        return super().eventFilter(editor, event)
+
     def setEditorData(self, editor, index):
+        editor.installEventFilter(self)
         editor.setText(str(index.data(Qt.EditRole) or ""))
         editor.selectAll()
 
@@ -720,7 +734,7 @@ class SearchBox(QWidget):
         self.edit = QLineEdit(self)
         self.edit.setPlaceholderText("Hledání")
         self.edit.setFixedWidth(260)
-        self.clear_btn = QPushButton("⌫", self)
+        self.clear_btn = QPushButton("🗑", self)
         self.clear_btn.setFixedWidth(30)
         self.clear_btn.setToolTip("Vymazat pouze Hledání")
         layout.addWidget(self.edit)
