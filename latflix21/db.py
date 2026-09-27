@@ -76,7 +76,7 @@ class Link:
     url: str
     check_value: str = ""
     downloaded: str = ""
-    active: str = "Akt."
+    active: str = ""
     last_text: str = ""
     last_image: str = ""
     locked: bool = False
@@ -219,7 +219,7 @@ class Repository:
                     url TEXT NOT NULL DEFAULT '',
                     check_value TEXT NOT NULL DEFAULT '',
                     downloaded TEXT NOT NULL DEFAULT '',
-                    active TEXT NOT NULL DEFAULT 'Akt.',
+                    active TEXT NOT NULL DEFAULT '',
                     last_text TEXT NOT NULL DEFAULT '',
                     last_image TEXT NOT NULL DEFAULT '',
                     locked INTEGER NOT NULL DEFAULT 0,
@@ -970,7 +970,7 @@ class Repository:
                    ) VALUES(?,?,?,?,?,?,?,?,?)""",
                 (
                     type_id, girl_id, url, extra.get("check_value", ""),
-                    extra.get("downloaded", ""), extra.get("active", "Akt."),
+                    extra.get("downloaded", ""), extra.get("active", ""),
                     extra.get("last_text", ""), extra.get("last_image", ""),
                     self._seq(c, "lf21_links"),
                 ),
