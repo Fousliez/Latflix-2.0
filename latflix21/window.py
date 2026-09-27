@@ -370,6 +370,9 @@ class TablePage(BasePage):
         self.toolbar.setStyleSheet(
             "QPushButton,QLineEdit,QComboBox,QToolButton{"
             "min-height:30px;max-height:30px;padding-left:7px;padding-right:7px;}"
+            "QComboBox::drop-down{width:0;border:0;}"
+            "QComboBox::down-arrow{width:0;height:0;image:none;}"
+            "QToolButton::menu-indicator{image:none;width:0;}"
         )
         self.outer.addWidget(self.toolbar)
 
