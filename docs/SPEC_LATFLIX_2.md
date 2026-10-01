@@ -635,6 +635,45 @@ Všechna tři tlačítka mají být stejně zarovnaná a působit jako jeden kom
 
 V horním panelu sekce **Odkazy** jsou modré prvky představující jednotlivé názvy / typy odkazů, např. Instagram, X / Twitter, Threads apod.
 
+### Odkazy – význam sloupců Kontrola / Staženo / Akt. / Poslední text / Poslední obrázek
+
+Tato část zachovává funkční význam těchto sloupců z původního Latflixu, pokud nebyl v Latflixu 2.0 výslovně změněn.
+
+#### Kontrola
+- `Kontrola` je ručně editovatelné datum poslední kontroly daného odkazu.
+- aplikace přijímá běžné používané formáty data, zejména `RRRR-MM-DD`, `DD.MM.RRRR`, `DD. MM. RRRR`, dvouciferný rok a varianty s lomítkem nebo pomlčkou,
+- při řazení se hodnoty řadí jako skutečná data; prázdné nebo nerozpoznané hodnoty patří až za platná data,
+- hodnota se používá pro automatický stav `Akt.`.
+
+#### Staženo
+- `Staženo` je ručně editovatelné datum posledního stažení / převzetí obsahu z odkazu,
+- používá stejná pravidla formátu a datumového řazení jako `Kontrola`,
+- hodnota se používá pro automatický stav `Akt.`.
+
+#### Akt.
+- `Akt.` je pouze informativní, automaticky vypočítaný stavový semafor a uživatel jej ručně needituje,
+- stav se přepočítá z hodnot `Kontrola`, `Staženo` a aktuálního dne,
+- pokud je `Staženo` novější než `Kontrola`, nebo je při vyplněném `Staženo` datum `Kontrola` neplatné / chybí, stav je zelený a buňka `Kontrola` je současně varovně zvýrazněná, protože datum kontroly je potřeba opravit,
+- pokud jsou obě data platná a jejich vzájemný rozdíl je delší než 12 měsíců, stav je červený,
+- pokud je platné `Staženo` mladší než 3 měsíce, stav je zelený,
+- pokud je platné `Staženo` starší než 3 měsíce, stav je žlutý,
+- pokud `Staženo` chybí nebo mu aplikace nerozumí, stav je žlutý,
+- buňka / stav `Akt.` má tooltip vysvětlující důvod aktuální barvy.
+
+#### Poslední text
+- `Poslední text` je běžné ručně editovatelné textové pole,
+- slouží pro poslední známý text / identifikační text související s konkrétním odkazem,
+- hodnota se ukládá přímo k danému odkazu.
+
+#### Poslední obrázek
+- `Poslední obrázek` uchovává cestu k poslednímu uloženému obrázku souvisejícímu s odkazem,
+- pokud obrázek není nastaven, akce ve sloupci umožní vybrat / nahrát obrázek,
+- pokud je obrázek nastaven a soubor existuje, akce otevře jeho náhled,
+- z náhledu musí být možné obrázek otevřít externě a odebrat vazbu obrázku z daného odkazu,
+- odstranění vazby nesmí samo o sobě mazat uživatelský soubor z disku,
+- filtr `Má obrázek / Bez obrázku` se řídí tím, zda má odkaz nastavený platný obrázek.
+
+
 ### Exportovat odkazy – pouze aktuálně zobrazená data
 
 Tlačítko **Exportovat odkazy** v sekci Odkazy pracuje pouze s právě **aktuálně zobrazenými / vyfiltrovanými řádky hlavní tabulky Odkazy**.
