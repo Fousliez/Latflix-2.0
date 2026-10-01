@@ -59,7 +59,7 @@ class Sidebar(QWidget):
         for name in ("Přehled", "Girls", "Oblíbené", "Odkazy", "Videa", "Super", "Studia"):
             button = QPushButton(name)
             button.setCheckable(True)
-            button.setFixedHeight(26)
+            button.setFixedHeight(29)
             button.clicked.connect(
                 lambda checked=False, section=name: self.sectionRequested.emit(section)
             )
@@ -185,9 +185,11 @@ class OverviewPage(BasePage):
         heading = QLabel("Přehled databáze")
         heading.setStyleSheet("font-size:19px;font-weight:700;color:#20242a")
         self.outer.addWidget(heading)
-        self.outer.addWidget(
-            QLabel("Aktuální počty uložených položek. Kliknutím na kartu zobrazíš podrobnosti.")
+        hint = QLabel(
+            "Aktuální počty uložených položek. Kliknutím na kartu zobrazíš podrobnosti."
         )
+        hint.setStyleSheet("font-size:12px;color:#69717d")
+        self.outer.addWidget(hint)
         self.grid = QGridLayout()
         self.grid.setSpacing(10)
         self.outer.addLayout(self.grid)
@@ -212,7 +214,6 @@ class OverviewPage(BasePage):
         for index, (name, count, subtitle) in enumerate(specs):
             card = OverviewCard(name, count, subtitle, self)
             card.clicked.connect(self.open_detail)
-            card.setMinimumHeight(110)
             self.grid.addWidget(card, index // 3, index % 3)
 
     def open_detail(self, name):
@@ -566,6 +567,11 @@ class GirlsPage(TablePage):
         self.name = QLabel(self.title)
         self.name.setStyleSheet("font-size:21px;font-weight:700")
         self.favorite_btn = QPushButton("Oblíbené")
+        self.favorite_btn.setFixedHeight(26)
+        self.favorite_btn.setStyleSheet(
+            "QPushButton{padding:2px 9px;font-weight:600;background:#fafafa;"
+            "border:1px solid #aaa;border-radius:3px;}"
+        )
         self.favorite_btn.clicked.connect(self._toggle_favorite)
         name_row.addWidget(self.name)
         name_row.addWidget(self.favorite_btn)
@@ -575,8 +581,13 @@ class GirlsPage(TablePage):
         info = QHBoxLayout()
         self.age = QLabel("Věk: —")
         self.occ = QLabel("Počet výskytů: —")
+        for label in (self.age, self.occ):
+            label.setStyleSheet(
+                "padding:2px 7px;border:1px solid #c8c8c8;border-radius:5px;"
+                "background:#f7f7f7;color:#303030;"
+            )
         info.addWidget(self.age)
-        info.addSpacing(18)
+        info.addSpacing(6)
         info.addWidget(self.occ)
         info.addStretch()
         middle.addLayout(info)
@@ -591,7 +602,7 @@ class GirlsPage(TablePage):
         self.show_links_btn = QPushButton("Zobrazit odkazy")
         for button in (self.links_btn, self.detail_btn, self.show_links_btn):
             button.setFixedWidth(122)
-            button.setFixedHeight(29)
+            button.setFixedHeight(26)
             button.setStyleSheet(
                 "QPushButton{background:#fafafa;border:1px solid #aaa;border-radius:3px;}"
                 "QPushButton:hover{background:#e7f0f8;}"
@@ -839,7 +850,10 @@ class GirlsPage(TablePage):
         if not girl:
             self.name.setText("Vyber herečku")
             self.favorite_btn.setText("☆ Oblíbené")
-            self.favorite_btn.setStyleSheet("")
+            self.favorite_btn.setStyleSheet(
+                "QPushButton{padding:2px 9px;font-weight:600;background:#fafafa;"
+                "border:1px solid #aaa;border-radius:3px;}"
+            )
             self.photo.setPixmap(QPixmap())
             self.photo.setText("FOTKA")
             self.age.setText("<b>Věk:</b> —")
@@ -1637,8 +1651,10 @@ class HelperPage(TablePage):
         super().__init__(repo, title, model, parent)
 
         layout = QVBoxLayout(self.top)
+        layout.setContentsMargins(10, 8, 10, 8)
+        layout.setSpacing(4)
         label = QLabel(self.title)
-        label.setStyleSheet("font-size:20px;font-weight:700")
+        label.setStyleSheet("font-size:20px;font-weight:700;color:#20242a")
         layout.addWidget(label)
         layout.addStretch()
 
