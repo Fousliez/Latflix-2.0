@@ -36,6 +36,7 @@ from .model import GirlTableModel
 from .proxy import GirlFilterProxy
 from .schema import GIRL_CATEGORIES, GIRL_COLUMNS, GIRL_FILTERS, ColumnSpec, display_age
 from .sidebar import Sidebar
+from .spec_dialog import DocumentationDialog
 from .table import DataTable
 from .toolbar import TableToolbar
 
@@ -215,6 +216,15 @@ class MainWindow(QMainWindow):
         self.menuBar().addMenu("Nastavení")
 
         help_menu = self.menuBar().addMenu("Nápověda")
+        help_menu.addAction(
+            "Specifikace Latflixu",
+            lambda: self.open_documentation("spec"),
+        )
+        help_menu.addAction(
+            "Stav implementace",
+            lambda: self.open_documentation("checklist"),
+        )
+        help_menu.addSeparator()
         help_menu.addAction(
             "O aplikaci",
             lambda: QMessageBox.information(
@@ -768,6 +778,10 @@ class MainWindow(QMainWindow):
         self._save_header_state()
 
     # ---------- misc ----------
+
+    def open_documentation(self, initial_tab: str = "spec") -> None:
+        dialog = DocumentationDialog(self, initial_tab=initial_tab)
+        dialog.exec()
 
     def catalog_changed(self) -> None:
         if self.current_category in GIRL_CATEGORIES:

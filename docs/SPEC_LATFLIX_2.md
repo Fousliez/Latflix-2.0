@@ -1760,6 +1760,50 @@ Důvod:
 - mazání samotného záznamu se provádí v Girls,
 - změna členství v Oblíbených se řeší akcemi pro přidání / odebrání z oblíbených, nikoliv tlačítkem Smazat.
 
+
+## Interní zobrazení specifikace a stavu implementace
+
+Latflix 2.0 bude obsahovat přímo v aplikaci přehled své aktuální projektové dokumentace.
+
+### Umístění
+V nabídce **Nápověda** budou dostupné položky:
+- **Specifikace Latflixu**
+- **Stav implementace**
+
+Obě položky otevřou stejné samostatné dialogové okno. Liší se pouze tím, která záložka je po otevření aktivní.
+
+### Zdroj dat
+Dialog nesmí obsahovat ručně udržovanou kopii dokumentace v Python kódu.
+
+Při každém otevření načte přímo aktuální soubory:
+- `docs/SPEC_LATFLIX_2.md`
+- `docs/IMPLEMENTATION_CHECKLIST_2_1.md`
+
+Tím se změny provedené v těchto souborech automaticky projeví i v aplikaci po dalším otevření dialogu.
+
+Pokud některý soubor nelze najít nebo načíst, aplikace zobrazí srozumitelnou chybu včetně očekávané cesty a nesmí potichu zobrazit zastaralou vestavěnou kopii.
+
+### Vzhled a ovládání
+Dialog je pouze pro čtení a obsahuje dvě záložky:
+1. **Specifikace**
+2. **Stav implementace**
+
+Každá záložka obsahuje:
+- vlevo přehled kapitol vytvořený z Markdown nadpisů,
+- vpravo kompletní, nezkrácený obsah příslušného dokumentu,
+- vyhledávací pole,
+- možnost kliknutím na kapitolu přejít na odpovídající místo v dokumentu,
+- možnost znovu načíst soubory bez restartování celé aplikace.
+
+Vyhledávání pracuje nad kompletním textem aktuálního dokumentu a současně filtruje seznam kapitol.
+
+Záložka **Stav implementace** navíc zobrazuje souhrnný počet položek:
+- hotovo `[x]`,
+- zbývá / čeká na ověření `[ ]`.
+
+Dokumentace se v tomto dialogu needituje. Změny se nadále provádějí pouze v projektových Markdown souborech, které zůstávají jediným zdrojem pravdy.
+
+
 ---
 
 ## Pracovní pravidlo specifikace

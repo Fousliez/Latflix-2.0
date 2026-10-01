@@ -165,7 +165,11 @@ Procesní pravidlo:
 - [x] Barvu tagu lze měnit
 - [ ] Vizuální styl pomocných tabulek dorovnat screenshotům
 
-## I. Zbývající integrační ověření
+## I. Projektová dokumentace v aplikaci
+
+- [ ] Nápověda → Specifikace Latflixu / Stav implementace: dialog načítá živě oba Markdown soubory, má obsah kapitol, hledání, přepínání záložek a souhrn checklistu; implementováno, čeká praktické ověření v GUI
+
+## J. Zbývající integrační ověření
 
 - [ ] Linux: prostřední tlačítko v aktivním QLineEdit v tabulce
 - [ ] Přechod editor -> jiný editor jedním klikem ve všech kombinacích
