@@ -19,6 +19,7 @@ from .dialogs import (
     LinkCatalogDialog, TagsDialog, VideoDetailDialog, VisibleLinkFiltersDialog,
 )
 from .models import BaseModel, Col, GirlsModel, LinksModel, SmartProxy, StudiosModel, VideosModel
+from .spec_dialog import DocumentationDialog
 from .widgets import (
     AutoCompleteDelegate, ChoiceDelegate, ChipButton, DataTableView, FlowWidget,
     MenuFilter, PhotoLabel, ScreenSnipDialog, SearchBox, SplitAddButton, TextDelegate,
@@ -1799,6 +1800,15 @@ class MainWindow(QMainWindow):
 
         help_menu = bar.addMenu("Nápověda")
         help_menu.addAction(
+            "Specifikace Latflixu",
+            lambda: self.open_documentation("spec"),
+        )
+        help_menu.addAction(
+            "Stav implementace",
+            lambda: self.open_documentation("checklist"),
+        )
+        help_menu.addSeparator()
+        help_menu.addAction(
             "O aplikaci",
             lambda: QMessageBox.information(
                 self,
@@ -1806,6 +1816,10 @@ class MainWindow(QMainWindow):
                 f"Latflix 2.1\n\nVerze {__version__}",
             ),
         )
+
+    def open_documentation(self, initial_tab: str = "spec"):
+        dialog = DocumentationDialog(self, initial_tab=initial_tab)
+        dialog.exec()
 
     def _apply_quick_tag(self, tag: str):
         if self.stack.currentWidget() not in (
