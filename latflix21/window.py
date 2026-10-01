@@ -436,8 +436,6 @@ class TablePage(BasePage):
             return [""] + self.repo.catalog(source)
         if source == "link_types":
             return [""] + [str(item["name"]) for item in self.repo.link_types()]
-        if source == "active":
-            return ["", "Akt.", "Neakt."]
         return [""]
 
     def _suggestions(self, source, text):
@@ -1472,8 +1470,18 @@ class LinksPage(TablePage):
             (not category or link.category == category)
             and (not chips or link.type_name in chips)
             and (not girl_filter or link.girl_id == girl_filter)
-            and (image_index != 1 or bool(link.last_image))
-            and (image_index != 2 or not bool(link.last_image))
+            and (
+                image_index != 1
+                or bool(link.last_image)
+                and Path(str(link.last_image)).expanduser().is_file()
+            )
+            and (
+                image_index != 2
+                or not (
+                    bool(link.last_image)
+                    and Path(str(link.last_image)).expanduser().is_file()
+                )
+            )
         )
         self.proxy.invalidateFilter()
 
@@ -1506,8 +1514,6 @@ class LinksPage(TablePage):
 
     def _bulk_actions(self):
         menu = QMenu(self)
-        active = menu.addAction("Nastavit Akt.")
-        inactive = menu.addAction("Nastavit Neakt.")
         clear_check = menu.addAction("Vymazat Kontrolu")
         clear_downloaded = menu.addAction("Vymazat Staženo")
         selected = menu.exec(self.bulk.mapToGlobal(self.bulk.rect().bottomLeft()))
@@ -1515,11 +1521,7 @@ class LinksPage(TablePage):
         if not ids or not selected:
             return
         for link_id in ids:
-            if selected == active:
-                self.repo.update_link(link_id, "active", "Akt.")
-            elif selected == inactive:
-                self.repo.update_link(link_id, "active", "Neakt.")
-            elif selected == clear_check:
+            if selected == clear_check:
                 self.repo.update_link(link_id, "check_value", "")
             elif selected == clear_downloaded:
                 self.repo.update_link(link_id, "downloaded", "")
@@ -1553,18 +1555,87 @@ class LinksPage(TablePage):
             return
         link = model.rows[source.row()]
         if col and col.key == "last_image":
-            path, _ = QFileDialog.getOpenFileName(
-                self,
-                "Poslední obrázek",
-                "/home/jirka/Plocha",
-                "Obrázky (*.png *.jpg *.jpeg *.webp)",
-            )
-            if path:
-                self.repo.update_link(link.id, "last_image", path)
-                self.refresh()
+            image_path = Path(str(link.last_image or "")).expanduser()
+            if image_path.is_file():
+                self._preview_link_image(link.id, image_path)
+            else:
+                self._choose_link_image(link.id)
+            return
+        if col and col.key == "active":
             return
         if link.url:
             QDesktopServices.openUrl(QUrl(link.url))
+
+    def _choose_link_image(self, link_id):
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Poslední obrázek",
+            str(Path.home() / "Plocha"),
+            "Obrázky (*.png *.jpg *.jpeg *.webp *.bmp)",
+        )
+        if path:
+            self.repo.update_link(link_id, "last_image", path)
+            self.refresh()
+
+    def _preview_link_image(self, link_id, image_path: Path):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Poslední obrázek")
+        dialog.resize(900, 680)
+        layout = QVBoxLayout(dialog)
+
+        preview = QLabel(dialog)
+        preview.setAlignment(Qt.AlignCenter)
+        preview.setMinimumSize(640, 460)
+        preview.setStyleSheet(
+            "QLabel{background:#111;color:#ddd;border:1px solid #333;border-radius:6px;}"
+        )
+        pixmap = QPixmap(str(image_path))
+        if pixmap.isNull():
+            preview.setText("Obrázek nelze zobrazit.")
+        else:
+            preview.setPixmap(
+                pixmap.scaled(
+                    820, 560, Qt.KeepAspectRatio, Qt.SmoothTransformation
+                )
+            )
+        layout.addWidget(preview, 1)
+
+        path_label = QLabel(str(image_path), dialog)
+        path_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        path_label.setStyleSheet("color:#666;")
+        layout.addWidget(path_label)
+
+        actions = QHBoxLayout()
+        open_external = QPushButton("Otevřít externě", dialog)
+        remove = QPushButton("Odebrat obrázek", dialog)
+        close = QPushButton("Zavřít", dialog)
+        remove.setStyleSheet("QPushButton{color:#8a2020;}")
+        actions.addWidget(open_external)
+        actions.addWidget(remove)
+        actions.addStretch()
+        actions.addWidget(close)
+        layout.addLayout(actions)
+
+        open_external.clicked.connect(
+            lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(str(image_path)))
+        )
+
+        def remove_binding():
+            if QMessageBox.question(
+                dialog,
+                "Odebrat obrázek",
+                "Odebrat obrázek z tohoto odkazu? Soubor na disku zůstane zachovaný.",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No,
+            ) != QMessageBox.Yes:
+                return
+            self.repo.update_link(link_id, "last_image", "")
+            dialog.accept()
+            self.refresh()
+
+        remove.clicked.connect(remove_binding)
+        close.clicked.connect(dialog.accept)
+        dialog.exec()
 
     def _show_visible_links(self):
         links = [link for link in self.visible_links() if link.url]

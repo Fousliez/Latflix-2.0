@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
+from pathlib import Path
 from typing import Any, Callable
 
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, QSortFilterProxyModel, Qt, Signal
 from PySide6.QtGui import QColor
 
 from .db import Girl, Link, Repository, Studio, Video
+from .link_status import link_date_sort_key, link_status
 
 
 @dataclass(frozen=True)
@@ -315,7 +317,7 @@ LINK_COLS = (
     Col("url", "URL", width=360),
     Col("check_value", "Kontrola", width=110),
     Col("downloaded", "Staženo", width=100),
-    Col("active", "Akt.", "choice", 70, source="active"),
+    Col("active", "Akt.", "computed", 70, read_only=True),
     Col("web", "Web", "button", 80, read_only=True),
     Col("last_text", "Poslední text", width=240),
     Col("last_image", "Poslední obrázek", "button", 180, read_only=True),
@@ -335,16 +337,49 @@ class LinksModel(BaseModel):
     def value(self, record: Link, key):
         if key == "web":
             return "Otevřít"
+        if key == "active":
+            return "Akt."
         if key == "last_image":
-            return "Nahrát"
+            path = Path(str(record.last_image or "")).expanduser()
+            return "Zobrazit" if record.last_image and path.is_file() else "Nahrát"
         return super().value(record, key)
 
+    def sort_key(self, index):
+        col = self.col(index.column())
+        record = self.rows[index.row()]
+        if col.key in {"check_value", "downloaded"}:
+            return link_date_sort_key(getattr(record, col.key, ""))
+        return None
+
     def extra_data(self, record: Link, col, index, role):
-        if col.key == "active" and str(record.active).strip().casefold() == "akt.":
+        status = link_status(record.check_value, record.downloaded)
+
+        if col.key == "active":
             if role == Qt.BackgroundRole:
-                return QColor("#f4d86b")
+                return QColor(
+                    "#2e9f4d" if status.level == "green"
+                    else "#c83c3c" if status.level == "red"
+                    else "#e0b326"
+                )
             if role == Qt.ForegroundRole:
-                return QColor("#222222")
+                return QColor("#ffffff" if status.level in {"green", "red"} else "#2b240c")
+            if role == Qt.ToolTipRole:
+                return status.tooltip
+
+        if col.key == "check_value" and status.control_error:
+            if role == Qt.BackgroundRole:
+                return QColor("#f4d56b")
+            if role == Qt.ToolTipRole:
+                return "Staženo je novější než Kontrola. Zkontroluj a oprav datum kontroly."
+
+        if col.key == "last_image" and role == Qt.ToolTipRole:
+            path = Path(str(record.last_image or "")).expanduser()
+            if record.last_image and path.is_file():
+                return f"Zobrazit uložený obrázek\n{path}"
+            if record.last_image:
+                return f"Soubor už neexistuje. Kliknutím vyber nový obrázek.\n{path}"
+            return "Vybrat poslední obrázek"
+
         return None
 
     def set_locked(self, row_id, value):
@@ -373,6 +408,8 @@ class LinksModel(BaseModel):
                 return False
             self.repo.set_link_girl(record.id, found[0])
             return True
+        if col.key == "active":
+            return False
         self.repo.update_link(record.id, col.key, value)
         return True
 
@@ -399,6 +436,20 @@ class SmartProxy(QSortFilterProxyModel):
         self.filters.clear()
         self.predicate = None
         self.invalidateFilter()
+
+    def lessThan(self, left, right):
+        model = self.sourceModel()
+        if hasattr(model, "sort_key") and left.column() == right.column():
+            left_key = model.sort_key(left)
+            right_key = model.sort_key(right)
+            if left_key is not None and right_key is not None:
+                # Platná data mají vždy přednost před prázdnými/neplatnými.
+                left_invalid = bool(left_key[0])
+                right_invalid = bool(right_key[0])
+                if left_invalid != right_invalid:
+                    return not left_invalid
+                return left_key[1] < right_key[1]
+        return super().lessThan(left, right)
 
     def filterAcceptsRow(self, source_row, parent):
         model = self.sourceModel()

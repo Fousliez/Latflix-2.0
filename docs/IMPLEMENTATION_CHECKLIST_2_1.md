@@ -138,7 +138,7 @@ Procesní pravidlo:
 - [x] Viditelný indikátor aktivního filtru „odkazy konkrétní herečky“
 - [x] Stránkování modrých filtrů podle reference (např. 1/2 + šipky)
 - [x] Tlačítko Zobrazit odkazy – nyní otevírá po potvrzení právě aktuálně zobrazené URL; případné odlišné chování upravit podle praktického testu
-- [ ] Přesné významy a workflow Kontrola / Staženo / Akt. / Poslední text / Poslední obrázek doladit v testování
+- [ ] Odkazy: Kontrola / Staženo / Akt. / Poslední text / Poslední obrázek převzaty z doloženého chování původního Latflixu a zapsány do SPEC; implementováno, čeká praktické ověření
 
 ## G. Přehled
 
