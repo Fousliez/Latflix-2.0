@@ -22,9 +22,9 @@ from PySide6.QtWidgets import (
 )
 
 
-HEADING_RE = re.compile(r"^(#{1,4})\\s+(.+?)\\s*$", re.MULTILINE)
-DONE_RE = re.compile(r"^- \\[x\\]", re.MULTILINE | re.IGNORECASE)
-OPEN_RE = re.compile(r"^- \\[ \\]", re.MULTILINE)
+HEADING_RE = re.compile(r"^(#{1,4})\s+(.+?)\s*$", re.MULTILINE)
+DONE_RE = re.compile(r"^- \[x\]", re.MULTILINE | re.IGNORECASE)
+OPEN_RE = re.compile(r"^- \[ \]", re.MULTILINE)
 
 
 def find_project_root(explicit: Path | None = None) -> Path:
