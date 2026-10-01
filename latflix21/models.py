@@ -447,7 +447,9 @@ class SmartProxy(QSortFilterProxyModel):
                 left_invalid = bool(left_key[0])
                 right_invalid = bool(right_key[0])
                 if left_invalid != right_invalid:
-                    return not left_invalid
+                    if self.sortOrder() == Qt.AscendingOrder:
+                        return not left_invalid
+                    return left_invalid
                 return left_key[1] < right_key[1]
         return super().lessThan(left, right)
 
