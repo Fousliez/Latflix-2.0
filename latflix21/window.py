@@ -59,7 +59,7 @@ class Sidebar(QWidget):
         for name in ("Přehled", "Girls", "Oblíbené", "Odkazy", "Videa", "Super", "Studia"):
             button = QPushButton(name)
             button.setCheckable(True)
-            button.setFixedHeight(29)
+            button.setFixedHeight(26)
             button.clicked.connect(
                 lambda checked=False, section=name: self.sectionRequested.emit(section)
             )
@@ -137,28 +137,45 @@ class OverviewCard(QFrame):
     def __init__(self, title, count, subtitle, parent=None):
         super().__init__(parent)
         self.title = title
+        self.setObjectName("overviewCard")
         self.setFrameShape(QFrame.StyledPanel)
         self.setCursor(Qt.PointingHandCursor)
+        self.setMinimumHeight(112)
         self.setStyleSheet(
-            "QFrame{background:#f7f8fa;border:1px solid #ccd5e0;border-radius:9px;}"
-            "QFrame:hover{background:#f1f5fa;} QLabel{border:0;background:transparent;}"
+            "QFrame#overviewCard{background:#f7f8fb;border:1px solid #d2d7e0;border-radius:9px;}"
+            "QFrame#overviewCard:hover{background:#f2f6fb;border-color:#879db8;}"
+            "QLabel{border:0;background:transparent;}"
         )
         layout = QVBoxLayout(self)
-        count_label = QLabel(str(count))
-        count_label.setStyleSheet("font-size:30px;font-weight:700;color:#1f5189")
-        layout.addWidget(count_label)
-        title_label = QLabel(title)
-        title_label.setStyleSheet("font-size:16px;font-weight:700")
-        layout.addWidget(title_label)
-        subtitle_label = QLabel(subtitle)
-        subtitle_label.setStyleSheet("color:#7b8797")
-        layout.addWidget(subtitle_label)
-        layout.addStretch()
+        layout.setContentsMargins(16, 13, 16, 13)
+        layout.setSpacing(3)
 
-    def mousePressEvent(self, event):
+        count_label = QLabel(str(count))
+        count_label.setStyleSheet(
+            "font-size:28px;font-weight:700;color:#244f83;"
+        )
+        layout.addWidget(count_label)
+
+        title_label = QLabel(title)
+        title_label.setStyleSheet(
+            "font-size:15px;font-weight:700;color:#20242a;"
+        )
+        layout.addWidget(title_label)
+
+        subtitle_label = QLabel(subtitle)
+        subtitle_label.setWordWrap(True)
+        subtitle_label.setStyleSheet(
+            "font-size:11px;color:#666d78;"
+        )
+        layout.addWidget(subtitle_label)
+
+    def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton:
             self.clicked.emit(self.title)
-        super().mousePressEvent(event)
+            event.accept()
+            return
+        super().mouseReleaseEvent(event)
+
 
 
 class OverviewPage(BasePage):
@@ -166,7 +183,7 @@ class OverviewPage(BasePage):
         super().__init__(repo, "Přehled", parent)
         self.navigate = navigate
         heading = QLabel("Přehled databáze")
-        heading.setStyleSheet("font-size:21px;font-weight:700")
+        heading.setStyleSheet("font-size:19px;font-weight:700;color:#20242a")
         self.outer.addWidget(heading)
         self.outer.addWidget(
             QLabel("Aktuální počty uložených položek. Kliknutím na kartu zobrazíš podrobnosti.")
@@ -537,17 +554,17 @@ class GirlsPage(TablePage):
         layout.setContentsMargins(6, 5, 6, 5)
 
         self.photo = PhotoLabel(self.top)
-        self.photo.setFixedSize(72, 118)
+        self.photo.setFixedSize(72, 96)
         self.photo.setText("Bez foto")
         self.photo.clicked.connect(self._photo_pick)
         self.photo.doubleClicked.connect(self._photo_snip)
         self.photo.contextRequested.connect(self._photo_context)
-        layout.addWidget(self.photo, 0, Qt.AlignVCenter)
+        layout.addWidget(self.photo, 0, Qt.AlignTop)
 
         middle = QVBoxLayout()
         name_row = QHBoxLayout()
         self.name = QLabel(self.title)
-        self.name.setStyleSheet("font-size:20px;font-weight:700")
+        self.name.setStyleSheet("font-size:21px;font-weight:700")
         self.favorite_btn = QPushButton("Oblíbené")
         self.favorite_btn.clicked.connect(self._toggle_favorite)
         name_row.addWidget(self.name)

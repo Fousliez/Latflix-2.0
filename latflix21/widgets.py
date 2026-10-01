@@ -167,13 +167,23 @@ class TextDelegate(QStyledItemDelegate):
     def __init__(self, view, parent=None):
         super().__init__(parent or view)
         self.view = view
+        self.active_editor = None
+        app = QApplication.instance()
+        if app is not None:
+            app.installEventFilter(self)
 
     def createEditor(self, parent, option, index):
         edit = QLineEdit(parent)
         edit.setProperty("row", index.row())
         edit.setProperty("col", index.column())
-        edit.installEventFilter(self)
+        edit.setProperty("_latflix_finishing", False)
+        self.active_editor = edit
+        edit.destroyed.connect(lambda *_args, e=edit: self._clear_active(e))
         return edit
+
+    def _clear_active(self, editor):
+        if self.active_editor is editor:
+            self.active_editor = None
 
     def setEditorData(self, editor, index):
         editor.setText(str(index.data(Qt.EditRole) or ""))
@@ -182,26 +192,80 @@ class TextDelegate(QStyledItemDelegate):
     def setModelData(self, editor, model, index):
         model.setData(index, editor.text(), Qt.EditRole)
 
-    def eventFilter(self, editor, event):
-        if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Escape:
-            return True
-        if event.type() == QEvent.KeyPress and event.key() in (Qt.Key_Return, Qt.Key_Enter):
-            row = int(editor.property("row"))
-            col = int(editor.property("col"))
-            self.commitData.emit(editor)
-            self.closeEditor.emit(editor)
+    def _finish_and_move(self, editor):
+        if editor is None or bool(editor.property("_latflix_finishing")):
+            return
+        editor.setProperty("_latflix_finishing", True)
+        row = int(editor.property("row"))
+        col = int(editor.property("col"))
+        self.commitData.emit(editor)
+        self.closeEditor.emit(editor)
+        self.active_editor = None
 
-            def move():
-                model = self.view.model()
-                next_row = row + 1
-                if next_row < model.rowCount():
-                    idx = model.index(next_row, col)
-                    self.view.setCurrentIndex(idx)
-                    self.view.edit(idx)
+        def move():
+            model = self.view.model()
+            next_row = row + 1
+            if next_row < model.rowCount():
+                idx = model.index(next_row, col)
+                self.view.setCurrentIndex(idx)
+                self.view.edit(idx)
 
-            QTimer.singleShot(0, move)
+        QTimer.singleShot(0, move)
+
+    def _switch_to_index(self, editor, index):
+        if editor is None or not index.isValid():
+            return
+        self.commitData.emit(editor)
+        self.closeEditor.emit(editor)
+        self.active_editor = None
+
+        def activate(idx=QModelIndex(index)):
+            if not idx.isValid():
+                return
+            self.view.setCurrentIndex(idx)
+            self.view._single_click(idx)
+
+        QTimer.singleShot(0, activate)
+
+    def eventFilter(self, watched, event):
+        editor = self.active_editor
+        if editor is None:
+            return super().eventFilter(watched, event)
+
+        if (
+            watched is editor
+            and event.type() == QEvent.KeyPress
+            and event.key() == Qt.Key_Escape
+        ):
+            # Esc nemá v tabulce speciální význam.
             return True
-        return super().eventFilter(editor, event)
+
+        if (
+            watched is editor
+            and event.type() == QEvent.KeyPress
+            and event.key() in (Qt.Key_Return, Qt.Key_Enter)
+        ):
+            self._finish_and_move(editor)
+            return True
+
+        if event.type() == QEvent.MouseButtonPress and editor.isVisible():
+            global_pos = event.globalPosition().toPoint()
+            target = QApplication.widgetAt(global_pos)
+
+            # Klik uvnitř editoru, včetně prostředního tlačítka na Linuxu,
+            # necháváme QLineEdit zpracovat standardně.
+            if target is editor or (target is not None and editor.isAncestorOf(target)):
+                return False
+
+            viewport = self.view.viewport()
+            local = viewport.mapFromGlobal(global_pos)
+            if viewport.rect().contains(local):
+                index = self.view.indexAt(local)
+                if index.isValid():
+                    self._switch_to_index(editor, index)
+                    return True
+
+        return super().eventFilter(watched, event)
 
 
 class ChoiceDelegate(QStyledItemDelegate):
@@ -210,6 +274,9 @@ class ChoiceDelegate(QStyledItemDelegate):
         self.choices = choices
         self.view = view
         self.active_combo = None
+        app = QApplication.instance()
+        if app is not None:
+            app.installEventFilter(self)
 
     def createEditor(self, parent, option, index):
         combo = QComboBox(parent)
@@ -222,15 +289,23 @@ class ChoiceDelegate(QStyledItemDelegate):
         )
         combo.addItems(self.choices(index))
         combo.activated.connect(
-            lambda *_: (self.commitData.emit(combo), self.closeEditor.emit(combo))
+            lambda *_: self._commit_combo(combo)
         )
-        app = QApplication.instance()
-        if app is not None:
-            app.removeEventFilter(self)
-            app.installEventFilter(self)
-            combo.destroyed.connect(lambda *_: app.removeEventFilter(self))
+        combo.destroyed.connect(lambda *_args, c=combo: self._clear_active(c))
         QTimer.singleShot(0, combo.showPopup)
         return combo
+
+    def _clear_active(self, combo):
+        if self.active_combo is combo:
+            self.active_combo = None
+
+    def _commit_combo(self, combo):
+        if combo is None:
+            return
+        self.commitData.emit(combo)
+        self.closeEditor.emit(combo)
+        if self.active_combo is combo:
+            self.active_combo = None
 
     def setEditorData(self, editor, index):
         text = str(index.data(Qt.EditRole) or "")
@@ -242,23 +317,24 @@ class ChoiceDelegate(QStyledItemDelegate):
 
     def eventFilter(self, watched, event):
         combo = self.active_combo
+        if combo is None:
+            return super().eventFilter(watched, event)
+
         if (
-            combo is not None
+            watched is combo
             and event.type() == QEvent.KeyPress
             and event.key() == Qt.Key_Escape
         ):
             return True
-        if (
-            combo is not None
-            and event.type() == QEvent.MouseButtonPress
-            and combo.isVisible()
-        ):
+
+        if event.type() == QEvent.MouseButtonPress and combo.isVisible():
             global_pos = event.globalPosition().toPoint()
             target = QApplication.widgetAt(global_pos)
             popup = combo.view()
             if (
                 target is combo
                 or target is popup
+                or (target is not None and combo.isAncestorOf(target))
                 or (target is not None and popup.isAncestorOf(target))
             ):
                 return False
@@ -280,6 +356,7 @@ class ChoiceDelegate(QStyledItemDelegate):
 
                     QTimer.singleShot(0, activate)
                     return True
+
         return super().eventFilter(watched, event)
 
 
@@ -288,9 +365,14 @@ class AutoCompleteDelegate(QStyledItemDelegate):
         super().__init__(parent or view)
         self.suggestions = suggestions
         self.view = view
+        self.active_editor = None
+        app = QApplication.instance()
+        if app is not None:
+            app.installEventFilter(self)
 
     def createEditor(self, parent, option, index):
         edit = QLineEdit(parent)
+        self.active_editor = edit
         edit.setProperty("row", index.row())
         edit.setProperty("col", index.column())
         edit.setProperty("_latflix_finishing", False)
@@ -311,10 +393,12 @@ class AutoCompleteDelegate(QStyledItemDelegate):
         edit.setCompleter(completer)
         edit.textEdited.connect(lambda text: model.setStringList(self.suggestions(text)))
         completer.activated.connect(lambda *_: self._schedule_finish(edit))
-        edit.returnPressed.connect(
-            lambda: None if popup.isVisible() else self._schedule_finish(edit)
-        )
+        edit.destroyed.connect(lambda *_args, e=edit: self._clear_active(e))
         return edit
+
+    def _clear_active(self, editor):
+        if self.active_editor is editor:
+            self.active_editor = None
 
     def _schedule_finish(self, editor):
         if bool(editor.property("_latflix_finishing")):
@@ -329,6 +413,7 @@ class AutoCompleteDelegate(QStyledItemDelegate):
         col = int(editor.property("col"))
         self.commitData.emit(editor)
         self.closeEditor.emit(editor)
+        self.active_editor = None
 
         def move():
             model = self.view.model()
@@ -340,13 +425,75 @@ class AutoCompleteDelegate(QStyledItemDelegate):
 
         QTimer.singleShot(0, move)
 
-    def eventFilter(self, editor, event):
-        if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Escape:
+    def _switch_to_index(self, editor, index):
+        if editor is None or not index.isValid():
+            return
+        self.commitData.emit(editor)
+        self.closeEditor.emit(editor)
+        self.active_editor = None
+
+        def activate(idx=QModelIndex(index)):
+            if not idx.isValid():
+                return
+            self.view.setCurrentIndex(idx)
+            self.view._single_click(idx)
+
+        QTimer.singleShot(0, activate)
+
+    def eventFilter(self, watched, event):
+        editor = self.active_editor
+        if editor is None:
+            return super().eventFilter(watched, event)
+
+        if (
+            watched is editor
+            and event.type() == QEvent.KeyPress
+            and event.key() == Qt.Key_Escape
+        ):
             return True
-        return super().eventFilter(editor, event)
+
+        if (
+            watched is editor
+            and event.type() == QEvent.KeyPress
+            and event.key() in (Qt.Key_Return, Qt.Key_Enter)
+        ):
+            popup = editor.completer().popup() if editor.completer() else None
+            if popup is not None and popup.isVisible():
+                return False
+            self._schedule_finish(editor)
+            return True
+
+        if event.type() == QEvent.MouseButtonPress and editor.isVisible():
+            global_pos = event.globalPosition().toPoint()
+            target = QApplication.widgetAt(global_pos)
+            popup = editor.completer().popup() if editor.completer() else None
+
+            if (
+                target is editor
+                or (target is not None and editor.isAncestorOf(target))
+                or (
+                    popup is not None
+                    and (
+                        target is popup
+                        or (target is not None and popup.isAncestorOf(target))
+                    )
+                )
+            ):
+                return False
+
+            viewport = self.view.viewport()
+            local = viewport.mapFromGlobal(global_pos)
+            if viewport.rect().contains(local):
+                index = self.view.indexAt(local)
+                if index.isValid():
+                    if popup is not None:
+                        popup.hide()
+                    self._switch_to_index(editor, index)
+                    return True
+
+        return super().eventFilter(watched, event)
 
     def setEditorData(self, editor, index):
-        editor.installEventFilter(self)
         editor.setText(str(index.data(Qt.EditRole) or ""))
         editor.selectAll()
 

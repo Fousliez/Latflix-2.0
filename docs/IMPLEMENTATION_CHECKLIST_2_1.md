@@ -85,7 +85,7 @@ Procesní pravidlo:
 - [x] Dialog Odkazy: uložené odkazy + 10 řádků pro nové
 - [x] Profilovka: klik = výběr souboru, pravé = smazání
 - [x] Profilovka: dvojklik = výřez libovolné oblasti obrazovky včetně jiného monitoru
-- [ ] Přesné vizuální doladění panelu proti screenshotům
+- [x] Horní panel Girls / Oblíbené vizuálně dorovnán podle SPEC a referenčního Latflixu (72×96 foto, horní zarovnání, kompaktní metadata, 2 řádky odkazů, akční tlačítka)
 
 ## D. Videa / Super
 
@@ -111,7 +111,7 @@ Procesní pravidlo:
 - [x] Detail videa
 - [x] Vzhled našeptávače: větší font/řádky, modrá aktivní položka s bílým textem
 - [x] Studio dropdown filtr: cca 15 viditelných položek + scrollbar explicitně nastavit
-- [ ] Detail videa vizuálně dorovnat referenci
+- [ ] Detail videa vizuálně přepracován do kompaktního dvousloupcového layoutu a správy účinkujících; čeká praktická vizuální kontrola proti referenci
 
 ## E. Studia
 
@@ -152,7 +152,7 @@ Procesní pravidlo:
 - [x] Oblíbené: položka Ohodnoceno dle SPEC
 - [x] Videa: položka Ohodnoceno dle SPEC
 - [x] SUPER: položka Ohodnoceno dle SPEC
-- [ ] Přesnější vzhled karet podle původního Latflixu
+- [x] Karty Přehledu vizuálně dorovnány podle původního Latflixu (rozměry, typografie, okraje, hover)
 
 ## H. Pomocné sekce
 
@@ -163,7 +163,7 @@ Procesní pravidlo:
 - [x] Národnosti
 - [x] Tagy mají uloženou barvu
 - [x] Barvu tagu lze měnit
-- [ ] Vizuální styl pomocných tabulek dorovnat screenshotům
+- [ ] Pomocné tabulky používají sjednocený společný vizuální základ; finální dorovnání proti screenshotům čeká na vizuální průchod
 
 ## I. Projektová dokumentace v aplikaci
 
@@ -171,10 +171,10 @@ Procesní pravidlo:
 
 ## J. Zbývající integrační ověření
 
-- [ ] Linux: prostřední tlačítko v aktivním QLineEdit v tabulce
-- [ ] Přechod editor -> jiný editor jedním klikem ve všech kombinacích
-- [ ] Přechod dropdown -> dropdown jedním klikem
-- [ ] Ověřit, že jedno fyzické Enter nikdy nepřeskočí dva řádky
+- [ ] Linux: prostřední tlačítko v aktivním QLineEdit je v event filtrech výslovně ponecháno standardnímu QLineEdit; čeká praktické ověření X11/desktop chování
+- [ ] Přechod text/autocomplete editor -> jiný editor jedním klikem je nově implementačně ošetřen globálním click-through filtrem; čeká praktické ověření všech kombinací
+- [ ] Přechod dropdown -> dropdown jedním klikem je opraven tak, aby zánik starého editoru neodpojil filtr nového; čeká praktické ověření
+- [ ] Text a autocomplete editor mají explicitní jednorázový Enter guard a posun přesně o jeden řádek; čeká praktické ověření
 - [ ] Ověřit persistenci pořadí/šířek/skrytí/přejmenování po restartu
 - [ ] Ověřit chování se stovkami až tisíci řádky
 - [ ] Finální průchod každou sekcí proti screenshotům

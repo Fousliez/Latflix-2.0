@@ -58,3 +58,25 @@ def test_latflix21_help_menu_contains_documentation_actions(tmp_path: Path):
     finally:
         window.close()
         app.processEvents()
+
+
+def test_latflix21_visual_reference_sizes(tmp_path: Path):
+    app = QApplication.instance() or QApplication([])
+    repo = Repository(tmp_path / "latflix21.db")
+    window = MainWindow(repo)
+    try:
+        girls = window.pages["Girls"]
+        assert girls.top.height() == 136
+        assert girls.photo.width() == 72
+        assert girls.photo.height() == 96
+        assert girls.links_btn.height() == 26
+        assert girls.detail_btn.height() == 26
+        assert girls.show_links_btn.height() == 26
+        assert girls.chips.max_rows == 2
+
+        videos = window.pages["Videa"]
+        assert videos.top.height() == 136
+        assert videos.chips.max_rows == 3
+    finally:
+        window.close()
+        app.processEvents()

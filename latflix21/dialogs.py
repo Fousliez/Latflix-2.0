@@ -184,69 +184,122 @@ class VideoDetailDialog(QDialog):
         self.video_id = video_id
         self.video = next((v for v in repo.videos(False) if v.id == video_id), None)
         self.setWindowTitle("Detail videa")
-        self.resize(780, 620)
+        self.resize(860, 660)
+        self.setMinimumSize(760, 560)
 
         layout = QVBoxLayout(self)
-        form = QFormLayout()
-        layout.addLayout(form)
+        layout.setContentsMargins(16, 14, 16, 14)
+        layout.setSpacing(10)
+
+        heading_row = QHBoxLayout()
+        heading = QLabel("Detail videa")
+        heading.setStyleSheet("font-size:20px;font-weight:700;color:#20242a;")
+        heading_row.addWidget(heading)
+        heading_row.addStretch()
+        self.video_hint = QLabel(
+            self.video.title if self.video and self.video.title else "Vybraný videozáznam"
+        )
+        self.video_hint.setStyleSheet("color:#6b7280;")
+        heading_row.addWidget(self.video_hint)
+        layout.addLayout(heading_row)
+
+        fields = QWidget(self)
+        grid = QGridLayout(fields)
+        grid.setContentsMargins(0, 0, 0, 0)
+        grid.setHorizontalSpacing(12)
+        grid.setVerticalSpacing(7)
         video = self.video
 
+        def add_field(row, pair, label_text, widget):
+            base = pair * 2
+            label = QLabel(label_text)
+            label.setStyleSheet("font-weight:600;color:#40454c;")
+            grid.addWidget(label, row, base)
+            grid.addWidget(widget, row, base + 1)
+
         self.title = QLineEdit(video.title if video else "")
-        form.addRow("Název", self.title)
+        title_label = QLabel("Název")
+        title_label.setStyleSheet("font-weight:600;color:#40454c;")
+        grid.addWidget(title_label, 0, 0)
+        grid.addWidget(self.title, 0, 1, 1, 3)
 
         self.studio = QComboBox()
         self.studio.setEditable(True)
         self.studio.addItems([""] + [x[0] for x in repo.studio_suggestions("")])
         self.studio.setCurrentText(video.studio_name if video else "")
-        form.addRow("Studio", self.studio)
+        add_field(1, 0, "Studio", self.studio)
 
         self.release = QLineEdit(video.release_date if video else "")
-        form.addRow("Datum vydání", self.release)
+        add_field(1, 1, "Datum vydání", self.release)
 
         self.state = QComboBox()
         self.state.addItems([""] + repo.catalog("states"))
         self.state.setCurrentText(video.state if video else "")
-        form.addRow("Stav", self.state)
-
-        self.quality = QComboBox()
-        self.quality.addItems([""] + repo.catalog("qualities"))
-        self.quality.setCurrentText(video.quality if video else "")
-        form.addRow("Kvalita", self.quality)
-
-        self.available = QComboBox()
-        self.available.addItems([""] + repo.catalog("qualities"))
-        self.available.setCurrentText(video.available_quality if video else "")
-        form.addRow("Dostup. kvalita", self.available)
-
-        self.size = QLineEdit(video.size if video else "")
-        form.addRow("Velikost", self.size)
-
-        self.duration = QLineEdit(video.duration if video else "")
-        form.addRow("Délka", self.duration)
+        add_field(2, 0, "Stav", self.state)
 
         self.mixed = QComboBox()
         self.mixed.addItems(["", "Ano", "Ne"])
         self.mixed.setCurrentText(video.mixed_gender if video else "")
-        form.addRow("M+Ž", self.mixed)
+        add_field(2, 1, "M+Ž", self.mixed)
+
+        self.quality = QComboBox()
+        self.quality.addItems([""] + repo.catalog("qualities"))
+        self.quality.setCurrentText(video.quality if video else "")
+        add_field(3, 0, "Kvalita", self.quality)
+
+        self.available = QComboBox()
+        self.available.addItems([""] + repo.catalog("qualities"))
+        self.available.setCurrentText(video.available_quality if video else "")
+        add_field(3, 1, "Dostup. kvalita", self.available)
+
+        self.size = QLineEdit(video.size if video else "")
+        add_field(4, 0, "Velikost", self.size)
+
+        self.duration = QLineEdit(video.duration if video else "")
+        add_field(4, 1, "Délka", self.duration)
 
         self.rating = QLineEdit(video.rating if video else "")
-        form.addRow("Hodnocení", self.rating)
+        add_field(5, 0, "Hodnocení", self.rating)
 
+        layout.addWidget(fields)
+
+        note_label = QLabel("Poznámka")
+        note_label.setStyleSheet("font-weight:600;color:#40454c;")
+        layout.addWidget(note_label)
         self.note = QTextEdit(video.note if video else "")
-        self.note.setMaximumHeight(90)
-        form.addRow("Poznámka", self.note)
+        self.note.setMaximumHeight(92)
+        layout.addWidget(self.note)
 
-        layout.addWidget(QLabel("Herečky ve videu"))
+        people_head = QHBoxLayout()
+        people_title = QLabel("Dívky ve videu")
+        people_title.setStyleSheet("font-size:15px;font-weight:700;")
+        self.people_count = QLabel("0")
+        self.people_count.setStyleSheet(
+            "padding:2px 7px;border:1px solid #c8c8c8;border-radius:5px;background:#f7f7f7;"
+        )
+        people_head.addWidget(people_title)
+        people_head.addWidget(self.people_count)
+        people_head.addStretch()
+        layout.addLayout(people_head)
+
         self.people = QListWidget()
         self.people.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.people.setAlternatingRowColors(True)
+        self.people.setStyleSheet(
+            "QListWidget{background:white;border:1px solid #aaa;}"
+            "QListWidget::item{min-height:26px;padding:2px 6px;}"
+        )
         layout.addWidget(self.people, 1)
 
         for girl_id, name, _ in (video.participants if video else ()):
             self._add_person_item(girl_id, name)
+        self._update_people_count()
 
         actions = QHBoxLayout()
         add = QPushButton("Přidat herečku")
         remove = QPushButton("Odebrat označené")
+        add.setFixedHeight(28)
+        remove.setFixedHeight(28)
         actions.addWidget(add)
         actions.addWidget(remove)
         actions.addStretch()
@@ -255,18 +308,23 @@ class VideoDetailDialog(QDialog):
         remove.clicked.connect(self._remove_people)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
+        buttons.button(QDialogButtonBox.Save).setText("Uložit")
+        buttons.button(QDialogButtonBox.Cancel).setText("Zrušit")
         buttons.accepted.connect(self.save)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
+
+    def _update_people_count(self):
+        if hasattr(self, "people_count"):
+            self.people_count.setText(f"{self.people.count()} účinkujících")
 
     def _add_person_item(self, girl_id, name):
         item = QListWidgetItem(name)
         item.setData(Qt.UserRole, girl_id)
         self.people.addItem(item)
+        self._update_people_count()
 
     def _add_person(self):
-        from PySide6.QtWidgets import QInputDialog
-
         suggestions = [x[0] for x in self.repo.girl_suggestions("")]
         text, ok = QInputDialog.getItem(
             self, "Přidat herečku", "Jméno nebo alias", suggestions, 0, True
@@ -301,6 +359,7 @@ class VideoDetailDialog(QDialog):
     def _remove_people(self):
         for item in self.people.selectedItems():
             self.people.takeItem(self.people.row(item))
+        self._update_people_count()
 
     def save(self):
         video = self.video
