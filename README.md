@@ -1,5 +1,8 @@
 # Latflix 2.1
 
+> **Vývoj Latflixu 2.0:** Před jakoukoli změnou projektu nejprve přečti `AGENTS.md`. Závazným zdrojem požadavků je `docs/SPEC_LATFLIX_2.md` a stav implementace je veden v `docs/IMPLEMENTATION_CHECKLIST_2_1.md`.
+
+
 Čistý desktopový přepis Latflixu podle `docs/SPEC_LATFLIX_2.md` a referenčních screenshotů.
 
 ## Základ
